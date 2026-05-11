@@ -33,7 +33,7 @@ export async function signInWithGoogle() {
   const { error } = await supabaseGoogle.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://servex-ai-iota.vercel.app/', // URL de tu sitio en Vercel
+      redirectTo: 'https://servex-clent-profle.vercel.app/', // URL de tu sitio en Vercel
       queryParams: {
         access_type: 'offline',
         prompt: 'select_account',
@@ -53,7 +53,7 @@ export async function signInWithAzure() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'azure',
     options: {
-      redirectTo: 'https://servex-ai-iota.vercel.app/',
+      redirectTo: 'https://servex-clent-profle.vercel.app/',
     }
   });
 

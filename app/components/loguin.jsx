@@ -1,4 +1,3 @@
-// components/LoginComponent.js
 'use client';
 
 import { signInWithGoogle, signInWithAzure } from '@/app/lib/supabaseClient';
@@ -9,7 +8,7 @@ export default function LoginComponent() {
     try {
       await signInWithGoogle();
     } catch (error) {
-      alert("Error al conectar con Google");
+      console.error("Error Google Login:", error);
     }
   };
 
@@ -17,39 +16,43 @@ export default function LoginComponent() {
     try {
       await signInWithAzure();
     } catch (error) {
-      alert("Error al conectar con Microsoft");
+      console.error("Error Azure Login:", error);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          SERVEX_AI - Acceso
-        </h1>
+    <div className="flex flex-col items-center justify-center p-8 bg-white">
+      <div className="w-full">
+        <div className="mb-8 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-50 rounded-2xl mb-4">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-6 h-6" alt="Google" />
+            </div>
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight">
+              SERVEX<span className="text-indigo-600">_AI</span>
+            </h1>
+            <p className="text-slate-400 text-xs font-medium mt-1 uppercase tracking-widest">Auth Portal</p>
+        </div>
         
-        <div className="space-y-4">
-          {/* Botón para Clientes / Externos */}
+        <div className="space-y-3">
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-slate-200 rounded-xl shadow-sm bg-white text-slate-700 hover:bg-slate-50 transition-all font-semibold text-sm active:scale-95"
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-            <span>Acceso Clientes con Google</span>
+            <span>Acceso Clientes</span>
           </button>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-gray-200"></span></div>
-            <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Uso Interno</span></div>
+          <div className="relative py-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-100"></span></div>
+            <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-[0.2em]"><span className="px-3 bg-white text-slate-300">Corporativo</span></div>
           </div>
 
-          {/* Botón para Staff (Azure) */}
           <button
             onClick={handleAzureLogin}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#2F2F2F] text-white rounded-md hover:bg-black transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-slate-900 text-white rounded-xl hover:bg-black transition-all shadow-xl shadow-slate-200 font-semibold text-sm active:scale-95"
           >
-            <img src="https://authjs.dev/img/providers/azure.svg" className="w-5 h-5" alt="Azure" />
-            <span>Acceso Staff (Servex US)</span>
+            <img src="https://authjs.dev/img/providers/azure.svg" className="w-5 h-5 invert" alt="Azure" />
+            <span>Staff Servex US</span>
           </button>
         </div>
       </div>

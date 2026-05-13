@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabaseGoogle } from '../lib/supabaseClient';
+import { supabaseGoogle } from '../../lib/supabaseClient';
 
 const TeamsFloatingHeader = () => {
   const [user, setUser] = useState(null);

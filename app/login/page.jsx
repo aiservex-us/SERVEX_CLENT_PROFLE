@@ -3,11 +3,11 @@
 
 
 import Image from "next/image";
-import HOME from './Home/page'
+import Loguin from './components/loguin'
 export default function Home() {
   return (
     <div className="">
-     <HOME />
+     <Loguin />
     </div>
   );
 }

@@ -2,22 +2,21 @@
 
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-// Importamos la instancia estándar (Azure)
-import { supabase } from '../lib/supabaseClient'; 
+// Importamos la instancia y la función de Google desde el lib
+import { supabase, signInWithGoogle } from '../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
-import { FaMicrosoft } from 'react-icons/fa';
+import { FaGoogle } from 'react-icons/fa'; // Cambiado a icono de Google
 import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const handleMicrosoftLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'azure',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
-      },
-    });
+  const handleLogin = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      console.error("Error al iniciar sesión:", err);
+    }
   };
 
   useEffect(() => {
@@ -68,11 +67,11 @@ export default function LoginPage() {
             </p>
 
             <button
-              onClick={handleMicrosoftLogin}
+              onClick={handleLogin}
               className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
             >
-              <FaMicrosoft className="text-lg" />
-              Sign in with Microsoft
+              <FaGoogle className="text-lg text-red-500" />
+              Sign in with Google
             </button>
 
             <p className="text-xs text-gray-400 text-center mt-8">

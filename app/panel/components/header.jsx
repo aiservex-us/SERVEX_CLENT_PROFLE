@@ -24,7 +24,7 @@ const TeamsFloatingHeader = () => {
     try {
       const { error } = await supabaseGoogle.auth.signOut();
       if (error) throw error;
-      router.push('/login');
+      router.push('/');
       router.refresh(); 
     } catch (error) {
       console.error('❌ Error:', error.message);

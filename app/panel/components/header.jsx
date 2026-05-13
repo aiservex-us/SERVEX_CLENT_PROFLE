@@ -44,22 +44,6 @@ const TeamsFloatingHeader = () => {
             </div>
           </div>
 
-          {/* SECCIÓN 2: NAVEGACIÓN */}
-          <div className="hidden md:flex items-center ml-2 gap-0.5 h-full">
-            {['Home', 'Features', 'Why Choose', 'Pricing'].map((item, idx) => (
-              <a 
-                key={item} 
-                href={`#${item.toLowerCase().replace(/\s+/g, '-')}`} 
-                className={`px-3 py-1.5 rounded-full text-[13px] transition-all ${
-                  idx === 0 
-                    ? 'bg-[#E8EBFA] text-[#5B5FC7] font-semibold' 
-                    : 'text-[#616161] hover:bg-[#F0F0F0] hover:text-[#242424]'
-                }`}
-              >
-                {item}
-              </a>
-            ))}
-          </div>
         </div>
 
         {/* SECCIÓN 3: ACCIÓN - CERRAR SESIÓN */}

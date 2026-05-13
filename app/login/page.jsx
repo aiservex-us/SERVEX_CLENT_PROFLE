@@ -2,26 +2,26 @@
 
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-// Importamos la instancia y la función de Google desde tu lib
-import { supabaseGoogle, signInWithGoogle } from '../lib/supabaseClient'; 
+// Importamos la instancia estándar (Azure)
+import { supabase } from '../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
-import { FaGoogle } from 'react-icons/fa'; // Cambiado a ícono de Google
+import { FaMicrosoft } from 'react-icons/fa';
 import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      console.error("Error en el flujo de inicio de sesión:", error);
-    }
+  const handleMicrosoftLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
+      },
+    });
   };
 
   useEffect(() => {
-    // Verificamos la sesión usando la instancia de Google
-    supabaseGoogle.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         const audio = new Audio('/tu-sonido.mp3');
         audio.play().catch(err => console.log("El navegador bloqueó el autoplay:", err));
@@ -38,7 +38,6 @@ export default function LoginPage() {
         transition={{ duration: 0.4 }}
         className="w-full max-w-5xl h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
       >
-        {/* Sección Izquierda (Gradiente) */}
         <div className="relative hidden md:flex flex-col justify-end p-10 text-white">
           <div className="absolute inset-0 bg-gradient-to-br from-[#c7d2fe] via-[#ddd6fe] to-[#bfdbfe]" />
           <div className="relative z-10">
@@ -51,7 +50,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Sección Derecha (Login) */}
         <div className="flex flex-col px-8 py-10 md:px-14 h-full">
           <div className="mb-10 flex justify-center">
             <Image src="/logo.png" alt="SERVEX" width={140} height={40} priority />
@@ -70,11 +68,11 @@ export default function LoginPage() {
             </p>
 
             <button
-              onClick={handleGoogleLogin}
+              onClick={handleMicrosoftLogin}
               className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
             >
-              <FaGoogle className="text-lg text-[#DB4437]" />
-              Sign in with Google
+              <FaMicrosoft className="text-lg" />
+              Sign in with Microsoft
             </button>
 
             <p className="text-xs text-gray-400 text-center mt-8">

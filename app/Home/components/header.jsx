@@ -91,7 +91,7 @@ const TeamsFloatingHeader = () => {
               className="group flex items-center gap-2 px-4 py-1.5 rounded-full bg-transparent border border-transparent hover:border-slate-200 text-slate-600 font-medium text-[12px] transition-all duration-200"
             >
               <FaRobot className="text-[#5B5FC7] opacity-70 group-hover:opacity-100 transition-transform group-hover:rotate-12" />
-              <span>Servex Copiloto</span>
+              <span>Svx Copilot</span>
             </motion.button>
           </a>
 

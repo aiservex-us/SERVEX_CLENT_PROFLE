@@ -5,16 +5,16 @@ import { FaArrowRight, FaStar } from 'react-icons/fa';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[90vh] w-full flex flex-col justify-end overflow-hidden bg-white px-6 pb-20 pt-32 md:px-16">
+    <section className="relative min-h-[100vh] w-full flex flex-col justify-end overflow-hidden bg-white px-6 pb-20 pt-32 md:px-16">
       
       {/* 1. IMAGEN DE FONDO BASE */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="/ball.gif" 
-          alt="Background Animation"
+          src="/fondo.jpg" 
+ 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-white/85" />
+        <div className="absolute inset-0 bg-white/35" />
       </div>
 
       {/* 2. CAPA DE DEGRADADOS Y PANELES */}
@@ -82,7 +82,7 @@ const HeroSection = () => {
             </p>
           </div>
 
-        </div>å
+        </div>
       </div>
     </section>
   );

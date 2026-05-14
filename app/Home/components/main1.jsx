@@ -36,13 +36,13 @@ const HeroSection = () => {
       <div className="relative z-20 max-w-7xl mx-auto w-full">
         
         {/* Título Principal */}
-        <h1 className="text-4xl md:text-6xl font-light text-[#1a1a1a] leading-[1.1] tracking-tighter mb-6 max-w-2xl font-sans">
-          Centralize your data <br />
-          and scale your catalogs
+        <h1 className="text-4xl md:text-[300%] font-light text-[#1a1a1a] leading-[1.1] tracking-tighter mb-6 max-w-2xl font-sans">
+        <b>Welcome to Svx Command:</b> <br />
+  The new standard in Servex catalog management.
         </h1>
 
         {/* Texto Descriptivo - Ajustado a tamaños más pequeños y responsivos */}
-        <p className="text-sm md:text-base lg:text-lg font-light text-gray-500 mb-12 max-w-xl md:max-w-2xl leading-relaxed">
+        <p className="text-s md:text-base lg:text-lg font-light text-gray-500 mb-12 max-w-xl md:max-w-2xl leading-relaxed">
           Transcend the limitations of legacy spreadsheets with an <span className="text-black font-normal">ultra-sophisticated ecosystem</span> designed for Servex AI and CET Designer partners. 
           Centralize, orchestrate, and refine complex data through a professional architecture that replaces manual Excel workflows with <span className="text-black font-normal">intelligent automation and high-level analytical tools.</span>
         </p> 

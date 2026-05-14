@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabaseGoogle } from '../../lib/supabaseClient';
-import { FaRobot, FaUserCircle } from 'react-icons/fa';
+import { FaRobot, FaUserCircle, FaExternalLinkAlt } from 'react-icons/fa';
 
 const TeamsFloatingHeader = () => {
   const [user, setUser] = useState(null);
@@ -27,12 +27,10 @@ const TeamsFloatingHeader = () => {
     };
   }, []);
 
-  // Variantes de animación para los botones
   const buttonVariants = {
     hover: { 
       scale: 1.05, 
       y: -1,
-      boxShadow: "0px 8px 20px rgba(91, 95, 199, 0.2)",
       transition: { type: "spring", stiffness: 400, damping: 10 }
     },
     tap: { scale: 0.95 }
@@ -46,7 +44,6 @@ const TeamsFloatingHeader = () => {
         className="pointer-events-auto flex justify-between items-center px-6 py-2 bg-white/80 backdrop-blur-md border border-white/20 rounded-full shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] max-w-7xl w-full"
       >
         
-        {/* SECCIÓN 1: BRANDING */}
         <div className="flex items-center gap-4">
           <Link href="/">
             <motion.div 
@@ -62,10 +59,26 @@ const TeamsFloatingHeader = () => {
           </Link>
         </div>
 
-        {/* SECCIÓN 3: ACCIONES DINÁMICAS */}
         <div className="flex items-center gap-3">
           
-          {/* BOTÓN SERVEX COPILOTO - Estilo Glassmorphism */}
+          {/* BOTÓN OFICIAL SERVEX */}
+          <a 
+            href="https://servex-us.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            <motion.button
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              className="group flex items-center gap-2 px-4 py-1.5 rounded-full bg-transparent border border-transparent hover:border-slate-200 text-slate-500 font-medium text-[12px] transition-all duration-200"
+            >
+              <span>Oficial Servex</span>
+              <FaExternalLinkAlt className="text-[10px] opacity-0 group-hover:opacity-40 transition-opacity" />
+            </motion.button>
+          </a>
+
+          {/* BOTÓN SERVEX COPILOTO */}
           <a 
             href="https://servex-ai-iota.vercel.app/" 
             target="_blank" 
@@ -75,9 +88,9 @@ const TeamsFloatingHeader = () => {
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className="group relative flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-50/50 border border-slate-200 text-slate-600 font-medium text-[12px] backdrop-blur-sm transition-colors hover:bg-white hover:text-[#5B5FC7]"
+              className="group flex items-center gap-2 px-4 py-1.5 rounded-full bg-transparent border border-transparent hover:border-slate-200 text-slate-600 font-medium text-[12px] transition-all duration-200"
             >
-              <FaRobot className="text-[#5B5FC7] transition-transform group-hover:rotate-12" />
+              <FaRobot className="text-[#5B5FC7] opacity-70 group-hover:opacity-100 transition-transform group-hover:rotate-12" />
               <span>Servex Copiloto</span>
             </motion.button>
           </a>
@@ -95,9 +108,6 @@ const TeamsFloatingHeader = () => {
                     whileTap="tap"
                     className="relative overflow-hidden bg-[#5B5FC7] text-white px-6 py-1.5 rounded-full font-semibold text-[12px] shadow-lg shadow-indigo-500/20 flex items-center gap-2"
                   >
-                    {/* Efecto de brillo interior */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
-                    
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>

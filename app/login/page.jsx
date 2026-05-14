@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 // Importamos la instancia y la función de Google desde el lib
 import { supabase, signInWithGoogle } from '../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
-import { FaGoogle } from 'react-icons/fa'; // Cambiado a icono de Google
+import { FaGoogle } from 'react-icons/fa'; 
 import Image from 'next/image';
 
 export default function LoginPage() {
@@ -41,10 +41,10 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-[#c7d2fe] via-[#ddd6fe] to-[#bfdbfe]" />
           <div className="relative z-10">
             <div className="text-4xl font-bold mb-4">*</div>
-            <p className="text-sm opacity-80 mb-2">Secure corporate access</p>
+            <p className="text-sm opacity-80 mb-2">Centralized Data Control</p>
             <h2 className="text-2xl font-semibold leading-snug">
-              Sign in to the SERVEX AI ecosystem and unlock intelligent tools
-              built for enterprise performance
+              Access the core engine to manage, edit, and orchestrate all 
+              Servex product catalogs and data flows.
             </h2>
           </div>
         </div>
@@ -56,13 +56,23 @@ export default function LoginPage() {
 
           <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
             <h1 className="text-2xl font-semibold text-gray-900 mb-4 text-center">
-              Access SERVEX AI Platform
+              Catalog Management System
             </h1>
             <p className="text-sm text-gray-500 mb-8 text-center leading-relaxed">
-              This platform provides secure access to the SERVEX artificial intelligence ecosystem.
+              Sign in to manage your product data. This workspace allows you to 
+              update, edit, and synchronize every technical asset in the ecosystem.
               <br />
               <span className="font-medium text-gray-700">
-                Only users with a <strong>@servex-us.com</strong> corporate email are authorized to sign in.
+                Authorized for {' '}
+                <a 
+                  href="https://servex-us.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="font-bold hover:text-blue-600 transition-colors underline decoration-gray-300 underline-offset-2"
+                >
+                  servex-us.com
+                </a> 
+                {' '} corporate identities only.
               </span>
             </p>
 
@@ -71,11 +81,11 @@ export default function LoginPage() {
               className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
             >
               <FaGoogle className="text-lg text-red-500" />
-              Sign in with Google
+              Sign in with Corporate Google
             </button>
 
             <p className="text-xs text-gray-400 text-center mt-8">
-              Unauthorized access is restricted. All activity is monitored for security purposes.
+              Data governance active. All catalog modifications are logged for security and integrity purposes.
             </p>
           </div>
         </div>

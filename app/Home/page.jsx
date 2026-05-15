@@ -13,7 +13,7 @@ import Footer from './components/footer';
  */
 export default function Home() {
   return (
-    <div className="relative min-h-screen w-full bg-[#F5F5F5]">
+    <div className="relative min-h-screen w-full bg-[#FFF]">
       {/* Landing Page Structure */}
       <Header />
       <Main1 />

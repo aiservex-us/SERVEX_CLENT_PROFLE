@@ -31,12 +31,13 @@ const SVXTeamsOnboarding = () => {
           .from('client_submissions')
           .select('company_name, business_activity')
           .eq('user_id', authUser.id)
-          .maybeSingle(); // Usamos maybeSingle para evitar errores si no hay resultados
+          .maybeSingle(); 
 
-        // Si no hay datos, o faltan campos clave, mostramos el formulario
+        // Si no hay datos, o faltan campos clave, activamos el formulario
         if (error || !data || !data.company_name) {
           setShowForm(true);
         } else {
+          // Si hay datos, NO mostramos el formulario (se queda en false)
           setShowForm(false);
         }
       }
@@ -85,13 +86,13 @@ const SVXTeamsOnboarding = () => {
           user_id: user.id,
           company_name: formData.companyName,
           business_activity: formData.activity,
-          data_slot_1: formData.excelData, // Guardamos el JSON
+          data_slot_1: formData.excelData, 
           created_at: new Date().toISOString()
         }
       ]);
 
     if (!error) {
-      alert('Configuración completada exitosamente.');
+      // Al guardar con éxito, ocultamos el formulario para que el componente "desaparezca"
       setShowForm(false);
     } else {
       console.error("Error Supabase:", error);
@@ -100,29 +101,18 @@ const SVXTeamsOnboarding = () => {
     setIsSubmitting(false);
   };
 
-  if (loading) return (
-    <div style={styles.container}>
-      <div style={styles.loader}>Preparando SVX Command...</div>
-    </div>
-  );
+  // Mientras carga la validación, no mostramos nada o un pequeño indicador
+  if (loading) return null;
 
-  // Si ya tiene información, mostramos el Panel Principal o un mensaje de éxito
-  if (!showForm) return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.headerIndicator} />
-        <h2 style={styles.title}>Panel de Control Activo</h2>
-        <p style={styles.text}>La información de <strong>{user?.email}</strong> ya está vinculada. Puedes proceder a gestionar tus catálogos.</p>
-        <button style={styles.buttonSecondary} onClick={() => window.location.reload()}>Refrescar Dashboard</button>
-      </div>
-    </div>
-  );
+  // CAMBIO SOLICITADO: Si NO se debe mostrar el formulario, el componente no renderiza nada (desaparece)
+  if (!showForm) return null;
 
   return (
     <div style={styles.container}>
       <form style={styles.card} onSubmit={handleSubmit}>
+        <div style={styles.headerIndicator} />
         <h2 style={styles.title}>Configuración Inicial</h2>
-        <p style={styles.subtitle}>No hemos encontrado registros para este usuario. Por favor, completa los datos de la empresa.</p>
+        <p style={styles.subtitle}>No hemos encontrado registros para este usuario. Por favor, completa los datos de la empresa para habilitar el panel.</p>
 
         <div style={styles.field}>
           <label style={styles.label}>Nombre de la Empresa</label>
@@ -178,14 +168,14 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#F0F0F0',
+    padding: '20px',
+    backgroundColor: 'transparent', // Se vuelve transparente para no tapar el fondo del panel
     fontFamily: '"Segoe UI", "Selawik", sans-serif'
   },
   card: {
     backgroundColor: 'white',
     padding: '40px',
-    borderRadius: '4px', // Teams usa bordes casi rectos
+    borderRadius: '4px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1)',
     width: '100%',
     maxWidth: '480px',
@@ -249,17 +239,6 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px'
   },
-  buttonSecondary: {
-    width: '100%',
-    padding: '10px',
-    backgroundColor: 'white',
-    color: '#5B5FC7',
-    border: '1px solid #E1E1E1',
-    borderRadius: '2px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    marginTop: '20px'
-  },
   buttonDisabled: {
     width: '100%',
     padding: '10px',
@@ -273,10 +252,6 @@ const styles = {
     color: '#107C10',
     fontSize: '11px',
     marginTop: '8px',
-    fontWeight: '600'
-  },
-  loader: {
-    color: '#5B5FC7',
     fontWeight: '600'
   }
 };

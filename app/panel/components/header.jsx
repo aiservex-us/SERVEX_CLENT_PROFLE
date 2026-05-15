@@ -101,7 +101,7 @@ const TeamsFloatingHeader = () => {
                       />
                     ) : (
                       <div className="relative bg-[#F3F2F1] p-4 rounded-full">
-                        <FaUserCircle className="text-[#5B5FC7] text-4xl" />
+                        <FaUserCircle className="text-[#464775] text-4xl" />
                       </div>
                     )}
                   </div>
@@ -110,7 +110,7 @@ const TeamsFloatingHeader = () => {
                     ¿Confirmas el cierre de sesión?
                   </h3>
                   <p className="text-[#424242] text-[14px] leading-relaxed mb-8">
-                    Hola <span className="font-bold text-[#5B5FC7]">{userName}</span>, al cerrar sesión se detendrán tus procesos actuales en el ecosistema **SERVEX AI**.
+                    Hola <span className="font-bold text-[#464775]">{userName}</span>, al cerrar sesión se detendrán tus procesos actuales en el ecosistema **SERVEX AI**.
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -122,7 +122,7 @@ const TeamsFloatingHeader = () => {
                     </button>
                     <button 
                       onClick={handleLogout}
-                      className="flex-1 order-1 sm:order-2 bg-[#5B5FC7] text-white px-4 py-2.5 rounded font-semibold text-[13px] hover:bg-[#4E52B1] transition-colors shadow-md flex items-center justify-center gap-2"
+                      className="flex-1 order-1 sm:order-2 bg-[#464775] text-white px-4 py-2.5 rounded font-semibold text-[13px] hover:bg-[#3a3b61] transition-colors shadow-md flex items-center justify-center gap-2"
                     >
                       <HiShieldCheck className="text-lg" />
                       Cerrar sesión
@@ -130,7 +130,7 @@ const TeamsFloatingHeader = () => {
                   </div>
                 </div>
               </div>
-              <div className="h-1 w-full bg-gradient-to-r from-[#5B5FC7] via-[#C7D2FE] to-[#5B5FC7]" />
+              <div className="h-1 w-full bg-gradient-to-r from-[#464775] via-[#6d6e9c] to-[#464775]" />
             </motion.div>
           </div>
         )}

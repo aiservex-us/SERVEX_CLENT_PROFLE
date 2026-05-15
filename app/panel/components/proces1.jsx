@@ -113,7 +113,7 @@ const SVXTeamsOnboarding = () => {
   if (loading || !showForm) return null;
 
   return (
-    <div className="w-full min-h-[80%] flex items-center justify-center bg-[#FFF] px-5 py-10 font-sans antialiased selection:bg-[#6B63B5]/20">
+    <div className="w-full max-h-[80%] flex items-center justify-center bg-[#FFF] px-5 py-10 font-sans antialiased selection:bg-[#6B63B5]/20">
       <div className="w-full max-w-[850px]  animate-[fadeInUp_0.6s_ease-out]">
         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.04)] border border-[#EBEBEB] px-10 py-12 backdrop-blur-md">
           

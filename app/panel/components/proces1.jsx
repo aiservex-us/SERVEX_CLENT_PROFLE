@@ -113,93 +113,58 @@ const SVXTeamsOnboarding = () => {
   if (loading || !showForm) return null;
 
   return (
-    <div style={styles.pageWrapper}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap');
-        
-        * { box-sizing: border-box; }
-        
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-        
-        @keyframes shimmer {
-          0% { background-position: -1000px 0; }
-          100% { background-position: 1000px 0; }
-        }
-        
-        input:focus {
-          outline: none !important;
-          border-color: #6B63B5 !important;
-          box-shadow: 0 0 0 3px rgba(107, 99, 181, 0.08) !important;
-        }
-      `}</style>
-
-      <div style={styles.container}>
-        <div style={styles.formCard}>
+    <div className="w-full min-h-screen flex items-center justify-center bg-[#FAFAFA] px-5 py-10 font-sans antialiased selection:bg-[#6B63B5]/20">
+      <div className="w-full max-w-[520px] animate-[fadeInUp_0.6s_ease-out]">
+        <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.04)] border border-[#EBEBEB] px-10 py-12 backdrop-blur-md">
+          
           {/* Header */}
-          <div style={styles.headerSection}>
-            <div style={styles.logoContainer}>
-              <div style={styles.logoPlaceholder}>SVX</div>
+          <div className="text-center mb-10 animate-[fadeInUp_0.6s_ease-out_0.1s_both]">
+            <div className="flex justify-center mb-6">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#6B63B5] to-[#8B7FB8] flex items-center justify-center text-white font-bold text-2xl shadow-[0_4px_12px_rgba(107,99,181,0.15)] tracking-tight">
+                SVX
+              </div>
             </div>
-            <h1 style={styles.title}>Configura tu espacio de trabajo</h1>
-            <p style={styles.subtitle}>Cuéntanos sobre tu organización para personalizar tu experiencia</p>
+            <h1 className="text-[28px] font-bold text-[#242424] m-0 mb-2 tracking-[-0.5px]">
+              Configura tu espacio de trabajo
+            </h1>
+            <p className="text-sm text-[#717171] m-0 line-height-[1.5]">
+              Cuéntanos sobre tu organización para personalizar tu experiencia
+            </p>
           </div>
 
           {/* Progress Indicator */}
-          <div style={styles.progressContainer}>
+          <div className="flex items-center justify-center gap-2 mb-12">
             {[0, 1, 2, 3].map((step) => (
               <React.Fragment key={step}>
                 <div
-                  style={{
-                    ...styles.progressDot,
-                    ...(step === currentStep ? styles.progressDotActive : {}),
-                    ...(step < currentStep ? styles.progressDotComplete : {})
-                  }}
+                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-[13px] font-semibold transition-all duration-300 cursor-default
+                    ${step === currentStep 
+                      ? 'bg-[#6B63B5] text-white border-[#6B63B5] shadow-[0_0_0_4px_rgba(107,99,181,0.1)]' 
+                      : step < currentStep 
+                        ? 'bg-[#6B63B5] text-white border-[#6B63B5]' 
+                        : 'bg-[#E8E8E8] text-[#999999] border-[#E8E8E8]'
+                    }`}
                 >
                   {step < currentStep ? '✓' : step + 1}
                 </div>
-                {step < 3 && <div style={styles.progressLine} />}
+                {step < 3 && <div className="w-4 h-[2px] bg-[#E8E8E8]" />}
               </React.Fragment>
             ))}
           </div>
 
           {/* Form */}
-          <form style={styles.form} onSubmit={handleSubmit}>
+          <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
             {/* Step 0: Company Identity */}
             {currentStep === 0 && (
-              <div style={styles.stepContainer}>
-                <div style={styles.stepContent}>
-                  <h2 style={styles.stepTitle}>Identidad Corporativa</h2>
-                  <p style={styles.stepDescription}>Ayúdanos a conocer tu organización</p>
+              <div className="flex flex-col gap-8 animate-[slideIn_0.4s_ease-out]">
+                <div className="flex flex-col gap-6">
+                  <h2 className="text-2xl font-bold text-[#242424] m-0">Identidad Corporativa</h2>
+                  <p className="text-sm text-[#717171] m-0 line-height-[1.5]">Ayúdanos a conocer tu organización</p>
                   
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Nombre de la empresa</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Nombre de la empresa</label>
                     <input
-                      style={styles.input}
+                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
                       type="text"
                       placeholder="ej: Tech Solutions Colombia"
                       value={formData.companyName}
@@ -208,10 +173,10 @@ const SVXTeamsOnboarding = () => {
                     />
                   </div>
 
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Actividad económica principal</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Actividad económica principal</label>
                     <input
-                      style={styles.input}
+                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
                       type="text"
                       placeholder="ej: Consultoría de software"
                       value={formData.activity}
@@ -221,10 +186,10 @@ const SVXTeamsOnboarding = () => {
                   </div>
                 </div>
 
-                <div style={styles.navigationButtons}>
+                <div className="flex gap-3 justify-end">
                   <button
                     type="button"
-                    style={styles.buttonNext}
+                    className="px-8 py-[11px] text-sm font-semibold border-none rounded-lg bg-[#6B63B5] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(107,99,181,0.2)] disabled:opacity-60 disabled:cursor-not-allowed"
                     onClick={() => setCurrentStep(1)}
                     disabled={!isStepComplete(0)}
                   >
@@ -236,15 +201,15 @@ const SVXTeamsOnboarding = () => {
 
             {/* Step 1: Contact */}
             {currentStep === 1 && (
-              <div style={styles.stepContainer}>
-                <div style={styles.stepContent}>
-                  <h2 style={styles.stepTitle}>Información de Contacto</h2>
-                  <p style={styles.stepDescription}>Dónde podemos comunicarnos contigo</p>
+              <div className="flex flex-col gap-8 animate-[slideIn_0.4s_ease-out]">
+                <div className="flex flex-col gap-6">
+                  <h2 className="text-2xl font-bold text-[#242424] m-0">Información de Contacto</h2>
+                  <p className="text-sm text-[#717171] m-0 line-height-[1.5]">Dónde podemos comunicarnos contigo</p>
                   
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Correo corporativo</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Correo corporativo</label>
                     <input
-                      style={styles.input}
+                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
                       type="email"
                       placeholder="contacto@tuempresa.com"
                       value={formData.contactEmail}
@@ -253,10 +218,10 @@ const SVXTeamsOnboarding = () => {
                     />
                   </div>
 
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Teléfono de contacto</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Teléfono de contacto</label>
                     <input
-                      style={styles.input}
+                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
                       type="tel"
                       placeholder="+57 (1) 234-5678"
                       value={formData.contactPhone}
@@ -266,17 +231,17 @@ const SVXTeamsOnboarding = () => {
                   </div>
                 </div>
 
-                <div style={styles.navigationButtons}>
+                <div className="flex gap-3 justify-end">
                   <button
                     type="button"
-                    style={styles.buttonBack}
+                    className="px-6 py-[11px] text-sm font-semibold border border-[#D4D4D4] rounded-lg bg-white text-[#3C3C3C] cursor-pointer transition-all duration-200"
                     onClick={() => setCurrentStep(0)}
                   >
                     Atrás
                   </button>
                   <button
                     type="button"
-                    style={styles.buttonNext}
+                    className="px-8 py-[11px] text-sm font-semibold border-none rounded-lg bg-[#6B63B5] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(107,99,181,0.2)] disabled:opacity-60 disabled:cursor-not-allowed"
                     onClick={() => setCurrentStep(2)}
                     disabled={!isStepComplete(1)}
                   >
@@ -288,15 +253,15 @@ const SVXTeamsOnboarding = () => {
 
             {/* Step 2: Location */}
             {currentStep === 2 && (
-              <div style={styles.stepContainer}>
-                <div style={styles.stepContent}>
-                  <h2 style={styles.stepTitle}>Localización</h2>
-                  <p style={styles.stepDescription}>Dónde opera tu organización</p>
+              <div className="flex flex-col gap-8 animate-[slideIn_0.4s_ease-out]">
+                <div className="flex flex-col gap-6">
+                  <h2 className="text-2xl font-bold text-[#242424] m-0">Localización</h2>
+                  <p className="text-sm text-[#717171] m-0 line-height-[1.5]">Dónde opera tu organización</p>
                   
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>País</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">País</label>
                     <input
-                      style={styles.input}
+                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
                       type="text"
                       placeholder="ej: Colombia"
                       value={formData.country}
@@ -305,10 +270,10 @@ const SVXTeamsOnboarding = () => {
                     />
                   </div>
 
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Ciudad principal</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Ciudad principal</label>
                     <input
-                      style={styles.input}
+                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
                       type="text"
                       placeholder="ej: Bogotá"
                       value={formData.city}
@@ -318,17 +283,17 @@ const SVXTeamsOnboarding = () => {
                   </div>
                 </div>
 
-                <div style={styles.navigationButtons}>
+                <div className="flex gap-3 justify-end">
                   <button
                     type="button"
-                    style={styles.buttonBack}
+                    className="px-6 py-[11px] text-sm font-semibold border border-[#D4D4D4] rounded-lg bg-white text-[#3C3C3C] cursor-pointer transition-all duration-200"
                     onClick={() => setCurrentStep(1)}
                   >
                     Atrás
                   </button>
                   <button
                     type="button"
-                    style={styles.buttonNext}
+                    className="px-8 py-[11px] text-sm font-semibold border-none rounded-lg bg-[#6B63B5] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(107,99,181,0.2)] disabled:opacity-60 disabled:cursor-not-allowed"
                     onClick={() => setCurrentStep(3)}
                     disabled={!isStepComplete(2)}
                   >
@@ -340,72 +305,72 @@ const SVXTeamsOnboarding = () => {
 
             {/* Step 3: Data Upload */}
             {currentStep === 3 && (
-              <div style={styles.stepContainer}>
-                <div style={styles.stepContent}>
-                  <h2 style={styles.stepTitle}>Tu Primer Activo de Datos</h2>
-                  <p style={styles.stepDescription}>Carga tu archivo maestro para inicializar SVX</p>
+              <div className="flex flex-col gap-8 animate-[slideIn_0.4s_ease-out]">
+                <div className="flex flex-col gap-6">
+                  <h2 className="text-2xl font-bold text-[#242424] m-0">Tu Primer Activo de Datos</h2>
+                  <p className="text-sm text-[#717171] m-0 line-height-[1.5]">Carga tu archivo maestro para inicializar SVX</p>
                   
-                  <div style={{
-                    ...styles.uploadZone,
-                    ...(fileStatus === 'success' ? styles.uploadZoneSuccess : {}),
-                    ...(fileStatus === 'error' ? styles.uploadZoneError : {})
-                  }}>
+                  <div className={`relative border-2 dashed rounded-xl px-6 py-10 text-center transition-all duration-300
+                    ${fileStatus === 'success' 
+                      ? 'border-[#52C41A] bg-[#F6FFED]' 
+                      : fileStatus === 'error' 
+                        ? 'border-[#FF4D4F] bg-[#FFF1F0]' 
+                        : 'border-[#D4D4D4] bg-[#FAFAFA]'
+                    }`}
+                  >
                     <input
                       id="file-upload"
                       type="file"
                       accept=".xlsx, .xls, .csv"
                       onChange={handleFileUpload}
-                      style={styles.fileInput}
+                      className="absolute w-full h-full top-0 left-0 opacity-0 cursor-pointer"
                     />
-                    <label htmlFor="file-upload" style={styles.uploadLabel}>
-                      <div style={styles.uploadIcon}>
+                    <label htmlFor="file-upload" className="flex flex-col items-center gap-3 cursor-pointer select-none">
+                      <div className="text-3xl font-bold text-[#6B63B5] animate-[fadeInUp_0.3s_ease-out]">
                         {fileStatus === 'success' ? '✓' : fileStatus === 'loading' ? '⟳' : '↓'}
                       </div>
-                      <div style={styles.uploadText}>
+                      <div className="flex flex-col gap-1">
                         {fileStatus === 'success' && (
                           <>
-                            <div style={styles.uploadMain}>Archivo cargado correctamente</div>
-                            <div style={styles.uploadSmall}>Listo para procesar</div>
+                            <div className="text-[15px] font-semibold text-[#242424]">Archivo cargado correctamente</div>
+                            <div className="text-12px text-[#999999]">Listo para procesar</div>
                           </>
                         )}
                         {fileStatus === 'loading' && (
                           <>
-                            <div style={styles.uploadMain}>Procesando tu archivo...</div>
-                            <div style={styles.uploadSmall}>Por favor espera</div>
+                            <div className="text-[15px] font-semibold text-[#242424]">Procesando tu archivo...</div>
+                            <div className="text-12px text-[#999999]">Por favor espera</div>
                           </>
                         )}
                         {fileStatus === 'pending' && (
                           <>
-                            <div style={styles.uploadMain}>Arrastra o selecciona tu archivo</div>
-                            <div style={styles.uploadSmall}>Formatos: Excel (.xlsx, .xls) o CSV</div>
+                            <div className="text-[15px] font-semibold text-[#242424]">Arrastra o selecciona tu archivo</div>
+                            <div className="text-12px text-[#999999]">Formatos: Excel (.xlsx, .xls) o CSV</div>
                           </>
                         )}
                       </div>
                     </label>
                   </div>
 
-                  <div style={styles.uploadHint}>
-                    <span style={styles.hintIcon}>ℹ️</span>
+                  <div className="flex items-center gap-2 px-4 py-3 bg-[#F5F5F5] rounded-lg text-xs text-[#717171] line-height-[1.5]">
+                    <span className="text-sm shrink-0">ℹ️</span>
                     <span>Tu archivo será encriptado y almacenado de forma segura en nuestros servidores</span>
                   </div>
                 </div>
 
-                <div style={styles.navigationButtons}>
+                <div className="flex gap-3 justify-end">
                   <button
                     type="button"
-                    style={styles.buttonBack}
+                    className="px-6 py-[11px] text-sm font-semibold border border-[#D4D4D4] rounded-lg bg-white text-[#3C3C3C] cursor-pointer transition-all duration-200"
                     onClick={() => setCurrentStep(2)}
                   >
                     Atrás
                   </button>
                   <button
                     type="submit"
-                    style={{
-                      ...styles.buttonNext,
-                      ...(isSubmitting ? styles.buttonSubmitting : {}),
-                      opacity: !isStepComplete(3) || isSubmitting ? 0.6 : 1,
-                      cursor: (!isStepComplete(3) || isSubmitting) ? 'not-allowed' : 'pointer'
-                    }}
+                    className={`px-8 py-[11px] text-sm font-semibold border-none rounded-lg bg-[#6B63B5] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(107,99,181,0.2)]
+                      ${isSubmitting ? 'opacity-80' : ''}
+                      ${(!isStepComplete(3) || isSubmitting) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                     disabled={!isStepComplete(3) || isSubmitting}
                   >
                     {isSubmitting ? 'Sincronizando...' : 'Completar Setup'}
@@ -416,327 +381,15 @@ const SVXTeamsOnboarding = () => {
           </form>
 
           {/* Footer Help */}
-          <div style={styles.footer}>
-            <p style={styles.footerText}>
-              ¿Necesitas ayuda? <a href="#support" style={styles.footerLink}>Contacta nuestro equipo</a>
+          <div className="mt-8 pt-6 border-t border-[#EBEBEB] text-center">
+            <p className="text-xs text-[#999999] m-0">
+              ¿Necesitas ayuda? <a href="#support" className="text-[#6B63B5] no-underline font-semibold transition-colors duration-200 hover:text-[#5750A0]">Contacta nuestro equipo</a>
             </p>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  pageWrapper: {
-    width: '100%',
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#FAFAFA',
-    padding: '40px 20px',
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, sans-serif'
-  },
-  
-  container: {
-    width: '100%',
-    maxWidth: '520px',
-    animation: 'fadeInUp 0.6s ease-out'
-  },
-
-  formCard: {
-    background: '#FFFFFF',
-    borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04)',
-    border: '1px solid #EBEBEB',
-    padding: '48px 40px',
-    backdropFilter: 'blur(20px)'
-  },
-
-  headerSection: {
-    textAlign: 'center',
-    marginBottom: '40px',
-    animation: 'fadeInUp 0.6s ease-out 0.1s both'
-  },
-
-  logoContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: '24px'
-  },
-
-  logoPlaceholder: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '10px',
-    background: 'linear-gradient(135deg, #6B63B5 0%, #8B7FB8 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: '24px',
-    fontFamily: '"Outfit", sans-serif',
-    boxShadow: '0 4px 12px rgba(107, 99, 181, 0.15)'
-  },
-
-  title: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#242424',
-    margin: '0 0 8px 0',
-    fontFamily: '"Outfit", sans-serif',
-    letterSpacing: '-0.5px'
-  },
-
-  subtitle: {
-    fontSize: '14px',
-    color: '#717171',
-    margin: '0',
-    lineHeight: '1.5'
-  },
-
-  progressContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    marginBottom: '48px'
-  },
-
-  progressDot: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    background: '#E8E8E8',
-    border: '2px solid #E8E8E8',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#999999',
-    transition: 'all 0.3s ease',
-    cursor: 'default'
-  },
-
-  progressDotActive: {
-    background: '#6B63B5',
-    color: '#FFFFFF',
-    border: '2px solid #6B63B5',
-    boxShadow: '0 0 0 4px rgba(107, 99, 181, 0.1)'
-  },
-
-  progressDotComplete: {
-    background: '#6B63B5',
-    color: '#FFFFFF',
-    border: '2px solid #6B63B5'
-  },
-
-  progressLine: {
-    width: '16px',
-    height: '2px',
-    background: '#E8E8E8',
-    margin: '0 0px'
-  },
-
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '32px'
-  },
-
-  stepContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '32px',
-    animation: 'slideIn 0.4s ease-out'
-  },
-
-  stepContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px'
-  },
-
-  stepTitle: {
-    fontSize: '22px',
-    fontWeight: '700',
-    color: '#242424',
-    margin: '0',
-    fontFamily: '"Outfit", sans-serif'
-  },
-
-  stepDescription: {
-    fontSize: '14px',
-    color: '#717171',
-    margin: '0',
-    lineHeight: '1.5'
-  },
-
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px'
-  },
-
-  label: {
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#3C3C3C',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px'
-  },
-
-  input: {
-    padding: '12px 16px',
-    fontSize: '14px',
-    border: '1px solid #D4D4D4',
-    borderRadius: '8px',
-    background: '#FFFFFF',
-    fontFamily: '"Inter", sans-serif',
-    transition: 'all 0.2s ease',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)'
-  },
-
-  uploadZone: {
-    position: 'relative',
-    border: '2px dashed #D4D4D4',
-    borderRadius: '10px',
-    padding: '40px 24px',
-    textAlign: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    background: '#FAFAFA'
-  },
-
-  uploadZoneSuccess: {
-    borderColor: '#52C41A',
-    background: '#F6FFED'
-  },
-
-  uploadZoneError: {
-    borderColor: '#FF4D4F',
-    background: '#FFF1F0'
-  },
-
-  fileInput: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    top: '0',
-    left: '0',
-    opacity: '0',
-    cursor: 'pointer'
-  },
-
-  uploadLabel: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '12px',
-    cursor: 'pointer',
-    userSelect: 'none'
-  },
-
-  uploadIcon: {
-    fontSize: '32px',
-    fontWeight: '700',
-    color: '#6B63B5',
-    animation: 'fadeInUp 0.3s ease-out'
-  },
-
-  uploadText: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px'
-  },
-
-  uploadMain: {
-    fontSize: '15px',
-    fontWeight: '600',
-    color: '#242424'
-  },
-
-  uploadSmall: {
-    fontSize: '12px',
-    color: '#999999'
-  },
-
-  uploadHint: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px 16px',
-    backgroundColor: '#F5F5F5',
-    borderRadius: '8px',
-    fontSize: '12px',
-    color: '#717171',
-    lineHeight: '1.5'
-  },
-
-  hintIcon: {
-    fontSize: '14px',
-    flexShrink: 0
-  },
-
-  navigationButtons: {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'flex-end'
-  },
-
-  buttonBack: {
-    padding: '11px 24px',
-    fontSize: '14px',
-    fontWeight: '600',
-    border: '1px solid #D4D4D4',
-    borderRadius: '8px',
-    background: '#FFFFFF',
-    color: '#3C3C3C',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    fontFamily: '"Inter", sans-serif'
-  },
-
-  buttonNext: {
-    padding: '11px 32px',
-    fontSize: '14px',
-    fontWeight: '600',
-    border: 'none',
-    borderRadius: '8px',
-    background: '#6B63B5',
-    color: '#FFFFFF',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    fontFamily: '"Inter", sans-serif',
-    boxShadow: '0 2px 8px rgba(107, 99, 181, 0.2)'
-  },
-
-  buttonSubmitting: {
-    opacity: '0.8'
-  },
-
-  footer: {
-    marginTop: '32px',
-    paddingTop: '24px',
-    borderTop: '1px solid #EBEBEB',
-    textAlign: 'center'
-  },
-
-  footerText: {
-    fontSize: '12px',
-    color: '#999999',
-    margin: '0'
-  },
-
-  footerLink: {
-    color: '#6B63B5',
-    textDecoration: 'none',
-    fontWeight: '600',
-    transition: 'color 0.2s ease'
-  }
 };
 
 export default SVXTeamsOnboarding;

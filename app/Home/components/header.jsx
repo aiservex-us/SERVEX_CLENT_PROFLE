@@ -81,7 +81,6 @@ const TeamsFloatingHeader = () => {
           {/* BOTÓN SERVEX COPILOTO */}
           <a 
             href="https://servex-ai-iota.vercel.app/" 
-             
             rel="noopener noreferrer"
           >
             <motion.button
@@ -90,7 +89,8 @@ const TeamsFloatingHeader = () => {
               whileTap="tap"
               className="group flex items-center gap-2 px-4 py-1.5 rounded-full bg-transparent border border-transparent hover:border-slate-200 text-slate-600 font-medium text-[12px] transition-all duration-200"
             >
-              <FaRobot className="text-[#5B5FC7] opacity-70 group-hover:opacity-100 transition-transform group-hover:rotate-12" />
+              {/* Color actualizado aquí */}
+              <FaRobot className="text-[#464775] opacity-70 group-hover:opacity-100 transition-transform group-hover:rotate-12" />
               <span>Svx Copiloto</span>
             </motion.button>
           </a>
@@ -106,7 +106,8 @@ const TeamsFloatingHeader = () => {
                     exit={{ opacity: 0, x: -10 }}
                     whileHover="hover"
                     whileTap="tap"
-                    className="relative overflow-hidden bg-[#5B5FC7] text-white px-6 py-1.5 rounded-full font-semibold text-[12px] shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                    /* Color de fondo y sombra actualizados aquí */
+                    className="relative overflow-hidden bg-[#464775] text-white px-6 py-1.5 rounded-full font-semibold text-[12px] shadow-lg shadow-[#464775]/20 flex items-center gap-2"
                   >
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>

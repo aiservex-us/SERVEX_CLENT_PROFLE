@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabaseGoogle } from '../../lib/supabaseClient';
-import { read, utils } from 'xlsx'; // Importación optimizada para Next.js
+import { read, utils } from 'xlsx';
 
 const SVXTeamsOnboarding = () => {
   const [loading, setLoading] = useState(true);
@@ -8,7 +8,6 @@ const SVXTeamsOnboarding = () => {
   const [user, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Estados del Formulario
   const [formData, setFormData] = useState({
     companyName: '',
     activity: '',
@@ -26,22 +25,17 @@ const SVXTeamsOnboarding = () => {
   const checkUserStatus = async () => {
     try {
       const { data: { user: authUser } } = await supabaseGoogle.auth.getUser();
-      
       if (authUser) {
         setUser(authUser);
-        
-        // Validamos si el correo ya tiene información registrada
         const { data, error } = await supabaseGoogle
           .from('client_submissions')
-          .select('company_name, business_activity')
+          .select('company_name')
           .eq('user_id', authUser.id)
-          .maybeSingle(); 
+          .maybeSingle();
 
-        // Si no hay datos, o faltan campos clave, activamos el formulario
         if (error || !data || !data.company_name) {
           setShowForm(true);
         } else {
-          // Si hay datos, NO mostramos el formulario (se queda en false)
           setShowForm(false);
         }
       }
@@ -55,19 +49,15 @@ const SVXTeamsOnboarding = () => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
         const bstr = evt.target.result;
         const wb = read(bstr, { type: 'binary' });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const data = utils.sheet_to_json(ws);
-        
+        const data = utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
         setFormData(prev => ({ ...prev, excelData: data }));
       } catch (err) {
-        alert("Error al procesar el archivo Excel. Asegúrate de que sea un formato válido.");
+        alert("Error al procesar el archivo. Intenta con un formato válido.");
       }
     };
     reader.readAsBinaryString(file);
@@ -75,246 +65,254 @@ const SVXTeamsOnboarding = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!formData.excelData) {
-      alert("Por favor, carga un archivo Excel o CSV válido.");
+      alert("Por favor, carga tu archivo maestro para continuar.");
       return;
     }
-
     setIsSubmitting(true);
-
     const { error } = await supabaseGoogle
       .from('client_submissions')
-      .insert([
-        {
-          user_id: user.id,
-          company_name: formData.companyName,
-          business_activity: formData.activity,
-          contact_phone: formData.contactPhone,
-          contact_email: formData.contactEmail,
-          country: formData.country,
-          city: formData.city,
-          data_slot_1: formData.excelData, 
-          created_at: new Date().toISOString()
-        }
-      ]);
+      .insert([{
+        user_id: user.id,
+        company_name: formData.companyName,
+        business_activity: formData.activity,
+        contact_phone: formData.contactPhone,
+        contact_email: formData.contactEmail,
+        country: formData.country,
+        city: formData.city,
+        data_slot_1: formData.excelData,
+        created_at: new Date().toISOString()
+      }]);
 
-    if (!error) {
-      // Al guardar con éxito, ocultamos el formulario para que el componente "desaparezca"
-      setShowForm(false);
-    } else {
-      console.error("Error Supabase:", error);
-      alert('Error al guardar: ' + error.message);
-    }
+    if (!error) setShowForm(false);
+    else alert('Error: ' + error.message);
     setIsSubmitting(false);
   };
 
-  // Mientras carga la validación, no mostramos nada o un pequeño indicador
-  if (loading) return null;
-
-  // CAMBIO SOLICITADO: Si NO se debe mostrar el formulario, el componente no renderiza nada (desaparece)
-  if (!showForm) return null;
+  if (loading || !showForm) return null;
 
   return (
-    <div style={styles.container}>
-      <form style={styles.card} onSubmit={handleSubmit}>
-        <div style={styles.headerIndicator} />
-        <h2 style={styles.title}>Configuración Inicial</h2>
-        <p style={styles.subtitle}>No hemos encontrado registros para este usuario. Por favor, completa los datos de la empresa para habilitar el panel.</p>
-
-        <div style={styles.field}>
-          <label style={styles.label}>Nombre de la Empresa</label>
-          <input 
-            style={styles.input} 
-            type="text" 
-            placeholder="Nombre oficial" 
-            required
-            value={formData.companyName}
-            onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-          />
+    <div style={styles.viewport}>
+      <div style={styles.glassCard}>
+        <div style={styles.header}>
+          <img src="/logo.png" alt="SVX Logo" style={styles.logo} />
+          <h1 style={styles.mainTitle}>Bienvenido a la era de SVX Command</h1>
+          <p style={styles.welcomeText}>
+            Estás a un paso de automatizar tu futuro. Configura el perfil de tu organización y deja que nuestra ingeniería haga el resto por ti.
+          </p>
         </div>
 
-        <div style={styles.field}>
-          <label style={styles.label}>Actividad de Negocio</label>
-          <input 
-            style={styles.input} 
-            type="text" 
-            placeholder="Ej: Distribución de repuestos" 
-            required
-            value={formData.activity}
-            onChange={(e) => setFormData({...formData, activity: e.target.value})}
-          />
-        </div>
-
-        <div style={styles.field}>
-          <label style={styles.label}>Correo Electrónico Corporativo</label>
-          <input 
-            style={styles.input} 
-            type="email" 
-            placeholder="Ej: contacto@empresa.com" 
-            required
-            value={formData.contactEmail}
-            onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
-          />
-        </div>
-
-        <div style={styles.field}>
-          <label style={styles.label}>Teléfono de Contacto</label>
-          <input 
-            style={styles.input} 
-            type="tel" 
-            placeholder="Ej: +57 300 123 4567" 
-            required
-            value={formData.contactPhone}
-            onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
-          />
-        </div>
-
-        <div style={styles.fieldRow}>
-          <div style={{ ...styles.field, flex: 1, marginRight: '10px' }}>
-            <label style={styles.label}>País</label>
+        <form style={styles.formFlow} onSubmit={handleSubmit}>
+          <div style={styles.section}>
+            <label style={styles.label}>Identidad Corporativa</label>
             <input 
               style={styles.input} 
-              type="text" 
-              placeholder="Ej: Colombia" 
-              required
-              value={formData.country}
-              onChange={(e) => setFormData({...formData, country: e.target.value})}
+              placeholder="Nombre de tu empresa" 
+              required 
+              onChange={(e) => setFormData({...formData, companyName: e.target.value})}
             />
-          </div>
-          <div style={{ ...styles.field, flex: 1 }}>
-            <label style={styles.label}>Ciudad</label>
             <input 
               style={styles.input} 
-              type="text" 
-              placeholder="Ej: Bogotá" 
-              required
-              value={formData.city}
-              onChange={(e) => setFormData({...formData, city: e.target.value})}
+              placeholder="Actividad económica principal" 
+              required 
+              onChange={(e) => setFormData({...formData, activity: e.target.value})}
             />
           </div>
-        </div>
 
-        <div style={styles.field}>
-          <label style={styles.label}>Cargar Archivo Maestro (Excel/CSV)</label>
-          <div style={styles.fileContainer}>
-            <input 
-              type="file" 
-              accept=".xlsx, .xls, .csv" 
-              required
-              onChange={handleFileUpload}
-            />
-            {formData.excelData && <p style={styles.successText}>✓ Archivo procesado correctamente</p>}
+          <div style={styles.section}>
+            <label style={styles.label}>Contacto Directo</label>
+            <div style={styles.row}>
+              <input 
+                style={{...styles.input, flex: 2}} 
+                type="email" 
+                placeholder="Correo corporativo" 
+                required 
+                onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
+              />
+              <input 
+                style={{...styles.input, flex: 1}} 
+                type="tel" 
+                placeholder="Teléfono" 
+                required 
+                onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
+              />
+            </div>
           </div>
-        </div>
 
-        <button 
-          type="submit" 
-          disabled={isSubmitting}
-          style={isSubmitting ? styles.buttonDisabled : styles.button}
-        >
-          {isSubmitting ? 'Guardando en SVX...' : 'Guardar y Continuar'}
-        </button>
-      </form>
+          <div style={styles.section}>
+            <label style={styles.label}>Localización</label>
+            <div style={styles.row}>
+              <input 
+                style={styles.input} 
+                placeholder="País" 
+                required 
+                onChange={(e) => setFormData({...formData, country: e.target.value})}
+              />
+              <input 
+                style={styles.input} 
+                placeholder="Ciudad" 
+                required 
+                onChange={(e) => setFormData({...formData, city: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <div style={styles.uploadSection}>
+            <label style={styles.label}>Tu primer activo de datos</label>
+            <p style={styles.smallInfo}>Sube tu archivo maestro (Excel/CSV) para inicializar el motor de SVX.</p>
+            <div style={styles.fileDrop}>
+              <input type="file" accept=".xlsx, .xls, .csv" required onChange={handleFileUpload} style={styles.fileInput} id="file-upload" />
+              <label htmlFor="file-upload" style={styles.fileLabel}>
+                {formData.excelData ? "✓ Datos listos para procesar" : "Arrastra o selecciona tu archivo aquí"}
+              </label>
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            style={isSubmitting ? styles.btnDisabled : styles.btnActive}
+          >
+            {isSubmitting ? 'Sincronizando con la nube...' : 'Empezar ahora'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
 
 const styles = {
-  container: {
+  viewport: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: '20px',
-    backgroundColor: 'transparent', // Se vuelve transparente para no tapar el fondo del panel
-    fontFamily: '"Segoe UI", "Selawik", sans-serif'
+    width: '100vw',
+    height: '100vh',
+    background: 'linear-gradient(135deg, #E8EAF6 0%, #C5CAE9 100%)',
+    overflow: 'hidden'
   },
-  card: {
-    backgroundColor: 'white',
+  glassCard: {
+    width: '80%',
+    maxWidth: '900px',
+    maxHeight: '90vh',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: '16px',
+    boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+    border: '1px solid rgba(255,255,255,0.3)',
     padding: '40px',
-    borderRadius: '4px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1)',
-    width: '100%',
-    maxWidth: '480px',
-    position: 'relative'
-  },
-  headerIndicator: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '4px',
-    backgroundColor: '#5B5FC7',
-    borderRadius: '4px 4px 0 0'
-  },
-  title: {
-    color: '#242424',
-    fontSize: '18px',
-    fontWeight: '600',
-    marginBottom: '8px'
-  },
-  subtitle: {
-    color: '#616161',
-    fontSize: '13px',
-    lineHeight: '1.4',
-    marginBottom: '24px'
-  },
-  field: {
-    marginBottom: '18px'
-  },
-  fieldRow: {
     display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '18px'
+    flexDirection: 'column',
+    overflowY: 'auto'
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '30px'
+  },
+  logo: {
+    width: '80px',
+    marginBottom: '15px',
+    filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))'
+  },
+  mainTitle: {
+    fontSize: '28px',
+    color: '#242424',
+    fontWeight: '700',
+    margin: '0 0 10px 0',
+    fontFamily: '"Segoe UI", sans-serif'
+  },
+  welcomeText: {
+    fontSize: '16px',
+    color: '#424242',
+    maxWidth: '600px',
+    margin: '0 auto',
+    lineHeight: '1.6'
+  },
+  formFlow: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px'
+  },
+  section: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px'
+  },
+  row: {
+    display: 'flex',
+    gap: '15px'
   },
   label: {
-    display: 'block',
-    fontSize: '12px',
+    fontSize: '14px',
     fontWeight: '600',
-    color: '#242424',
-    marginBottom: '4px'
+    color: '#5B5FC7',
+    marginBottom: '5px'
   },
   input: {
-    width: '100%',
-    padding: '8px 10px',
-    border: '1px solid #D1D1D1',
-    borderRadius: '2px',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    border: '1px solid #E1E1E1',
     fontSize: '14px',
+    backgroundColor: '#FFFFFF',
     outline: 'none',
-    boxSizing: 'border-box'
+    transition: 'all 0.2s ease',
+    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
+    flex: 1
   },
-  fileContainer: {
-    marginTop: '5px',
-    padding: '15px',
-    border: '1px dashed #C8C8C8',
-    backgroundColor: '#FAF9F8',
+  uploadSection: {
+    backgroundColor: '#F3F2F1',
+    padding: '20px',
+    borderRadius: '12px',
     textAlign: 'center'
   },
-  button: {
+  smallInfo: {
+    fontSize: '12px',
+    color: '#616161',
+    marginBottom: '10px'
+  },
+  fileDrop: {
+    border: '2px dashed #5B5FC7',
+    borderRadius: '8px',
+    padding: '20px',
+    cursor: 'pointer',
+    position: 'relative',
+    transition: 'background 0.3s'
+  },
+  fileInput: {
+    position: 'absolute',
     width: '100%',
-    padding: '10px',
+    height: '100%',
+    top: 0,
+    left: 0,
+    opacity: 0,
+    cursor: 'pointer'
+  },
+  fileLabel: {
+    fontSize: '14px',
+    color: '#5B5FC7',
+    fontWeight: '600'
+  },
+  btnActive: {
+    padding: '16px',
     backgroundColor: '#5B5FC7',
     color: 'white',
     border: 'none',
-    borderRadius: '2px',
+    borderRadius: '8px',
+    fontSize: '16px',
     fontWeight: '600',
     cursor: 'pointer',
-    fontSize: '14px'
+    transition: 'transform 0.2s, background 0.2s',
+    boxShadow: '0 4px 14px rgba(91, 95, 199, 0.4)',
+    marginTop: '10px'
   },
-  buttonDisabled: {
-    width: '100%',
-    padding: '10px',
-    backgroundColor: '#EDEBE9',
-    color: '#A1A1A1',
+  btnDisabled: {
+    padding: '16px',
+    backgroundColor: '#C8C8C8',
+    borderRadius: '8px',
     border: 'none',
-    borderRadius: '2px',
-    cursor: 'not-allowed'
-  },
-  successText: {
-    color: '#107C10',
-    fontSize: '11px',
-    marginTop: '8px',
-    fontWeight: '600'
+    color: '#919191',
+    cursor: 'not-allowed',
+    marginTop: '10px'
   }
 };
 

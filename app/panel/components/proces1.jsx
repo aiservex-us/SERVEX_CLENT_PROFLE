@@ -9,7 +9,6 @@ const SVXTeamsOnboarding = () => {
   const [showForm, setShowForm] = useState(false);
   const [user, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
   const [fileStatus, setFileStatus] = useState('pending');
 
   const [formData, setFormData] = useState({
@@ -100,294 +99,283 @@ const SVXTeamsOnboarding = () => {
     setIsSubmitting(false);
   };
 
-  const isStepComplete = (step) => {
-    switch(step) {
-      case 0: return formData.companyName && formData.activity;
-      case 1: return formData.contactEmail && formData.contactPhone;
-      case 2: return formData.country && formData.city;
-      case 3: return formData.excelData !== null;
-      default: return false;
-    }
-  };
-
   if (loading || !showForm) return null;
 
   return (
-    <div className="w-full max-h-[80%] flex items-center justify-center bg-[#FFF] px-5 py-10 font-sans antialiased selection:bg-[#6B63B5]/20">
-      <div className="w-full max-w-[850px]  animate-[fadeInUp_0.6s_ease-out]">
-        <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.04)] border border-[#EBEBEB] px-10 py-12 backdrop-blur-md">
-          
-          {/* Header */}
-          <div className="text-center mb-10 animate-[fadeInUp_0.6s_ease-out_0.1s_both]">
-            <div className="flex justify-center mb-6">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#6B63B5] to-[#8B7FB8] flex items-center justify-center text-white font-bold text-2xl shadow-[0_4px_12px_rgba(107,99,181,0.15)] tracking-tight">
-                SVX
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-2xl">
+        {/* Header */}
+        <div className="text-center mb-10 animate-fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 shadow-lg mb-6">
+            <span className="text-2xl font-bold text-white">SVX</span>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Configura tu espacio de trabajo
+          </h1>
+          <p className="text-slate-500 text-base leading-relaxed max-w-xl mx-auto">
+            Cuéntanos sobre tu organización para personalizar tu experiencia con SVX Command
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 space-y-8 animate-fade-in animation-delay-100"
+        >
+          {/* Section 1: Company Identity */}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">Identidad Corporativa</h2>
+              <p className="text-sm text-slate-500">Ayúdanos a conocer tu organización</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                  Nombre de la empresa
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej: Tech Solutions Colombia"
+                  value={formData.companyName}
+                  onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 focus:border-transparent"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                  Actividad económica principal
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej: Consultoría de software"
+                  value={formData.activity}
+                  onChange={(e) => setFormData({...formData, activity: e.target.value})}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 focus:border-transparent"
+                />
               </div>
             </div>
-            <h1 className="text-[28px] font-bold text-[#242424] m-0 mb-2 tracking-[-0.5px]">
-              Configura tu espacio de trabajo
-            </h1>
-            <p className="text-sm text-[#717171] m-0 line-height-[1.5]">
-              Cuéntanos sobre tu organización para personalizar tu experiencia
-            </p>
           </div>
 
-          {/* Progress Indicator */}
-          <div className="flex items-center justify-center gap-2 mb-12">
-            {[0, 1, 2, 3].map((step) => (
-              <React.Fragment key={step}>
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+
+          {/* Section 2: Contact */}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">Información de Contacto</h2>
+              <p className="text-sm text-slate-500">Dónde podemos comunicarnos contigo</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                  Correo corporativo
+                </label>
+                <input
+                  type="email"
+                  placeholder="contacto@tuempresa.com"
+                  value={formData.contactEmail}
+                  onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                  Teléfono de contacto
+                </label>
+                <input
+                  type="tel"
+                  placeholder="+57 (1) 234-5678"
+                  value={formData.contactPhone}
+                  onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+
+          {/* Section 3: Location */}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">Localización</h2>
+              <p className="text-sm text-slate-500">Dónde opera tu organización</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                  País
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej: Colombia"
+                  value={formData.country}
+                  onChange={(e) => setFormData({...formData, country: e.target.value})}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                  Ciudad principal
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej: Bogotá"
+                  value={formData.city}
+                  onChange={(e) => setFormData({...formData, city: e.target.value})}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+
+          {/* Section 4: Data Upload */}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">Tu Primer Activo de Datos</h2>
+              <p className="text-sm text-slate-500">Carga tu archivo maestro para inicializar SVX</p>
+            </div>
+
+            <div
+              className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer ${
+                fileStatus === 'success'
+                  ? 'border-emerald-400 bg-emerald-50'
+                  : fileStatus === 'error'
+                  ? 'border-red-400 bg-red-50'
+                  : 'border-slate-300 bg-slate-50 hover:border-purple-400 hover:bg-purple-50'
+              }`}
+            >
+              <input
+                id="file-upload"
+                type="file"
+                accept=".xlsx, .xls, .csv"
+                onChange={handleFileUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                required
+              />
+              <label htmlFor="file-upload" className="flex flex-col items-center gap-3 cursor-pointer">
                 <div
-                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-[13px] font-semibold transition-all duration-300 cursor-default
-                    ${step === currentStep 
-                      ? 'bg-[#6B63B5] text-white border-[#6B63B5] shadow-[0_0_0_4px_rgba(107,99,181,0.1)]' 
-                      : step < currentStep 
-                        ? 'bg-[#6B63B5] text-white border-[#6B63B5]' 
-                        : 'bg-[#E8E8E8] text-[#999999] border-[#E8E8E8]'
-                    }`}
+                  className={`text-3xl font-semibold transition-all duration-300 ${
+                    fileStatus === 'success'
+                      ? 'text-emerald-600'
+                      : fileStatus === 'error'
+                      ? 'text-red-600'
+                      : 'text-purple-600'
+                  }`}
                 >
-                  {step < currentStep ? '✓' : step + 1}
+                  {fileStatus === 'success' && '✓'}
+                  {fileStatus === 'error' && '✕'}
+                  {fileStatus === 'loading' && '↻'}
+                  {fileStatus === 'pending' && '↓'}
                 </div>
-                {step < 3 && <div className="w-4 h-[2px] bg-[#E8E8E8]" />}
-              </React.Fragment>
-            ))}
+                <div>
+                  <div className="font-semibold text-slate-900">
+                    {fileStatus === 'success' && 'Archivo cargado correctamente'}
+                    {fileStatus === 'error' && 'Error al procesar el archivo'}
+                    {fileStatus === 'loading' && 'Procesando tu archivo...'}
+                    {fileStatus === 'pending' && 'Arrastra o selecciona tu archivo'}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">
+                    {fileStatus === 'success' && 'Listo para procesar'}
+                    {fileStatus === 'error' && 'Intenta con otro archivo'}
+                    {fileStatus === 'loading' && 'Por favor espera'}
+                    {fileStatus === 'pending' && 'Formatos: Excel (.xlsx, .xls) o CSV'}
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            {/* Security Hint */}
+            <div className="flex gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <span className="text-base flex-shrink-0">🔒</span>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Tu archivo será encriptado y almacenado de forma segura en nuestros servidores siguiendo estándares de seguridad empresariales
+              </p>
+            </div>
           </div>
 
-          {/* Form */}
-          <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
-            {/* Step 0: Company Identity */}
-            {currentStep === 0 && (
-              <div className="flex flex-col gap-8 animate-[slideIn_0.4s_ease-out]">
-                <div className="flex flex-col gap-6">
-                  <h2 className="text-2xl font-bold text-[#242424] m-0">Identidad Corporativa</h2>
-                  <p className="text-sm text-[#717171] m-0 line-height-[1.5]">Ayúdanos a conocer tu organización</p>
-                  
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Nombre de la empresa</label>
-                    <input
-                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
-                      type="text"
-                      placeholder="ej: Tech Solutions Colombia"
-                      value={formData.companyName}
-                      onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Actividad económica principal</label>
-                    <input
-                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
-                      type="text"
-                      placeholder="ej: Consultoría de software"
-                      value={formData.activity}
-                      onChange={(e) => setFormData({...formData, activity: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-3 justify-end">
-                  <button
-                    type="button"
-                    className="px-8 py-[11px] text-sm font-semibold border-none rounded-lg bg-[#6B63B5] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(107,99,181,0.2)] disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => setCurrentStep(1)}
-                    disabled={!isStepComplete(0)}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 1: Contact */}
-            {currentStep === 1 && (
-              <div className="flex flex-col gap-8 animate-[slideIn_0.4s_ease-out]">
-                <div className="flex flex-col gap-6">
-                  <h2 className="text-2xl font-bold text-[#242424] m-0">Información de Contacto</h2>
-                  <p className="text-sm text-[#717171] m-0 line-height-[1.5]">Dónde podemos comunicarnos contigo</p>
-                  
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Correo corporativo</label>
-                    <input
-                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
-                      type="email"
-                      placeholder="contacto@tuempresa.com"
-                      value={formData.contactEmail}
-                      onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Teléfono de contacto</label>
-                    <input
-                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
-                      type="tel"
-                      placeholder="+57 (1) 234-5678"
-                      value={formData.contactPhone}
-                      onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-3 justify-end">
-                  <button
-                    type="button"
-                    className="px-6 py-[11px] text-sm font-semibold border border-[#D4D4D4] rounded-lg bg-white text-[#3C3C3C] cursor-pointer transition-all duration-200"
-                    onClick={() => setCurrentStep(0)}
-                  >
-                    Atrás
-                  </button>
-                  <button
-                    type="button"
-                    className="px-8 py-[11px] text-sm font-semibold border-none rounded-lg bg-[#6B63B5] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(107,99,181,0.2)] disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => setCurrentStep(2)}
-                    disabled={!isStepComplete(1)}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Location */}
-            {currentStep === 2 && (
-              <div className="flex flex-col gap-8 animate-[slideIn_0.4s_ease-out]">
-                <div className="flex flex-col gap-6">
-                  <h2 className="text-2xl font-bold text-[#242424] m-0">Localización</h2>
-                  <p className="text-sm text-[#717171] m-0 line-height-[1.5]">Dónde opera tu organización</p>
-                  
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">País</label>
-                    <input
-                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
-                      type="text"
-                      placeholder="ej: Colombia"
-                      value={formData.country}
-                      onChange={(e) => setFormData({...formData, country: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-semibold text-[#3C3C3C] uppercase tracking-[0.5px]">Ciudad principal</label>
-                    <input
-                      className="px-4 py-3 text-sm border border-[#D4D4D4] rounded-lg bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#6B63B5] focus:ring-3 focus:ring-[#6B63B5]/8"
-                      type="text"
-                      placeholder="ej: Bogotá"
-                      value={formData.city}
-                      onChange={(e) => setFormData({...formData, city: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-3 justify-end">
-                  <button
-                    type="button"
-                    className="px-6 py-[11px] text-sm font-semibold border border-[#D4D4D4] rounded-lg bg-white text-[#3C3C3C] cursor-pointer transition-all duration-200"
-                    onClick={() => setCurrentStep(1)}
-                  >
-                    Atrás
-                  </button>
-                  <button
-                    type="button"
-                    className="px-8 py-[11px] text-sm font-semibold border-none rounded-lg bg-[#6B63B5] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(107,99,181,0.2)] disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => setCurrentStep(3)}
-                    disabled={!isStepComplete(2)}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Data Upload */}
-            {currentStep === 3 && (
-              <div className="flex flex-col gap-8 animate-[slideIn_0.4s_ease-out]">
-                <div className="flex flex-col gap-6">
-                  <h2 className="text-2xl font-bold text-[#242424] m-0">Tu Primer Activo de Datos</h2>
-                  <p className="text-sm text-[#717171] m-0 line-height-[1.5]">Carga tu archivo maestro para inicializar SVX</p>
-                  
-                  <div className={`relative border-2 dashed rounded-xl px-6 py-10 text-center transition-all duration-300
-                    ${fileStatus === 'success' 
-                      ? 'border-[#52C41A] bg-[#F6FFED]' 
-                      : fileStatus === 'error' 
-                        ? 'border-[#FF4D4F] bg-[#FFF1F0]' 
-                        : 'border-[#D4D4D4] bg-[#FAFAFA]'
-                    }`}
-                  >
-                    <input
-                      id="file-upload"
-                      type="file"
-                      accept=".xlsx, .xls, .csv"
-                      onChange={handleFileUpload}
-                      className="absolute w-full h-full top-0 left-0 opacity-0 cursor-pointer"
-                    />
-                    <label htmlFor="file-upload" className="flex flex-col items-center gap-3 cursor-pointer select-none">
-                      <div className="text-3xl font-bold text-[#6B63B5] animate-[fadeInUp_0.3s_ease-out]">
-                        {fileStatus === 'success' ? '✓' : fileStatus === 'loading' ? '⟳' : '↓'}
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        {fileStatus === 'success' && (
-                          <>
-                            <div className="text-[15px] font-semibold text-[#242424]">Archivo cargado correctamente</div>
-                            <div className="text-12px text-[#999999]">Listo para procesar</div>
-                          </>
-                        )}
-                        {fileStatus === 'loading' && (
-                          <>
-                            <div className="text-[15px] font-semibold text-[#242424]">Procesando tu archivo...</div>
-                            <div className="text-12px text-[#999999]">Por favor espera</div>
-                          </>
-                        )}
-                        {fileStatus === 'pending' && (
-                          <>
-                            <div className="text-[15px] font-semibold text-[#242424]">Arrastra o selecciona tu archivo</div>
-                            <div className="text-12px text-[#999999]">Formatos: Excel (.xlsx, .xls) o CSV</div>
-                          </>
-                        )}
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="flex items-center gap-2 px-4 py-3 bg-[#F5F5F5] rounded-lg text-xs text-[#717171] line-height-[1.5]">
-                    <span className="text-sm shrink-0">ℹ️</span>
-                    <span>Tu archivo será encriptado y almacenado de forma segura en nuestros servidores</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 justify-end">
-                  <button
-                    type="button"
-                    className="px-6 py-[11px] text-sm font-semibold border border-[#D4D4D4] rounded-lg bg-white text-[#3C3C3C] cursor-pointer transition-all duration-200"
-                    onClick={() => setCurrentStep(2)}
-                  >
-                    Atrás
-                  </button>
-                  <button
-                    type="submit"
-                    className={`px-8 py-[11px] text-sm font-semibold border-none rounded-lg bg-[#6B63B5] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(107,99,181,0.2)]
-                      ${isSubmitting ? 'opacity-80' : ''}
-                      ${(!isStepComplete(3) || isSubmitting) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                    disabled={!isStepComplete(3) || isSubmitting}
-                  >
-                    {isSubmitting ? 'Sincronizando...' : 'Completar Setup'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </form>
+          {/* Submit Button */}
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={
+                !formData.companyName ||
+                !formData.activity ||
+                !formData.contactEmail ||
+                !formData.contactPhone ||
+                !formData.country ||
+                !formData.city ||
+                !formData.excelData ||
+                isSubmitting
+              }
+              className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:from-purple-700 hover:to-purple-800 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-md"
+            >
+              {isSubmitting ? 'Sincronizando con la nube...' : 'Completar Setup'}
+            </button>
+          </div>
 
           {/* Footer Help */}
-          <div className="mt-8 pt-6 border-t border-[#EBEBEB] text-center">
-            <p className="text-xs text-[#999999] m-0">
-              ¿Necesitas ayuda? <a href="#support" className="text-[#6B63B5] no-underline font-semibold transition-colors duration-200 hover:text-[#5750A0]">Contacta nuestro equipo</a>
+          <div className="pt-4 border-t border-slate-200 text-center">
+            <p className="text-xs text-slate-500">
+              ¿Necesitas ayuda?{' '}
+              <a href="#support" className="text-purple-600 font-semibold hover:text-purple-700 transition-colors">
+                Contacta nuestro equipo
+              </a>
             </p>
           </div>
-        </div>
+        </form>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .animation-delay-100 {
+          animation-delay: 100ms;
+        }
+
+        /* Smooth icon rotation for loading */
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+      `}</style>
     </div>
   );
 };

@@ -12,6 +12,10 @@ const SVXTeamsOnboarding = () => {
   const [formData, setFormData] = useState({
     companyName: '',
     activity: '',
+    contactPhone: '',
+    contactEmail: '',
+    country: '',
+    city: '',
     excelData: null
   });
 
@@ -86,6 +90,10 @@ const SVXTeamsOnboarding = () => {
           user_id: user.id,
           company_name: formData.companyName,
           business_activity: formData.activity,
+          contact_phone: formData.contactPhone,
+          contact_email: formData.contactEmail,
+          country: formData.country,
+          city: formData.city,
           data_slot_1: formData.excelData, 
           created_at: new Date().toISOString()
         }
@@ -136,6 +144,55 @@ const SVXTeamsOnboarding = () => {
             value={formData.activity}
             onChange={(e) => setFormData({...formData, activity: e.target.value})}
           />
+        </div>
+
+        <div style={styles.field}>
+          <label style={styles.label}>Correo Electrónico Corporativo</label>
+          <input 
+            style={styles.input} 
+            type="email" 
+            placeholder="Ej: contacto@empresa.com" 
+            required
+            value={formData.contactEmail}
+            onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
+          />
+        </div>
+
+        <div style={styles.field}>
+          <label style={styles.label}>Teléfono de Contacto</label>
+          <input 
+            style={styles.input} 
+            type="tel" 
+            placeholder="Ej: +57 300 123 4567" 
+            required
+            value={formData.contactPhone}
+            onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
+          />
+        </div>
+
+        <div style={styles.fieldRow}>
+          <div style={{ ...styles.field, flex: 1, marginRight: '10px' }}>
+            <label style={styles.label}>País</label>
+            <input 
+              style={styles.input} 
+              type="text" 
+              placeholder="Ej: Colombia" 
+              required
+              value={formData.country}
+              onChange={(e) => setFormData({...formData, country: e.target.value})}
+            />
+          </div>
+          <div style={{ ...styles.field, flex: 1 }}>
+            <label style={styles.label}>Ciudad</label>
+            <input 
+              style={styles.input} 
+              type="text" 
+              placeholder="Ej: Bogotá" 
+              required
+              value={formData.city}
+              onChange={(e) => setFormData({...formData, city: e.target.value})}
+            />
+          </div>
         </div>
 
         <div style={styles.field}>
@@ -203,6 +260,11 @@ const styles = {
     marginBottom: '24px'
   },
   field: {
+    marginBottom: '18px'
+  },
+  fieldRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
     marginBottom: '18px'
   },
   label: {

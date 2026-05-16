@@ -122,7 +122,8 @@ const TeamsForm = () => {
           
           if (data) {
             setHasData(true);
-            router.push('/panel');
+            // Redirección directa e inmediata al perfil si ya hay datos en la DB
+            router.push('/profile');
           } else {
             setHasData(false);
           }
@@ -143,12 +144,12 @@ const TeamsForm = () => {
   const showTeamsToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     if (type === 'success') {
-      // Gives the user time to read the corporate notification before hiding the dashboard baseline config
+      // Breve espera de 1.5s para que alcancen a ver la confirmación y directo a /profile
       setTimeout(() => {
         setHasData(true);
         setToast({ show: false, message: '', type: 'success' });
-        router.push('/panel');
-      }, 5500);
+        router.push('/profile');
+      }, 1500);
     } else {
       setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
     }
@@ -211,14 +212,13 @@ const TeamsForm = () => {
       }]);
       if (error) throw error;
       
-      showTeamsToast("Information successfully uploaded to the system. You can now explore the catalog management panel for CET Designer within the SERVEX ecosystem.");
+      showTeamsToast("Information successfully uploaded to the system. Redirecting...");
     } catch (err) { 
       showTeamsToast("Connection error. Verification pipeline could not be established.", "error"); 
     }
     finally { setLoading(false); }
   };
 
-  // Execution pipeline for corporate session logout
   const handleLogout = async () => {
     try {
       setIsSignOutSubmitting(true);
@@ -240,7 +240,7 @@ const TeamsForm = () => {
   }
 
   return (
-    <div className={`flex items-center justify-center bg-transparent font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh] ${hasData === true ? 'hidden' : ''}`}>
+    <div className="flex items-center justify-center bg-transparent font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh]">
       
       {/* Fluent / Microsoft Teams Style Toast Notification */}
       {toast.show && (

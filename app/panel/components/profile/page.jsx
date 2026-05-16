@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// Se eliminó la importación de supabaseGoogle de aquí ya que se trasladó al botón
+import { supabaseGoogle } from '@/app/lib/supabaseClient';
 import { 
   ChevronLeft, 
   Headphones, 
   Settings,
   Menu,
-  X
-  // Se eliminó LogOut de lucide-react de este archivo
+  X,
+  LogOut // Imported the icon for logging out
 } from 'lucide-react';
+
 import LogoutButton from './components/LogoutButton'; // Importación del componente creado en la carpeta components
 
 // =========================================================================
@@ -187,7 +188,6 @@ export default function Home() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [hasErrorProfile, setHasErrorProfile] = useState(false);
 
-  // Mantenemos supabaseGoogle aquí porque Home() lo necesita para el useEffect
   useEffect(() => {
     const fetchProfileAndSubmission = async () => {
       try {
@@ -311,7 +311,7 @@ export default function Home() {
           {/* DYNAMIC PROFILE BUTTON (Only visible on Desktop when Collapsed) */}
           {isCollapsed && profileData && !loadingProfile && (
             <button
-              onClick={() => setIsCollapsed(false)} 
+              onClick={() => setIsCollapsed(false)} // Allows expanding the menu by clicking on the photo
               className="hidden md:flex w-full items-center justify-center h-10 rounded-[4px] hover:bg-[#E0E0E0] transition-all duration-150 mb-2"
               title={profileData.name}
             >
@@ -409,6 +409,7 @@ export default function Home() {
       {/* MAIN APP CONTENT */}
       <main className="flex-1 p-6 pt-16 md:pt-6">
         {/* Your main content here */}
+  
       </main>
 
     </div>

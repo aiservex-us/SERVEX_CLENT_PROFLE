@@ -27,19 +27,24 @@ const LogoutButton = () => {
 
   return (
     <>
-      {/* Botón de activación original */}
+      {/* Botón de activación con micro-interacciones avanzadas */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1 px-2 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider text-[#464775] hover:bg-[#c7c7df] border border-transparent hover:border-[#53548b] transition-all duration-200 focus:outline-none"
+        className="group relative flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[10px] font-bold uppercase tracking-wider text-[#464775] bg-[#f0f0f7] border border-[#d8d8eb] shadow-2xs transition-all duration-300 ease-out hover:bg-[#c7c7df] hover:border-[#53548b] hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-2xs focus:outline-none"
         title="Sign out corporate session"
       >
-        <LogOut size={11} className="shrink-0" />
-        <span>Sign Out</span>
+        <LogOut 
+          size={11} 
+          className="shrink-0 transition-transform duration-300 ease-out group-hover:-translate-x-[2px]" 
+        />
+        <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-[#464775] after:transition-all after:duration-300 group-hover:after:w-full">
+          Sign Out
+        </span>
       </button>
 
       {/* Modal Personalizado (Fluent Overlay) */}
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4  backdrop-blur-xs transition-opacity duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-xs transition-opacity duration-200">
           
           {/* Contenedor del Modal */}
           <div className="w-full max-w-[340px] bg-white rounded-[6px] border border-[#E0E0E0] shadow-xl overflow-hidden font-sans antialiased animate-in fade-in zoom-in-95 duration-150">

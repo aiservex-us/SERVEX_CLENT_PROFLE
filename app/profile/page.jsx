@@ -116,62 +116,74 @@ const ClientProfileCard = ({ isCollapsed, profileData, loading, hasError }) => {
 
       {/* Internal Access Section - SVX Copilot */}
       <div className="flex justify-center items-center mt-3.5">
-        <div className="relative group">
+  <div className="relative group">
+    
+    {/* Internal Access Section - SVX Copilot */}
+    {/* Contenedor principal para darle cuerpo al perfil y evitar que se vea vacío */}
+    <div className="flex flex-col justify-center items-center mt-3.5 p-6 border border-[#E0E0E0] bg-[#FAFAFA] rounded-xl shadow-xs max-w-xs text-center">
+      
+      {/* Título sobre el logo */}
+      <h3 className="text-xs font-semibold text-[#292929] mb-3 tracking-tight">
+        Svx Copilot System
+      </h3>
+
+      <div className="relative group">
+        
+        {/* Access Link with Logo (Opens in new tab) */}
+        <a 
+          href="https://servex-ai-iota.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center p-2 rounded-md hover:bg-[#F3F2F1] transition-all duration-200 cursor-pointer focus:outline-none"
+        >
+          <img 
+            src="/logo2.png" 
+            alt="SVX Copilot" 
+            className="h-5 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+          />
+        </a>
+
+        {/* Tooltip (Informative popup) */}
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[#292929]/95 backdrop-blur-sm text-white text-[11px] rounded-lg shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out z-50 border border-[#424242]">
           
-          {/* Internal Access Section - SVX Copilot */}
-          <div className="flex flex-col justify-center items-center mt-3.5 space-y-2">
-            <div className="relative group">
-              
-              {/* Access Link with Logo (Opens in new tab) */}
-              <a 
-                href="https://servex-ai-iota.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center p-1 rounded-md hover:bg-[#F3F2F1] transition-all duration-200 cursor-pointer focus:outline-none"
-              >
-                <img 
-                  src="/logo2.png" 
-                  alt="SVX Copilot" 
-                  className="h-4 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-                />
-              </a>
-
-              {/* Tooltip (Informative popup) */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[#292929]/95 backdrop-blur-sm text-white text-[11px] rounded-lg shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out z-50 border border-[#424242]">
-                
-                {/* Tooltip Content */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 border-b border-[#424242] pb-1">
-                    <span className="font-semibold text-[#464775]">Svx Copilot</span>
-                    <span className="text-[9px] bg-[#464775] text-white px-1 py-0.2 rounded font-medium tracking-wide uppercase">
-                      XML DATA MANAGER
-                    </span>
-                  </div>
-                  
-                  <p className="text-[#D1D1D1] leading-normal">
-                    Data science for catalog integration into <span className="font-semibold text-white">CET</span>.
-                  </p>
-                  
-                  {/* Restricted access notice */}
-                  <div className="pt-1 flex items-center gap-1 text-[10px] text-[#E0A75E] font-medium border-t border-[#424242]/40 mt-1">
-                    <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <span>Exclusive for Servex collaborators and experts</span>
-                  </div>
-                </div>
-
-                {/* Tooltip bottom arrow */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-[#292929]/95" />
-              </div>
-
+          {/* Tooltip Content */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 border-b border-[#424242] pb-1">
+              <span className="font-semibold text-[#464775]">Svx Copilot</span>
+              <span className="text-[9px] bg-[#464775] text-white px-1 py-0.2 rounded font-medium tracking-wide uppercase">
+                XML DATA MANAGER
+              </span>
             </div>
-
-            {/* Logout Button colocado en la misma posición, funcionando exactamente igual */}
-            <LogoutButton />
+            
+            <p className="text-[#D1D1D1] leading-normal">
+              Data science for catalog integration into <span className="font-semibold text-white">CET</span>.
+            </p>
+            
+            {/* Restricted access notice */}
+            <div className="pt-1 flex items-center gap-1 text-[10px] text-[#E0A75E] font-medium border-t border-[#424242]/40 mt-1">
+              <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Exclusive for Servex collaborators and experts</span>
+            </div>
           </div>
+
+          {/* Tooltip bottom arrow */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-[#292929]/95" />
         </div>
+
       </div>
+
+      {/* Texto corto debajo del logo */}
+      <p className="text-[8px] text-[#616161] mt-2 mb-4 max-w-[200px] leading-relaxed">
+        Plataforma automatizada para la gestión inteligente y análisis de datos XML de catálogos.
+      </p>
+
+      {/* Logout Button colocado en la misma posición, funcionando exactamente igual */}
+      <LogoutButton />
+    </div>
+  </div>
+</div>
     </div>
   );
 };
@@ -332,34 +344,7 @@ export default function Home() {
             </button>
           )}
 
-          {/* SUPPORT AND SETTINGS */}
-          {[
-            { label: 'Support', icon: Headphones },
-            { label: 'Settings', icon: Settings },
-          ].map(item => {
-            const Icon = item.icon;
-            const collapsedClasses = isCollapsed ? 'md:justify-center md:h-10' : 'px-3 py-2';
-            const collapsedLabelClasses = isCollapsed ? 'md:max-w-0 md:opacity-0 md:ml-0' : 'max-w-[200px] opacity-100 ml-3';
-            
-            return (
-              <button
-                key={item.label}
-                onClick={() => { if(isMobileOpen) setIsMobileOpen(false); }}
-                className={`
-                  w-full flex items-center rounded-[4px] text-[#616161] hover:bg-[#E0E0E0] hover:text-[#242424] transition-all duration-150
-                  ${collapsedClasses} px-3 py-2
-                `}
-              >
-                <Icon size={(isCollapsed) ? 16 : 14} className="shrink-0" />
-                <div className={`
-                  overflow-hidden transition-all duration-[300ms]
-                  ${collapsedLabelClasses} max-w-[200px] opacity-100 ml-3
-                `}>
-                  <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">{item.label}</span>
-                </div>
-              </button>
-            );
-          })}
+          
 
           {/* CORPORATE COMPONENT: SVX COPILOT */}
           <div className={`
@@ -386,7 +371,7 @@ export default function Home() {
                 <p className="text-[10px] font-black tracking-tight uppercase">
                   Svx Copilot
                 </p>
-                <p className="text-[7.5px] opacity-80 font-medium whitespace-nowrap mt-0.5">
+                <p className="text-[6px] opacity-80 font-medium whitespace-nowrap mt-0.5">
                   Next-gen Intelligence
                 </p>
               </div>
@@ -399,7 +384,7 @@ export default function Home() {
             ${isCollapsed ? 'md:max-h-0 md:opacity-0' : 'max-h-6 opacity-100'}
             max-h-6 opacity-100
           `}>
-            <p className="text-[7px] text-[#616161] leading-none tracking-tight uppercase font-bold">
+            <p className="text-[6px] text-[#616161] leading-none tracking-tight uppercase font-bold">
               © 2026 GLYNNE S.A.S
             </p>
           </div>

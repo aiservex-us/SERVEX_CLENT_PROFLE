@@ -41,7 +41,7 @@ const TeamsFloatingHeader = () => {
         <nav className="pointer-events-auto flex justify-between items-center px-6 py-1.5 bg-white/90 backdrop-blur-md border border-[#EDEBE9] rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)] max-w-7xl w-full">
           
           <div className="flex items-center gap-4">
-            <img src="/logo.png" alt="Logo" className="w-28 object-contain" />
+            <img src="/logo2.png" alt="Logo" className="w-8 object-contain" />
             
             {/* MENSAJE DE BIENVENIDA Y NOMBRE */}
             {user && (

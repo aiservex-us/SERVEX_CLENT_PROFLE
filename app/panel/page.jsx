@@ -15,8 +15,8 @@ export default function Home() {
         - 'z-[90]': Se posiciona por encima de la estructura de la aplicación.
         - 'bg-[#292929]/20 backdrop-blur-xs': Agrega un fondo sutil Fluent para enfocar el formulario.
       */}
-      <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#292929]/20 backdrop-blur-xs pointer-events-auto">
-        <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 animate-in fade-in zoom-in-95 duration-200">
+      <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#FFF]  pointer-events-auto">
+        <div className="w-full max-w-4xl max-h-[100vh] overflow-y-auto p-4 animate-in fade-in zoom-in-95 duration-200">
           <Proces1 />
         </div>
       </div>

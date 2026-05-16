@@ -277,7 +277,7 @@ const TeamsForm = () => {
         </div>
       )}
 
-      <div className="bg-white w-full max-w-5xl h-full md:h-full rounded-lg shadow-[0_8px_16px_rgba(0,0,0,0.14)] flex flex-col border border-[#E1E1E1] overflow-y-auto md:overflow-hidden">
+      <div className="bg-white w-full max-w-5xl h-[90vh] md:h-full rounded-lg shadow-[0_8px_16px_rgba(0,0,0,0.14)] flex flex-col border border-[#E1E1E1] overflow-y-auto md:overflow-hidden">
         
         <form onSubmit={handleSubmit} className="flex-1 p-4 sm:p-5 grid grid-cols-12 gap-5 overflow-y-auto md:overflow-hidden">
           

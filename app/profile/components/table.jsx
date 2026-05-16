@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-// Importamos la instancia desde tu ruta de biblioteca
 import { supabase } from '@/app/lib/supabaseClient'; 
 
 export default function ClientSubmissionsMatrix() {
@@ -9,15 +8,17 @@ export default function ClientSubmissionsMatrix() {
   const [selectedId, setSelectedId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeSubmission, setActiveSubmission] = useState(null);
+  const [fetchingSlots, setFetchingSlots] = useState(false);
 
-  // 1. Cargar la lista inicial de envíos (para el selector de la interfaz)
+  // 1. Cargar la lista inicial de envíos
   useEffect(() => {
     async function getSubmissionsList() {
       try {
         setLoading(true);
         const { data, error: sbError } = await supabase
           .from('client_submissions')
-          .select('id, company_name, created_at, country, city')
+          .select('id, company_name, created_at, city')
           .order('created_at', { ascending: false });
 
         if (sbError) throw sbError;
@@ -33,14 +34,10 @@ export default function ClientSubmissionsMatrix() {
         setLoading(false);
       }
     }
-
     getSubmissionsList();
   }, []);
 
-  // 2. Traer el registro completo (incluyendo slots jsonb) cuando cambie la selección
-  const [activeSubmission, setActiveSubmission] = useState(null);
-  const [fetchingSlots, setFetchingSlots] = useState(false);
-
+  // 2. Traer el registro completo (incluyendo slots jsonb) al cambiar la selección
   useEffect(() => {
     if (!selectedId) return;
 
@@ -61,15 +58,13 @@ export default function ClientSubmissionsMatrix() {
         setFetchingSlots(false);
       }
     }
-
     fetchFullSubmission();
   }, [selectedId]);
 
-  // 3. Procesar, aplanar y consolidar dinámicamente los data_slots JSONB en filas matriciales
+  // 3. Procesar y consolidar dinámicamente los data_slots JSONB
   const matrixData = useMemo(() => {
     if (!activeSubmission) return { rows: [], headers: [] };
 
-    // Mapeamos los slots definidos en tu DDL (se omite slot 7 que no está definido en el esquema)
     const targetSlots = [
       activeSubmission.data_slot_1,
       activeSubmission.data_slot_2,
@@ -80,21 +75,17 @@ export default function ClientSubmissionsMatrix() {
       activeSubmission.data_slot_8,
     ];
 
-    // Consolidamos todos los arrays dentro de los slots JSONB válidos
     const rows = targetSlots
       .filter((slot) => slot && Array.isArray(slot))
       .flat();
 
-    // Extraemos las llaves (columnas del CSV/Excel) del primer registro para armar la cabecera
     const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
-
     return { rows, headers };
   }, [activeSubmission]);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#FFF] text-sm font-semibold text-[#242424]">
-        <div className="w-8 h-8 border-4 border-[#6121B6] border-t-transparent rounded-full animate-spin mb-3"></div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 text-sm font-medium text-slate-500">
         Conectando con Supabase y recuperando metadatos...
       </div>
     );
@@ -102,100 +93,75 @@ export default function ClientSubmissionsMatrix() {
 
   if (error) {
     return (
-      <div className="p-4 max-w-4xl mx-auto mt-10 bg-[#FDE7E9] border-l-4 border-[#A80007] text-[#A80007] shadow-sm text-sm rounded-r flex items-center gap-2">
+      <div className="p-6 max-w-[1000px] mx-auto mt-10 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
         <span className="font-bold">Error de sincronización:</span> {error}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] p-5 text-[#242424] font-sans antialiased selection:bg-[#E2E2F6]">
-      <div className="max-w-[1600px] mx-auto space-y-4">
+    <div className="min-h-screen bg-[#F3F4F6] p-4 md:p-6 text-slate-800">
+      
+      {/* CONTENEDOR RESTRINGIDO A 1000PX MÁXIMO Y FULL RESPONSIVO */}
+      <div className="w-full max-w-[1000px] mx-auto space-y-4">
         
-        {/* Panel Superior de Control de Datos (Header de pestaña de Teams) */}
-        <div className="bg-white p-4 rounded border border-[#E0E0E0] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Panel Superior de Control */}
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-base font-semibold text-[#242424] tracking-tight">Estructura de Datos Analizada (JSONB)</h1>
-            <p className="text-xs text-[#616161] mt-0.5">Visualización nativa de archivos procesados y segmentados por slots</p>
+            <h1 className="text-base font-bold text-slate-900 tracking-tight">Estructura de Datos Analizada</h1>
+            <p className="text-[11px] text-slate-500">Visualización matricial de slots JSONB</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <label htmlFor="submission-select" className="text-xs font-semibold text-[#242424] whitespace-nowrap">
-              Seleccionar Envío:
-            </label>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <select
               id="submission-select"
               value={selectedId}
               onChange={(e) => setSelectedId(e.target.value)}
-              className="bg-[#F0F0F0] hover:bg-[#EAEAEA] text-[#242424] border-b-2 border-transparent focus:border-[#4F46E5] rounded px-3 py-1.5 text-xs font-medium outline-none transition-all min-w-[260px] cursor-pointer"
+              className="w-full sm:w-[220px] bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
             >
               {submissions.map((sub) => (
-                <option key={sub.id} value={sub.id} className="bg-white text-[#242424]">
-                  {sub.company_name || `ID: ${sub.id}`} ({sub.city || 'Sin ciudad'})
+                <option key={sub.id} value={sub.id}>
+                  {sub.company_name || `ID: ${sub.id}`}
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Metadatos del Cliente Activo (Cards estilo Fluent) */}
-        {activeSubmission && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 bg-white p-3.5 rounded border border-[#E0E0E0] shadow-sm text-xs">
-            <div className="border-r border-[#F0F0F0] pr-2 last:border-0">
-              <span className="text-[#616161] block font-normal mb-0.5">Empresa</span>
-              <span className="font-semibold text-[#242424] truncate block">{activeSubmission.company_name || 'N/A'}</span>
-            </div>
-            <div className="border-r border-[#F0F0F0] pr-2 last:border-0 md:block hidden">
-              <span className="text-[#616161] block font-normal mb-0.5">Actividad Comercial</span>
-              <span className="font-medium text-[#424242] truncate block">{activeSubmission.business_activity || 'N/A'}</span>
-            </div>
-            <div className="border-r border-[#F0F0F0] pr-2 last:border-0">
-              <span className="text-[#616161] block font-normal mb-0.5">Ubicación</span>
-              <span className="font-medium text-[#424242] truncate block">{activeSubmission.city ? `${activeSubmission.city}, ${activeSubmission.country}` : 'N/A'}</span>
-            </div>
-            <div className="border-r border-[#F0F0F0] pr-2 last:border-0">
-              <span className="text-[#616161] block font-normal mb-0.5">Contacto</span>
-              <span className="font-medium text-[#424242] truncate block">{activeSubmission.contact_email || 'N/A'}</span>
-            </div>
-            <div className="last:border-0">
-              <span className="text-[#616161] block font-normal mb-0.5">Creado</span>
-              <span className="font-normal text-[#616161] block">
-                {activeSubmission.created_at ? new Date(activeSubmission.created_at).toLocaleDateString() : 'N/A'}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Matriz Estilo Data Grid / Listas de Teams */}
-        <div className="bg-white rounded border border-[#E0E0E0] shadow-sm overflow-hidden flex flex-col">
-          <div className="px-4 py-2.5 border-b border-[#EDF0F2] bg-[#FAFAFA] flex justify-between items-center">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#616161]">
-              {fetchingSlots ? 'Actualizando Matriz...' : 'Dataset Matrix View'}
+        {/* Matriz Principal con scroll interno contenido */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col w-full">
+          
+          {/* Header de la Matriz */}
+          <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50/70 flex justify-between items-center text-[11px]">
+            <span className="font-bold uppercase tracking-wider text-slate-500">
+              {fetchingSlots ? 'Actualizando...' : 'Dataset Matrix'}
             </span>
-            <div className="text-[11px] bg-[#E2E2F6] font-semibold px-2 py-0.5 rounded text-[#4F46E5]">
-              Slots combinados: 1-6, 8
-            </div>
+            <span className="bg-slate-200/60 font-mono px-1.5 py-0.5 rounded text-slate-600">
+              JSONB Slots
+            </span>
           </div>
 
           {matrixData.rows.length === 0 ? (
-            <div className="p-12 text-center text-[#616161] text-xs bg-[#FAFAFA]">
-              {fetchingSlots ? 'Recuperando celdas...' : 'No se encontraron arrays de datos válidos en los slots JSONB de este registro.'}
+            <div className="p-8 text-center text-slate-400 text-xs italic bg-slate-50/30">
+              {fetchingSlots ? 'Recuperando celdas...' : 'No se encontraron registros numéricos ni arrays en los slots.'}
             </div>
           ) : (
-            <div className="w-full overflow-auto max-h-[550px] relative">
-              <table className="w-full border-collapse text-left text-xs min-w-full">
+            
+            /* CONTENEDOR CLAVE DEL SCROLL INTERNO (X e Y) */
+            <div className="w-full overflow-auto max-h-[450px] relative custom-scrollbar">
+              <table className="table-fixed border-collapse text-left text-xs w-full min-w-max">
                 
-                {/* Cabecera Sticky estilo DataGrid de Teams */}
-                <thead className="bg-[#FAFAFA] sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
+                {/* Cabecera de la tabla fija al hacer scroll vertical */}
+                <thead className="bg-slate-100 sticky top-0 z-20 shadow-[0_1px_0_0_rgba(226,232,240,1)]">
                   <tr>
-                    {/* Indexador Izquierdo de Filas */}
-                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#616161] bg-[#F0F0F0] border-r border-[#E0E0E0] sticky left-0 z-30 select-none">
-                      
+                    {/* Indexador numérico izquierdo fijo al hacer scroll horizontal */}
+                    <th className="w-12 px-2 py-2 text-center text-[10px] font-mono font-semibold text-slate-400 bg-slate-200 sticky left-0 z-30 border-r border-b border-slate-300 select-none">
+                      #
                     </th>
                     {matrixData.headers.map((header) => (
                       <th
                         key={header}
-                        className="px-4 py-2 text-[11px] font-semibold text-[#242424] bg-[#FAFAFA] border-r border-[#E0E0E0] min-w-[160px] whitespace-nowrap select-all hover:bg-[#F0F0F0] transition-colors duration-75"
+                        className="px-4 py-2 text-[11px] font-bold text-slate-700 bg-slate-100 border-r border-b border-slate-200 min-w-[150px] max-w-[250px] whitespace-nowrap truncate font-mono"
                       >
                         {header}
                       </th>
@@ -203,29 +169,29 @@ export default function ClientSubmissionsMatrix() {
                   </tr>
                 </thead>
 
-                {/* Filas e Inyección de Celdas */}
-                <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                {/* Filas inyectadas */}
+                <tbody className="bg-white divide-y divide-slate-100">
                   {matrixData.rows.map((row, rowIndex) => (
-                    <tr key={rowIndex} className="hover:bg-[#F5F5F5] transition-colors duration-75 group">
+                    <tr key={rowIndex} className="hover:bg-blue-50/30 transition-colors duration-75 group">
                       
-                      {/* Número de fila */}
-                      <td className="px-2 py-1.5 text-center text-[10px] text-[#616161] bg-[#FAFAFA] border-r border-[#E0E0E0] sticky left-0 z-10 group-hover:bg-[#F0F0F0] select-none">
+                      {/* Índice de fila izquierdo fijo */}
+                      <td className="px-2 py-1.5 text-center text-[10px] font-mono text-slate-400 bg-slate-50 border-r border-slate-200 sticky left-0 z-10 group-hover:bg-blue-100/50 select-none border-b border-slate-100">
                         {rowIndex + 1}
                       </td>
 
-                      {/* Renderizado Dinámico de las Propiedades del JSON */}
+                      {/* Render dinámico de celdas */}
                       {matrixData.headers.map((header) => {
                         const cellValue = row[header];
                         return (
                           <td
                             key={header}
-                            className="px-4 py-1.5 text-[#242424] border-r border-[#F0F0F0] whitespace-nowrap truncate max-w-[280px]"
+                            className="px-4 py-1.5 font-mono text-slate-600 border-r border-b border-slate-100 whitespace-nowrap truncate max-w-[250px]"
                             title={cellValue !== null && cellValue !== undefined ? cellValue.toString() : ''}
                           >
                             {cellValue !== null && cellValue !== undefined ? (
                               cellValue.toString()
                             ) : (
-                              <span className="text-[#9E9E9E] italic text-[10px]">null</span>
+                              <span className="text-slate-300 italic text-[10px]">null</span>
                             )}
                           </td>
                         );
@@ -237,10 +203,10 @@ export default function ClientSubmissionsMatrix() {
             </div>
           )}
 
-          {/* Estado de Dimensiones de la Hoja */}
-          <div className="bg-[#FAFAFA] px-4 py-2 border-t border-[#E0E0E0] flex justify-end gap-4 text-[10px] font-semibold text-[#616161] select-none">
-            <span>COLUMNAS: {matrixData.headers.length}</span>
-            <span>FILAS: {matrixData.rows.length}</span>
+          {/* Estado inferior de dimensiones */}
+          <div className="bg-slate-50 px-4 py-2 border-t border-slate-100 flex justify-end gap-4 text-[10px] font-mono text-slate-400 select-none">
+            <span>COLS: {matrixData.headers.length}</span>
+            <span>ROWS: {matrixData.rows.length}</span>
           </div>
         </div>
 

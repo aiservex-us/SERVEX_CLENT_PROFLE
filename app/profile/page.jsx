@@ -1,5 +1,5 @@
 'use client';
-
+import Table from './components/table'
 import React, { useState, useEffect } from 'react';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
 import { 
@@ -394,7 +394,7 @@ export default function Home() {
       {/* MAIN APP CONTENT */}
       <main className="flex-1 p-6 pt-16 md:pt-6">
         {/* Your main content here */}
-  
+  <Table />
       </main>
 
     </div>

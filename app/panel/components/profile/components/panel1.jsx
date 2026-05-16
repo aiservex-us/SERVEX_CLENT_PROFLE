@@ -59,7 +59,8 @@ const ClientProfileCard = () => {
         console.error('Error fetching ecosystem profile data:', error);
         loadFallbackData();
       } finally {
-        loading(false);
+        // CORREGIDO: Usar el actualizador del estado de React correctamente
+        setLoading(false);
       }
     };
 
@@ -90,10 +91,10 @@ const ClientProfileCard = () => {
   if (!profileData) return null;
 
   return (
-    <div className="bg-[#FFF] max-w-560px] w-full rounded-[4px] p-2.5 font-sans antialiased   mx-auto">
+    <div className="bg-[#FFF]  w-[300px] rounded-[4px] -ml-[20px] font-sans antialiased mx-auto">
       
       {/* Contenedor principal ultracompacto */}
-      <div className="bg-white rounded-[4px] overflow-hidden border border-[#E0E0E0] shadow-sm pb-2.5">
+      <div className="bg-white rounded-[4px]  border border-[#E0E0E0] shadow-sm pb-2.5">
         
         {/* Portada Fija Altura Reducida */}
         <div className="relative h-24 w-full bg-[#6264A7] overflow-hidden">

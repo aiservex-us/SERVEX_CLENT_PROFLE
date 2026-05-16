@@ -8,9 +8,7 @@ import Profile from './components/profile/page'
 export default function Home() {
   return (
     <div className="min-h-screen w-full bg-white">
-      <div>
-        <Header />
-      </div>
+
       {/* <div className='mt-[5%]'>
         <Proces1 />
       </div > */} 

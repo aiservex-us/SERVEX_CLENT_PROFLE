@@ -90,8 +90,7 @@ const FileSlot = ({ index, fileName, onFileSelect, onFileRemove }) => {
 
 const TeamsForm = () => {
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasData, setHasData] = useState(null); // State to evaluate database record existence
   const [formData, setFormData] = useState({
     company_name: '', business_activity: '', contact_phone: '',
     website_url: '', contact_email: '', country: '', city: ''
@@ -100,9 +99,9 @@ const TeamsForm = () => {
   const [jsonSlots, setJsonSlots] = useState([null]);
   const [fileNames, setFileNames] = useState(['']);
 
-  // Check if the current user already has record in database
+  // Effect to verify if user record already exists in database
   useEffect(() => {
-    const checkExistingSubmission = async () => {
+    const checkExistingData = async () => {
       try {
         const { data: { user } } = await supabaseGoogle.auth.getUser();
         if (user) {
@@ -112,18 +111,16 @@ const TeamsForm = () => {
             .eq('user_id', user.id)
             .maybeSingle();
 
-          if (data) {
-            setHasSubmitted(true);
-          }
+          if (error) throw error;
+          setHasData(!!data);
         }
       } catch (err) {
-        console.error("Error verifying registration state:", err);
-      } finally {
-        setCheckingAuth(false);
+        console.error("Error checking baseline records:", err);
+        setHasData(false);
       }
     };
 
-    checkExistingSubmission();
+    checkExistingData();
   }, []);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -167,7 +164,7 @@ const TeamsForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jsonSlots.some(s => s !== null)) return alert("Please upload at least one file.");
-    loading(true);
+    setLoading(true);
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
       const { error } = await supabaseGoogle.from('client_submissions').insert([{
@@ -182,25 +179,13 @@ const TeamsForm = () => {
       }]);
       if (error) throw error;
       alert("Data successfully saved in the ecosystem.");
-      setHasSubmitted(true); // Prevents the form from showing ever again once submitted successfully
+      setHasData(true); // Updates visibility status after a successful insertion
     } catch (err) { alert("Connection error."); }
     finally { setLoading(false); }
   };
 
-  // Prevent UI flashing while checking the database state
-  if (checkingAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-[80vh] bg-white text-xs font-semibold text-[#616161]">
-        Verifying setup state...
-      </div>
-    );
-  }
-
-  // If the data exists or has just been saved, completely omit rendering the element
-  if (hasSubmitted) return null;
-
   return (
-    <div className="flex items-center justify-center bg-[#FFF] font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh]">
+    <div className={`flex items-center justify-center bg-[#FFF] font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh] ${hasData === true ? 'hidden' : ''}`}>
       <div className="bg-white w-full max-w-5xl h-full md:h-full rounded-lg shadow-[0_8px_16px_rgba(0,0,0,0.14)] flex flex-col border border-[#E1E1E1] overflow-y-auto md:overflow-hidden">
         
         <form onSubmit={handleSubmit} className="flex-1 p-4 sm:p-5 grid grid-cols-12 gap-5 overflow-y-auto md:overflow-hidden">

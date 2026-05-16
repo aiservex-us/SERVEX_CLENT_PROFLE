@@ -36,9 +36,9 @@ const TeamsFloatingHeader = () => {
 
   return (
     <>
-      {/* HEADER PRINCIPAL */}
-      <div className="fixed top-0 left-0 w-full z-50 flex justify-center pt-3 px-4 pointer-events-none">
-        <nav className="pointer-events-auto flex justify-between items-center px-6 py-1.5 bg-white/90 backdrop-blur-md border border-[#EDEBE9] rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)] max-w-7xl w-full">
+      {/* HEADER PRINCIPAL - Cambiado a bloque normal con espacio propio */}
+      <div className="w-full flex justify-center py-4 px-4">
+        <nav className="flex justify-between items-center px-6 py-2 bg-white border border-[#EDEBE9] rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.05)] max-w-7xl w-full">
           
           <div className="flex items-center gap-4">
             <img src="/logo2.png" alt="Logo" className="w-8 object-contain" />

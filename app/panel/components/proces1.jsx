@@ -167,7 +167,7 @@ const TeamsForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jsonSlots.some(s => s !== null)) return alert("Please upload at least one file.");
-    setLoading(true);
+    loading(true);
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
       const { error } = await supabaseGoogle.from('client_submissions').insert([{

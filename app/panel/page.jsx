@@ -14,7 +14,7 @@ export default function Home() {
       {/* <div className='mt-[5%]'>
         <Proces1 />
       </div > */} 
-      <div>
+    <div className="min-h-screen w-full bg-[ff8f]">
         <Profile />
       </div>
     </div>

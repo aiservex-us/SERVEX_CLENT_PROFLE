@@ -9,9 +9,9 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full bg-white">
 
-      {/* <div className='mt-[5%]'>
+      <div className='mt-[5%]'>
         <Proces1 />
-      </div > */} 
+      </div > 
     <div className="min-h-screen w-full bg-[ff8f]">
         <Profile />
       </div>

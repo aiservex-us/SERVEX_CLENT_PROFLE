@@ -7,13 +7,26 @@ import {
   Headphones, 
   Settings,
   Menu,
-  X 
+  X,
+  LogOut // Imported the icon for logging out
 } from 'lucide-react';
 
 // =========================================================================
-// COMPONENTE 1: CLIENT PROFILE CARD (Fluent Full-Width Integration)
+// COMPONENT 1: CLIENT PROFILE CARD (Fluent Full-Width Integration)
 // =========================================================================
 const ClientProfileCard = ({ isCollapsed, profileData, loading, hasError }) => {
+  // Native logic to handle sign out using the supabaseGoogle client
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabaseGoogle.auth.signOut();
+      if (error) throw error;
+      // Optional: Redirect or reload page after logout
+      window.location.reload();
+    } catch (error) {
+      console.error('Error logging out:', error.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-4 min-h-[140px]">
@@ -27,21 +40,20 @@ const ClientProfileCard = ({ isCollapsed, profileData, loading, hasError }) => {
   return (
     <div className="w-full bg-white font-sans antialiased border-b border-[#E0E0E0] pb-4 overflow-hidden transition-all duration-300">
       
-      {/* Portada a Sangre */}
+      {/* Full-bleed Cover */}
       <div className="relative h-24 w-full bg-[#6264A7] overflow-hidden">
-      <div className="relative h-24 w-full bg-[#6264A7] overflow-hidden">
-  <div 
-    className="absolute inset-0 bg-cover bg-center"
-    style={{ 
-      backgroundImage: "url('/fndPrfile.jpg')",
-      opacity: 0.8 // Subimos la opacidad para probar si se ve
-    }}
-  />
-</div>
-      
+        <div className="relative h-24 w-full bg-[#6264A7] overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ 
+              backgroundImage: "url('/fndPrfile.jpg')",
+              opacity: 0.8 // Raised opacity to test visibility
+            }}
+          />
+        </div>
       </div>
 
-      {/* Avatar Centrado */}
+      {/* Centered Avatar */}
       <div className="flex justify-center -mt-10 mb-2.5 relative z-10">
         <div className="p-[2px] rounded-full bg-[#6264A7] shadow-md">
           <div className="rounded-full p-[2px] bg-white">
@@ -62,7 +74,7 @@ const ClientProfileCard = ({ isCollapsed, profileData, loading, hasError }) => {
         </div>
       </div>
 
-      {/* Bloque Informativo */}
+      {/* Information Block */}
       <div className="text-center px-4 mb-4">
         <h3 className="text-[14px] font-bold text-[#242424] tracking-tight truncate" title={profileData.name}>
           {profileData.name}
@@ -75,7 +87,7 @@ const ClientProfileCard = ({ isCollapsed, profileData, loading, hasError }) => {
         </span>
       </div>
 
-      {/* Gestión de Excepciones */}
+      {/* Exception Management */}
       {hasError && (
         <div className="mx-4 mb-3 p-2 text-[10px] text-[#A80000] bg-[#FDE7E9] rounded-[2px] border border-[#F3B0B4] flex items-start space-x-1.5">
           <svg className="w-3.5 h-3.5 flex-shrink-0 text-[#A80000] mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -109,28 +121,83 @@ const ClientProfileCard = ({ isCollapsed, profileData, loading, hasError }) => {
         </div>
       </div>
 
-      {/* Redes Sociales */}
-      <div className="flex justify-center items-center gap-5 mt-3.5">
-        {/* ...Iconos de redes mapeados de tu código original... */}
-        <button className="text-[#616161] hover:text-[#6264A7] transition-colors p-0.5">
-          <svg className="w-[14px] h-[14px]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204 013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-        </button>
-        <button className="text-[#616161] hover:text-[#6264A7] transition-colors p-0.5">
-          <svg className="w-[13px] h-[13px]" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        </button>
+      {/* Internal Access Section - SVX Copilot */}
+      <div className="flex justify-center items-center mt-3.5">
+        <div className="relative group">
+          
+          {/* Internal Access Section - SVX Copilot */}
+          <div className="flex flex-col justify-center items-center mt-3.5 space-y-2">
+            <div className="relative group">
+              
+              {/* Access Link with Logo (Opens in new tab) */}
+              <a 
+                href="https://servex-ai-iota.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center p-1 rounded-md hover:bg-[#F3F2F1] transition-all duration-200 cursor-pointer focus:outline-none"
+              >
+                <img 
+                  src="/logo2.png" 
+                  alt="SVX Copilot" 
+                  className="h-4 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                />
+              </a>
+
+              {/* Tooltip (Informative popup) */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[#292929]/95 backdrop-blur-sm text-white text-[11px] rounded-lg shadow-xl opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out z-50 border border-[#424242]">
+                
+                {/* Tooltip Content */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 border-b border-[#424242] pb-1">
+                    <span className="font-semibold text-[#464775]">Svx Copilot</span>
+                    <span className="text-[9px] bg-[#464775] text-white px-1 py-0.2 rounded font-medium tracking-wide uppercase">
+                      XML DATA MANAGER
+                    </span>
+                  </div>
+                  
+                  <p className="text-[#D1D1D1] leading-normal">
+                    Data science for catalog integration into <span className="font-semibold text-white">CET</span>.
+                  </p>
+                  
+                  {/* Restricted access notice */}
+                  <div className="pt-1 flex items-center gap-1 text-[10px] text-[#E0A75E] font-medium border-t border-[#424242]/40 mt-1">
+                    <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Exclusive for Servex collaborators and experts</span>
+                  </div>
+                </div>
+
+                {/* Tooltip bottom arrow */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-[#292929]/95" />
+              </div>
+
+            </div>
+
+            {/* Logout Button (Right under the logo) */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 px-2 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider text-[#464775] hover:bg-[#c7c7df] border border-transparent hover:border-[#53548b] transition-all duration-200 focus:outline-none"
+              title="Sign out corporate session"
+            >
+              <LogOut size={11} className="shrink-0" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 // =========================================================================
-// COMPONENTE CONTENEDOR PRINCIPAL: SIDEBAR SYSTEM (MOBILE FULL-WIDTH OPTIMIZED)
+// MAIN CONTAINER COMPONENT: SIDEBAR SYSTEM (MOBILE FULL-WIDTH OPTIMIZED)
 // =========================================================================
 export default function Home() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   
-  // Estado del perfil elevado al contenedor principal para compartirlo con el Footer
+  // Profile state lifted to main container to share with the Footer
   const [profileData, setProfileData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [hasErrorProfile, setHasErrorProfile] = useState(false);
@@ -204,7 +271,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen w-full bg-[#FFF] text-[#242424] antialiased overflow-hidden relative">
       
-      {/* BOTÓN DISPARADOR MÓVIL (Burger Menu) */}
+      {/* MOBILE TRIGGER BUTTON (Burger Menu) */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         className="md:hidden fixed top-3 left-3 z-50 p-2 bg-white border border-[#E0E0E0] rounded-[4px] text-[#616161] hover:text-[#6264A7] shadow-xs active:scale-95"
@@ -212,7 +279,7 @@ export default function Home() {
         {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* MENÚ LATERAL INTERACTIVO */}
+      {/* INTERACTIVE SIDEBAR */}
       <aside
         className={`
           fixed inset-y-0 left-0 z-40 flex flex-col bg-[#F5F5F5] border-r border-[#E0E0E0]
@@ -233,11 +300,11 @@ export default function Home() {
           </button>
           
           <div className="md:hidden w-full flex justify-start items-center pl-10">
-            <span className="text-[11px] font-bold uppercase text-[#616161] tracking-wider">Menú de Navegación</span>
+            <span className="text-[11px] font-bold uppercase text-[#616161] tracking-wider">Navigation Menu</span>
           </div>
         </div>
 
-        {/* ÁREA CENTRAL A SANGRE */}
+        {/* FULL-BLEED CENTRAL AREA */}
         <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar bg-white">
           <div className={`
             w-full transition-all duration-[300ms] origin-top
@@ -252,13 +319,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* FOOTER CORPORATIVO */}
+        {/* CORPORATE FOOTER */}
         <div className="p-3 border-t border-[#E0E0E0] bg-[#F5F5F5] space-y-1 shrink-0">
           
-          {/* BOTÓN DINÁMICO DE PERFIL (Solo visible en Desktop cuando está Colapsado) */}
+          {/* DYNAMIC PROFILE BUTTON (Only visible on Desktop when Collapsed) */}
           {isCollapsed && profileData && !loadingProfile && (
             <button
-              onClick={() => setIsCollapsed(false)} // Permite expandir el menú al hacer click en su foto
+              onClick={() => setIsCollapsed(false)} // Allows expanding the menu by clicking on the photo
               className="hidden md:flex w-full items-center justify-center h-10 rounded-[4px] hover:bg-[#E0E0E0] transition-all duration-150 mb-2"
               title={profileData.name}
             >
@@ -279,7 +346,7 @@ export default function Home() {
             </button>
           )}
 
-          {/* SOPORTE Y CONFIGURACIÓN */}
+          {/* SUPPORT AND SETTINGS */}
           {[
             { label: 'Support', icon: Headphones },
             { label: 'Settings', icon: Settings },
@@ -308,11 +375,11 @@ export default function Home() {
             );
           })}
 
-          {/* COMPONENTE CORPORATIVO: SVX COPILOT */}
+          {/* CORPORATE COMPONENT: SVX COPILOT */}
           <div className={`
             mt-2 flex items-center rounded-[4px] transition-all duration-300
-            ${isCollapsed ? 'md:justify-center md:h-10 md:bg-transparent' : 'p-2.5 bg-[#6264A7] text-white shadow-sm'}
-            p-2.5 bg-[#6264A7] text-white
+            ${isCollapsed ? 'md:justify-center md:h-10 md:bg-transparent' : 'p-2.5 bg-[#464775] text-white shadow-sm'}
+            p-2.5 bg-[#464775] text-white
           `}>
             <div className="relative shrink-0">
               <div className={`rounded-[2px] flex items-center justify-center transition-all duration-300 ${isCollapsed ? 'md:w-8 md:h-8 md:p-1.5 md:bg-[#6264A7] md:hover:scale-105 md:shadow-sm' : 'w-7 h-7 p-1.5 bg-white/20 backdrop-blur-md'} w-7 h-7 p-1.5 bg-white/20 backdrop-blur-md`}>
@@ -340,7 +407,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* COPYRIGHT LEGAL */}
+          {/* LEGAL COPYRIGHT */}
           <div className={`
             transition-all duration-[300ms] overflow-hidden pt-1.5 text-center
             ${isCollapsed ? 'md:max-h-0 md:opacity-0' : 'max-h-6 opacity-100'}
@@ -353,9 +420,9 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL DE LA APP */}
+      {/* MAIN APP CONTENT */}
       <main className="flex-1 p-6 pt-16 md:pt-6">
-        {/* Tu contenido principal aquí */}
+        {/* Your main content here */}
   
       </main>
 

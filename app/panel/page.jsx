@@ -7,14 +7,28 @@ import Profile from './components/profile/page'
 
 export default function Home() {
   return (
-    <div className="min-h-screen w-full bg-white">
+    <div className="relative min-h-[99vh] w-full bg-transparent overflow-x-hidden">
+      
+      {/* 
+        CAPA SUPERPUESTA (OVERLAY) PARA PROCES1
+        - 'fixed inset-0': Ocupa toda la pantalla sin importar el scroll.
+        - 'z-[90]': Se posiciona por encima de la estructura de la aplicación.
+        - 'bg-[#292929]/20 backdrop-blur-xs': Agrega un fondo sutil Fluent para enfocar el formulario.
+      */}
+      <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#292929]/20 backdrop-blur-xs pointer-events-auto">
+        <div className="w-full max-w-4xl h-[95vh] overflow-y-auto p-4 animate-in fade-in zoom-in-95 duration-200">
+          <Proces1 />
+        </div>
+      </div>
 
-      <div className='mt-[5%]'>
-        <Proces1 />
-      </div > 
-    <div className="min-h-screen w-full bg-[ff8f]">
+      {/* 
+        CONTENEDOR PRINCIPAL DEL PERFIL / SIDEBAR SYSTEM
+        - Corregido el background color inválido 'bg-[ff8f]' a la estructura limpia.
+      */}
+      <div className="min-h-screen w-full bg-white">
         <Profile />
       </div>
+
     </div>
   );
 }

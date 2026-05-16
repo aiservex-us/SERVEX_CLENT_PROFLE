@@ -211,7 +211,7 @@ const TeamsForm = () => {
   }
 
   return (
-    <div className={`flex items-center justify-center bg-[#FFF] font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh] ${hasData === true ? 'hidden' : ''}`}>
+    <div className={`flex items-center justify-center bg-transparent font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh] ${hasData === true ? 'hidden' : ''}`}>
       
       {/* Fluent / Microsoft Teams Style Toast Notification */}
       {toast.show && (

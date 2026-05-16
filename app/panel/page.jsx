@@ -8,7 +8,7 @@ import Profile from './components/profile/page';
 
 export default function Home() {
   // Estado para controlar si el onboarding/proces1 está activo
-  const [isProcessing, setIsProcessing] = useState<boolean | null>(null);
+  const [isProcessing, setIsProcessing] = useState(null);
 
   useEffect(() => {
     const checkBaseline = async () => {

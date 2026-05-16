@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
 import * as XLSX from 'xlsx';
 
@@ -89,6 +90,7 @@ const FileSlot = ({ index, fileName, onFileSelect, onFileRemove }) => {
 };
 
 const TeamsForm = () => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [hasData, setHasData] = useState(null); // State to evaluate database record existence
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -99,6 +101,10 @@ const TeamsForm = () => {
   
   const [jsonSlots, setJsonSlots] = useState([null]);
   const [fileNames, setFileNames] = useState(['']);
+
+  // Logout Modal States
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [isSignOutSubmitting, setIsSignOutSubmitting] = useState(false);
 
   // Effect to verify if user record already exists in database
   useEffect(() => {
@@ -203,6 +209,22 @@ const TeamsForm = () => {
       showTeamsToast("Connection error. Verification pipeline could not be established.", "error"); 
     }
     finally { setLoading(false); }
+  };
+
+  // Execution pipeline for corporate session logout
+  const handleLogout = async () => {
+    try {
+      setIsSignOutSubmitting(true);
+      const { error } = await supabaseGoogle.auth.signOut();
+      if (error) throw error;
+      
+      setIsLogoutOpen(false);
+      router.push('/');
+    } catch (error) {
+      console.error('Error logging out:', error.message);
+    } finally {
+      setIsSignOutSubmitting(false);
+    }
   };
 
   // Prevent flash effect while checking authentication and database records
@@ -446,11 +468,86 @@ const TeamsForm = () => {
               >
                 {loading ? 'Saving...' : 'Upload Information'}
               </button>
-              <button type="button" className="px-3 py-1.5 border border-[#D1D1D1] rounded text-xs text-[#242424] font-semibold hover:bg-[#F3F2F1]">Cancel</button>
+              
+              {/* Updated Cancel Button triggers custom Fluent Sign Out Overlay */}
+              <button 
+                type="button" 
+                onClick={() => setIsLogoutOpen(true)}
+                className="px-3 py-1.5 border border-[#D1D1D1] rounded text-xs text-[#242424] font-semibold hover:bg-[#F3F2F1]"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </form>
       </div>
+
+      {/* Integrated Fluent Overlay Custom Modal */}
+      {isLogoutOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/10 backdrop-blur-xs transition-opacity duration-200">
+          
+          {/* Modal Container */}
+          <div className="w-full max-w-[340px] bg-white rounded-[6px] border border-[#E0E0E0] shadow-xl overflow-hidden font-sans antialiased animate-fade-in">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-[#F5F5F5] border-b border-[#E0E0E0]">
+              <div className="flex items-center space-x-1.5 text-[#464775]">
+                {/* Warning / Alert Triangle SVG */}
+                <svg className="w-3.5 h-3.5 text-[#E0A75E]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="text-[11px] font-bold uppercase tracking-wider">Confirm Action</span>
+              </div>
+              <button 
+                onClick={() => !isSignOutSubmitting && setIsLogoutOpen(false)}
+                className="text-[#616161] hover:text-[#242424] transition-colors focus:outline-none"
+                disabled={isSignOutSubmitting}
+              >
+                {/* Close X SVG */}
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4">
+              <h4 className="text-[13px] font-bold text-[#242424] leading-tight">
+                Sign Out Corporate Session?
+              </h4>
+              <p className="text-[11px] text-[#616161] font-normal mt-1.5 leading-normal">
+                You will be redirected to the landing page. Private configurations for <span className="font-semibold text-[#464775]">SVX Copilot</span> won't be accessible until you log back in.
+              </p>
+            </div>
+
+            {/* Action Footer */}
+            <div className="flex items-center justify-end space-x-2 px-4 py-3 bg-[#FAFAFA] border-t border-[#E0E0E0]">
+              <button
+                type="button"
+                onClick={() => setIsLogoutOpen(false)}
+                disabled={isSignOutSubmitting}
+                className="px-3 py-1.5 text-[11px] font-semibold text-[#616161] bg-white border border-[#D1D1D1] rounded-[4px] hover:bg-[#F3F2F1] hover:text-[#242424] transition-all duration-150 focus:outline-none disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isSignOutSubmitting}
+                className="flex items-center justify-center min-w-[80px] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white bg-[#464775] rounded-[4px] hover:bg-[#3b3c63] border border-transparent shadow-xs transition-all duration-150 focus:outline-none disabled:opacity-50"
+              >
+                {isSignOutSubmitting ? (
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                ) : (
+                  'Disconnect'
+                )}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {

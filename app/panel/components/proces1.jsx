@@ -119,7 +119,13 @@ const TeamsForm = () => {
             .maybeSingle();
 
           if (error) throw error;
-          setHasData(!!data);
+          
+          if (data) {
+            setHasData(true);
+            router.push('/panel');
+          } else {
+            setHasData(false);
+          }
         } else {
           setHasData(false);
         }
@@ -130,7 +136,7 @@ const TeamsForm = () => {
     };
 
     checkExistingData();
-  }, []);
+  }, [router]);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -141,6 +147,7 @@ const TeamsForm = () => {
       setTimeout(() => {
         setHasData(true);
         setToast({ show: false, message: '', type: 'success' });
+        router.push('/panel');
       }, 5500);
     } else {
       setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabaseGoogle } from '../../lib/supabaseClient'; 
 import { HiShieldCheck } from 'react-icons/hi';
 import { FaUserCircle } from 'react-icons/fa';
-import Profile from '../../panel/components/profile/page'
+import Profile from '../../profile/page'
 
 const TeamsFloatingHeader = () => {
   const router = useRouter();

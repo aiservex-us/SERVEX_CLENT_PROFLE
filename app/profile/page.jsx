@@ -369,7 +369,7 @@ export default function Home() {
             `}>
               <div className="flex flex-col leading-none text-white">
                 <p className="text-[10px] font-black tracking-tight uppercase">
-                  Svx Copilot
+                  Svx Command
                 </p>
                 <p className="text-[6px] opacity-80 font-medium whitespace-nowrap mt-0.5">
                   Next-gen Intelligence

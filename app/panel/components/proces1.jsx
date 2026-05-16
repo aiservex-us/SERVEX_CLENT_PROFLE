@@ -91,6 +91,7 @@ const FileSlot = ({ index, fileName, onFileSelect, onFileRemove }) => {
 const TeamsForm = () => {
   const [loading, setLoading] = useState(false);
   const [hasData, setHasData] = useState(null); // State to evaluate database record existence
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [formData, setFormData] = useState({
     company_name: '', business_activity: '', contact_phone: '',
     website_url: '', contact_email: '', country: '', city: ''
@@ -126,6 +127,19 @@ const TeamsForm = () => {
   }, []);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const showTeamsToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    if (type === 'success') {
+      // Gives the user time to read the corporate notification before hiding the dashboard baseline config
+      setTimeout(() => {
+        setHasData(true);
+        setToast({ show: false, message: '', type: 'success' });
+      }, 5500);
+    } else {
+      setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+    }
+  };
 
   const processFile = (file, index) => {
     const reader = new FileReader();
@@ -165,7 +179,10 @@ const TeamsForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!jsonSlots.some(s => s !== null)) return alert("Please upload at least one file.");
+    if (!jsonSlots.some(s => s !== null)) {
+      showTeamsToast("Please upload at least one inventory file.", "error");
+      return;
+    }
     setLoading(true);
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
@@ -180,9 +197,11 @@ const TeamsForm = () => {
         created_at: new Date().toISOString()
       }]);
       if (error) throw error;
-      alert("Data successfully saved in the ecosystem.");
-      setHasData(true); // Updates visibility status after a successful insertion
-    } catch (err) { alert("Connection error."); }
+      
+      showTeamsToast("Information successfully uploaded to the system. You can now explore the catalog management panel for CET Designer within the SERVEX ecosystem.");
+    } catch (err) { 
+      showTeamsToast("Connection error. Verification pipeline could not be established.", "error"); 
+    }
     finally { setLoading(false); }
   };
 
@@ -193,6 +212,42 @@ const TeamsForm = () => {
 
   return (
     <div className={`flex items-center justify-center bg-[#FFF] font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh] ${hasData === true ? 'hidden' : ''}`}>
+      
+      {/* Fluent / Microsoft Teams Style Toast Notification */}
+      {toast.show && (
+        <div className="fixed top-4 right-4 z-50 max-w-md w-full bg-white rounded-md border-b-2 border-[#107C41] shadow-[0_4px_16px_rgba(0,0,0,0.12)] p-3.5 flex items-start space-x-3 transition-all duration-300 transform translate-y-0 animate-fade-in border border-[#EDEBE9]">
+          {toast.type === 'success' ? (
+            <div className="p-1 rounded bg-[#F3F9F5] shrink-0">
+              <svg className="w-4 h-4 text-[#107C41]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          ) : (
+            <div className="p-1 rounded bg-[#FDE7E9] shrink-0">
+              <svg className="w-4 h-4 text-[#A80000]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+          )}
+          <div className="flex-1">
+            <h4 className="text-[12px] font-bold text-[#242424] mb-0.5">
+              {toast.type === 'success' ? 'Svx Command Execution' : 'System Alert'}
+            </h4>
+            <p className="text-[11px] text-[#616161] leading-normal font-normal">
+              {toast.message}
+            </p>
+          </div>
+          <button 
+            onClick={() => setToast({ ...toast, show: false })} 
+            className="text-[#616161] hover:text-[#242424] p-0.5 rounded transition-colors shrink-0"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       <div className="bg-white w-full max-w-5xl h-full md:h-full rounded-lg shadow-[0_8px_16px_rgba(0,0,0,0.14)] flex flex-col border border-[#E1E1E1] overflow-y-auto md:overflow-hidden">
         
         <form onSubmit={handleSubmit} className="flex-1 p-4 sm:p-5 grid grid-cols-12 gap-5 overflow-y-auto md:overflow-hidden">
@@ -407,6 +462,13 @@ const TeamsForm = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #c8c8c8;
           border-radius: 10px;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.2s ease-out forwards;
         }
       `}</style>
     </div>

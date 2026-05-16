@@ -113,6 +113,8 @@ const TeamsForm = () => {
 
           if (error) throw error;
           setHasData(!!data);
+        } else {
+          setHasData(false);
         }
       } catch (err) {
         console.error("Error checking baseline records:", err);
@@ -183,6 +185,11 @@ const TeamsForm = () => {
     } catch (err) { alert("Connection error."); }
     finally { setLoading(false); }
   };
+
+  // Prevent flash effect while checking authentication and database records
+  if (hasData === null) {
+    return <div className="min-h-[80vh] md:h-[90vh] bg-[#FFF]" />;
+  }
 
   return (
     <div className={`flex items-center justify-center bg-[#FFF] font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh] ${hasData === true ? 'hidden' : ''}`}>

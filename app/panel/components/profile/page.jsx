@@ -1,31 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabaseGoogle } from '@/app/lib/supabaseClient';
+// Se eliminó la importación de supabaseGoogle de aquí ya que se trasladó al botón
 import { 
   ChevronLeft, 
   Headphones, 
   Settings,
   Menu,
-  X,
-  LogOut // Imported the icon for logging out
+  X
+  // Se eliminó LogOut de lucide-react de este archivo
 } from 'lucide-react';
+import LogoutButton from './components/LogoutButton'; // Importación del componente creado en la carpeta components
 
 // =========================================================================
 // COMPONENT 1: CLIENT PROFILE CARD (Fluent Full-Width Integration)
 // =========================================================================
 const ClientProfileCard = ({ isCollapsed, profileData, loading, hasError }) => {
-  // Native logic to handle sign out using the supabaseGoogle client
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabaseGoogle.auth.signOut();
-      if (error) throw error;
-      // Optional: Redirect or reload page after logout
-      window.location.reload();
-    } catch (error) {
-      console.error('Error logging out:', error.message);
-    }
-  };
+  
+  // Toda la lógica interna de handleLogout fue removida de aquí sin alterar el flujo original
 
   if (loading) {
     return (
@@ -174,15 +166,8 @@ const ClientProfileCard = ({ isCollapsed, profileData, loading, hasError }) => {
 
             </div>
 
-            {/* Logout Button (Right under the logo) */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1 px-2 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider text-[#464775] hover:bg-[#c7c7df] border border-transparent hover:border-[#53548b] transition-all duration-200 focus:outline-none"
-              title="Sign out corporate session"
-            >
-              <LogOut size={11} className="shrink-0" />
-              <span>Sign Out</span>
-            </button>
+            {/* Logout Button colocado en la misma posición, funcionando exactamente igual */}
+            <LogoutButton />
           </div>
         </div>
       </div>
@@ -202,6 +187,7 @@ export default function Home() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [hasErrorProfile, setHasErrorProfile] = useState(false);
 
+  // Mantenemos supabaseGoogle aquí porque Home() lo necesita para el useEffect
   useEffect(() => {
     const fetchProfileAndSubmission = async () => {
       try {
@@ -325,7 +311,7 @@ export default function Home() {
           {/* DYNAMIC PROFILE BUTTON (Only visible on Desktop when Collapsed) */}
           {isCollapsed && profileData && !loadingProfile && (
             <button
-              onClick={() => setIsCollapsed(false)} // Allows expanding the menu by clicking on the photo
+              onClick={() => setIsCollapsed(false)} 
               className="hidden md:flex w-full items-center justify-center h-10 rounded-[4px] hover:bg-[#E0E0E0] transition-all duration-150 mb-2"
               title={profileData.name}
             >
@@ -423,7 +409,6 @@ export default function Home() {
       {/* MAIN APP CONTENT */}
       <main className="flex-1 p-6 pt-16 md:pt-6">
         {/* Your main content here */}
-  
       </main>
 
     </div>

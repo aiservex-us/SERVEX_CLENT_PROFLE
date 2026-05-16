@@ -56,7 +56,7 @@ export default function Home() {
         Cuando 'isProcessing' pasa a false, todo este nodo del DOM se destruye liberando el <Profile />.
       */}
       {isProcessing && (
-        <div className="overflow-hidden">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-none pointer-events-auto">
           <div className="w-full max-w-4xl h-[95vh] overflow-y-auto p-4 animate-in fade-in zoom-in-95 duration-200">
             {/* Le pasamos la función para apagar el overlay desde adentro si es necesario */}
             <Proces1 onComplete={() => setIsProcessing(false)} />

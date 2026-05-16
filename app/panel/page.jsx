@@ -8,7 +8,7 @@ import Profile from './components/profile/page';
 
 export default function Home() {
   // Estado para controlar si el onboarding/proces1 está activo
-  const [isProcessing, setIsProcessing] = useState(null);
+  const [isProcessing, setIsProcessing] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkBaseline = async () => {
@@ -40,32 +40,46 @@ export default function Home() {
     checkBaseline();
   }, []);
 
+  // Controlar el overflow del body dinámicamente para evitar bloqueos de scroll
+  useEffect(() => {
+    if (isProcessing) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    // Limpieza al desmontar el componente
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isProcessing]);
+
   // Evitamos flashes visuales asíncronos mientras Supabase responde
   if (isProcessing === null) {
     return <div className="min-h-screen w-full bg-white" />;
   }
 
   return (
-    <div className="relative min-h-[99vh] w-full bg-transparent overflow-x-hidden">
+    <div className="relative min-h-screen w-full bg-transparent overflow-x-hidden">
       
- 
-
       {/* 
         CONDITIONAL OVERLAY LAYER
-        Solo se renderiza y aplica el blur si el usuario realmente necesita configurar su entorno.
-        Cuando 'isProcessing' pasa a false, todo este nodo del DOM se destruye liberando el <Profile />.
+        Cuando 'isProcessing' pasa a false, React destruye este nodo inmediatamente.
       */}
       {isProcessing && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-none pointer-events-auto">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#292929]/20 backdrop-blur-sm pointer-events-auto">
           <div className="w-full max-w-4xl h-[95vh] overflow-y-auto p-4 animate-in fade-in zoom-in-95 duration-200">
-            {/* Le pasamos la función para apagar el overlay desde adentro si es necesario */}
+            {/* Forzamos que al terminar cambie el estado firmemente */}
             <Proces1 onComplete={() => setIsProcessing(false)} />
           </div>
         </div>
       )}
 
-      {/* CONTENEDOR PRINCIPAL LIBRE */}
-      <div className="min-h-screen w-full bg-white">
+      {/* 
+        CONTENEDOR PRINCIPAL LIBRE 
+        Añadimos clases dinámicas para asegurarnos de que si está procesando, el fondo no interfiera 
+        con los clics ni el enfoque, y cuando termine, recupere el control total.
+      */}
+      <div className={`min-h-screen w-full bg-white ${isProcessing ? 'pointer-events-none select-none' : 'pointer-events-auto'}`}>
         <Profile />
       </div>
 

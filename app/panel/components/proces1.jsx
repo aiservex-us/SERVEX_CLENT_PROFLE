@@ -239,6 +239,11 @@ const TeamsForm = () => {
     return <div className="min-h-[80vh] md:h-[90vh] bg-[#FFF]" />;
   }
 
+  // Si se detecta que ya hay datos en la base de datos, no renderiza el formulario ni el contenedor principal
+  if (hasData === true) {
+    return null;
+  }
+
   return (
     <div className="flex items-center justify-center bg-transparent font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh]">
       

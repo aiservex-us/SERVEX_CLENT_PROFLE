@@ -10,12 +10,22 @@ import Profile from './components/tools/profile'
 import Present from './components/tools/precentarion'
 import AI_Chat from './components/tools/Ai_Chat'
 export default function MenuInicial() {
-  // Inicializado en 'Profile' para que cargue esta vista por defecto de una vez
+  // Inicializado en 'Presentation' por defecto
   const [active, setActive] = useState('Presentation');
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 
   const router = useRouter();
+
+  // Temporizador para cambiar automáticamente de 'Presentation' a 'Profile' tras 4 segundos
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setActive('Profile');
+    }, 4000);
+
+    // Limpieza del temporizador si el componente se desmonta antes de cumplirse el tiempo
+    return () => clearTimeout(timer);
+  }, []);
 
 {/*
   // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)

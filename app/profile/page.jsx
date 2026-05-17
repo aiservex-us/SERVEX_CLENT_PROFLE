@@ -8,6 +8,7 @@ import Cataloge from './components/tools/table'
 import MenuLateral from './components/menuLateral';
 import Profile from './components/tools/profile'
 import Present from './components/tools/precentarion'
+import AI_Chat from './components/tools/Ai_Chat'
 export default function MenuInicial() {
   // Inicializado en 'Profile' para que cargue esta vista por defecto de una vez
   const [active, setActive] = useState('Presentation');
@@ -52,6 +53,7 @@ export default function MenuInicial() {
       case 'Profile': return <Profile />;
       case 'Cataloge': return <Cataloge />;
       case 'Presentation': return <Present />;
+      case 'AI_Chat': return <AI_Chat />;
       default:
         return <div className="p-6 text-gray-500">View under construction.</div>;
     }

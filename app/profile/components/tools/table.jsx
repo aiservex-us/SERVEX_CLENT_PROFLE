@@ -312,8 +312,8 @@ export default function ClientSubmissionsMatrix() {
         {/* Matriz Principal con el Header Integrado */}
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
-          {/* Header Compacto de la Tabla - Modificado con degradado pastel */}
-          <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-[#FAF8FF] via-[#F3E8FF] to-[#EBE0FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Header Compacto de la Tabla - Modificado con degradado donde predomina el blanco */}
+          <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#242424]">Estructura de Datos Analizada</span>
               <span className="text-[10px] text-[#616161]">
@@ -432,7 +432,7 @@ export default function ClientSubmissionsMatrix() {
                   <tr>
                     {/* Columna Checkbox: SOLO VISIBLE SI ISDELETEMODE ES TRUE */}
                     {isDeleteMode && (
-                      <th className="w-9 px-2 py-2 text-center bg-gradient-to-b from-[#FAF8FF] to-[#F3E8FF] sticky left-0 z-40 border-r border-b border-[#D2D2D2] select-none">
+                      <th className="w-9 px-2 py-2 text-center bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-40 border-r border-b border-[#E0E0E0] select-none">
                         <input
                           type="checkbox"
                           checked={isAllPageSelected}
@@ -442,15 +442,15 @@ export default function ClientSubmissionsMatrix() {
                       </th>
                     )}
                     
-                    {/* Indicador de ID (#) - Modificado con degradado sutil */}
-                    <th className={`w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-[#FAF8FF] to-[#F3E8FF] sticky z-30 border-r border-b border-[#D2D2D2] select-none ${isDeleteMode ? 'left-9' : 'left-0'}`}>
+                    {/* Indicador de ID (#) - Predomina el blanco con un toque degradado muy sutil */}
+                    <th className={`w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky z-30 border-r border-b border-[#E0E0E0] select-none ${isDeleteMode ? 'left-9' : 'left-0'}`}>
                       #
                     </th>
-                    {/* Headers de la Tabla - Modificados con degradado sutil */}
+                    {/* Headers de la Tabla - Predomina el blanco con un toque degradado muy sutil */}
                     {headers.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-[#FAF8FF] to-[#F3E8FF] border-r border-b border-[#E0E0E0] min-w-[150px] max-w-[250px] whitespace-nowrap truncate font-sans"
+                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[150px] max-w-[250px] whitespace-nowrap truncate font-sans"
                       >
                         {header}
                       </th>
@@ -464,12 +464,12 @@ export default function ClientSubmissionsMatrix() {
                     return (
                       <tr 
                         key={originalIndex} 
-                        className={`transition-colors duration-75 group ${isRowSelected ? 'bg-[#EBF3FC] hover:bg-[#E2EEFA]' : 'hover:bg-[#F3F2F1]'}`}
+                        className={`transition-colors duration-75 group ${isRowSelected ? 'bg-[#EBF3FC] hover:bg-[#E2EEFA]' : 'hover:bg-[#F7F5FA]'}`}
                       >
                         
                         {/* Celda Checkbox Opcional: SOLO SE RENDERIZA SI ISDELETEMODE ES TRUE */}
                         {isDeleteMode && (
-                          <td className={`px-2 py-1.5 text-center border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-[#FAF8FF] group-hover:bg-[#F3E8FF]'}`}>
+                          <td className={`px-2 py-1.5 text-center border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
                             <input
                               type="checkbox"
                               checked={isRowSelected}
@@ -479,8 +479,8 @@ export default function ClientSubmissionsMatrix() {
                           </td>
                         )}
 
-                        {/* Celda del indicador ID en el cuerpo de la tabla - Cambiada de gris a fondo pastel sutil */}
-                        <td className={`px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky z-10 select-none border-b border-[#F0F0F0] transition-colors ${isDeleteMode ? 'left-9' : 'left-0'} ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-[#FAF8FF] group-hover:bg-[#F3E8FF]'}`}>
+                        {/* Celda del indicador ID en el cuerpo de la tabla */}
+                        <td className={`px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky z-10 select-none border-b border-[#F0F0F0] transition-colors ${isDeleteMode ? 'left-9' : 'left-0'} ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
                           {originalIndex + 1}
                         </td>
 
@@ -521,8 +521,8 @@ export default function ClientSubmissionsMatrix() {
             </div>
           )}
 
-          {/* Footer con Paginación Integrada */}
-          <div className="bg-[#F5F5F5] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
+          {/* Footer con Paginación Integrada - Modificado con degradado pastel ultra sutil donde predomina el blanco */}
+          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
               <span>COLS: {headers.length}</span>
               <span>ROWS: {filteredRowsWithIndex.length}</span>
@@ -536,7 +536,7 @@ export default function ClientSubmissionsMatrix() {
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#EDEBE9] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
               >
                 Anterior
               </button>
@@ -546,7 +546,7 @@ export default function ClientSubmissionsMatrix() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#EDEBE9] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
               >
                 Siguiente
               </button>
@@ -561,8 +561,8 @@ export default function ClientSubmissionsMatrix() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
           <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
             
-            {/* Cabecera del Formulario - Modificado con degradado pastel para mantener consistencia */}
-            <div className="px-4 py-3 bg-gradient-to-r from-[#FAF8FF] via-[#F3E8FF] to-[#EBE0FF] border-b border-[#E0E0E0] flex items-center justify-between">
+            {/* Cabecera del Formulario - Modificado con el mismo patrón sutil donde predomina el blanco */}
+            <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-[#242424]">Añadir Nuevo Registro Estructurado</span>
                 <span className="text-[10px] text-[#616161]">Complete los atributos en base al esquema JSON original</span>

@@ -100,15 +100,7 @@ export default function SVXCommandsDashboard() {
             CLUSTER: PROD-US-EAST
           </span>
 
-          {/* BOTÓN SIGN OUT: En < 700px se encoge eliminando texto y dejando solo el icono */}
-          <button 
-            onClick={() => console.log('Sign Out Triggered')}
-            className="inline-flex items-center gap-1.5 bg-[#F3F2F1] hover:bg-[#EDEBE9] border border-[#D2D0CE] text-[#242424] text-xs font-semibold p-2 max-[700px]:p-2.5 rounded-sm transition-colors duration-150 shadow-3xs"
-            title="Sign Out del Sistema"
-          >
-            <LogOut className="w-3.5 h-3.5 text-[#A80000]" />
-            <span className="max-[700px]:hidden">Sign Out</span>
-          </button>
+
         </div>
       </header>
 

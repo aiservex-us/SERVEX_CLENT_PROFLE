@@ -297,7 +297,7 @@ export default function ClientSubmissionsMatrix() {
               No se encontraron celdas para mostrar.
             </div>
           ) : (
-            <div className="w-full overflow-x-auto overflow-y-auto max-h-[85vh] relative scrollbar-thin scrollbar-thumb-gray-300">
+           <div className="w-full overflow-x-auto overflow-y-auto max-h-[85vh] relative scrollbar-thin scrollbar-thumb-gray-300">
               <table className="table-fixed border-collapse text-left text-xs w-full">
                 <thead className="bg-[#F5F5F5] sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>

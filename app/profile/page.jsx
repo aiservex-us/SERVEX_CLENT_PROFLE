@@ -7,8 +7,10 @@ import { X, AlertCircle } from 'lucide-react';
 import Cataloge from './components/tools/table'
 import MenuLateral from './components/menuLateral';
 import Profile from './components/tools/profile'
+
 export default function MenuInicial() {
-  const [active, setActive] = useState('reporting');
+  // Inicializado en 'Profile' para que cargue esta vista por defecto de una vez
+  const [active, setActive] = useState('Profile');
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 

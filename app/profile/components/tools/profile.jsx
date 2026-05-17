@@ -20,15 +20,15 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
   if (!profileData) return null;
 
   return (
-    <div className="w-full h-[85vh] bg-white font-sans antialiased border border-[#E0E0E0] rounded-xl overflow-hidden shadow-xs transition-all duration-300 flex flex-col">
+    <div className="w-full h-[86vh] bg-white font-sans antialiased border border-[#E0E0E0] rounded-xl overflow-hidden shadow-xs transition-all duration-300 flex flex-col">
       
       {/* Full-bleed Cover con un degradado sutil corporativo */}
       <div className="relative h-28 w-full bg-gradient-to-r from-[#4F5188] to-[#6264A7] overflow-hidden shrink-0">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: "url('/fndPrfile.jpg')",
-            opacity: 0.4
+            backgroundImage: "url('/fondoPerfil1.jpg')",
+            
           }}
         />
         <div className="absolute top-3 right-3">
@@ -131,7 +131,7 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
       </div>
 
       {/* Internal Access Section - SVX Copilot & Logout Container */}
-      <div className="mt-3 mx-5 mb-5 p-4 border border-[#E0E0E0] bg-[#FAFAFA] rounded-xl text-center shrink-0 flex flex-col justify-between items-center min-h-[180px]">
+      <div className="mt-3 mx-5 mb-5 p-4 border border-[#E0E0E0] bg-[#FAFAFA] rounded-xl text-center shrink-0 flex flex-col justify-between items-center min-h-[200px]">
         
         <div className="w-full">
           <h3 className="text-[10px] font-bold text-[#292929] mb-2 tracking-tight uppercase">
@@ -159,7 +159,7 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
           </div>
 
           <p className="text-[10px] text-[#616161] mt-1 max-w-[200px] mx-auto leading-relaxed">
-            Data Orchestration Engine para la gestión inteligente de catálogos técnicos.
+            Gestión inteligente de catálogos técnicos.
           </p>
         </div>
 

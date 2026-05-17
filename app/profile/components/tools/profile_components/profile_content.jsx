@@ -1,9 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import { 
-  Bell, Sparkles, ChevronUp, Video, Layers, Cpu, 
-  ShieldCheck, HelpCircle, Database, RefreshCw, 
-  FileCode, Terminal, AlertTriangle, CheckCircle2, Clock 
+  Bell, Sparkles, Layers, Cpu, 
+  ShieldCheck, HelpCircle, Database
 } from 'lucide-react';
 
 export default function SVXCommandsDashboard() {
@@ -12,12 +11,18 @@ export default function SVXCommandsDashboard() {
   const tabs = ['On Going', 'Up Coming', 'Ended', 'Canceled'];
 
   // ==========================================
-  // CONFIGURACIÓN DINÁMICA: PROPÓSITO DE SVX COMMANDS
+  // CONFIGURACIÓN DINÁMICA CON TEXTO RESPONSIVO (Doble propósito)
   // ==========================================
   const bannerContent = {
     'On Going': {
       title: 'SVX Central Ingestion Engine',
-      description: 'Centralización absoluta del caos de datos. Unificamos la ingesta de catálogos masivos e inventarios corporativos provenientes de múltiples formatos como XML complejos, CSV y PDF en una sola infraestructura.',
+      description: {
+        // Texto corto para pantallas menores a 768px (< 700px)
+        short: 'Infraestructura de SVX Command para la ingesta masiva e inteligente de catálogos técnicos e inventarios desde formatos XML, CSV y PDF en un único flujo estandarizado.',
+        // Texto extenso para pantallas grandes
+        p1: 'Esta infraestructura representa el núcleo de recepción masiva de datos de la plataforma, diseñada específicamente para resolver el caos operativo derivado de múltiples fuentes heterogéneas. El motor unifica de manera absoluta la ingesta de catálogos técnicos e inventarios corporativos de gran volumen, procesando arquitecturas de datos complejas como archivos XML profundamente anidados, esquemas CSV masivos y documentos PDF no estructurados en un único flujo de entrada estandarizado y de alta disponibilidad.',
+        p2: 'Bajo el monitoreo en tiempo real de SVX Command, esta fase de ingesta asegura una tasa de transferencia óptima y una latencia mínima mediante colas de procesamiento asíncronas. SVX Command supervisa activamente el estado de los canales de entrada, gestionando las asignaciones de memoria y garantizando que el aprovisionamiento de información sea continuo, seguro y completamente transparente antes de ser derivado a las capas de transformación.'
+      },
       buttonText: 'Ver Estado de Ingesta',
       icon: <Layers className="w-3.5 h-3.5 text-[#464775]" />,
       gradient: 'bg-[#F3F2F1] border-[#E0E0E0]',
@@ -26,7 +31,11 @@ export default function SVXCommandsDashboard() {
     },
     'Up Coming': {
       title: 'Automated ETL Pipelines',
-      description: 'Orquestación y procesamiento en tiempo real. Ejecución automatizada de pipelines de extracción, transformación y limpieza profunda de datos, eliminando la manipulación manual y los errores operativos.',
+      description: {
+        short: 'Consola unificada en SVX Command para la ejecución automática de pipelines en tiempo real, procesando flujos ETL para eliminar la manipulación manual de datos.',
+        p1: 'La fase de orquestación automatizada representa la maduración del flujo de datos a través de pipelines de extracción, transformación y limpieza profunda (ETL) que operan en tiempo real. Este sistema se encarga de aplicar reglas de negocio sumamente estrictas, normalizar unidades de medida, enriquecer atributos técnicos y eliminar registros duplicados o corruptos, erradicando por completo la intervención manual y mitigando el riesgo de errores operativos en las bases de datos corporativas.',
+        p2: 'Toda esta secuencia es gobernada de forma centralizada por SVX Command, el cual actúa como la consola maestra de administración. Desde SVX Command se configuran los desencadenadores automáticos, se gestiona la concurrencia de las tareas y se optimiza la carga de trabajo de los agentes de procesamiento, garantizando que los datos purificados estén disponibles de manera predictiva para su posterior análisis o sincronización externa.'
+      },
       buttonText: 'Monitorear Pipelines',
       icon: <Cpu className="w-3.5 h-3.5 text-[#0078D4]" />,
       gradient: 'bg-[#EFF6FC] border-[#DEECF9]',
@@ -35,7 +44,11 @@ export default function SVXCommandsDashboard() {
     },
     'Ended': {
       title: 'CET Intelligent Auditing',
-      description: 'Gobernanza y validación con Inteligencia Artificial. Auditorías automáticas ejecutadas mediante SVX Copilot para asegurar que cada catálogo técnico cumpla con los estándares de Servex US antes de su integración final.',
+      description: {
+        short: 'Auditorías automáticas gestionadas mediante SVX Copilot y visualizadas en SVX Command para validar la integridad semántica y taxonómica de los catálogos.',
+        p1: 'Esta sección se enfoca en el aseguramiento de la calidad, la gobernanza de datos y la validación rigurosa mediante algoritmos avanzados de Inteligencia Artificial. Cada catálogo técnico y estructura de datos que finaliza el procesamiento es sometido a una auditoría automatizada impulsada por SVX Copilot, evaluando la consistencia taxonómica, la integridad de los enlaces y el cumplimiento estricto de los estándares corporativos globales exigidos por Servex US antes de autorizar su consolidación.',
+        p2: 'SVX Command consolida el historial completo de estas auditorías inteligentes, sirviendo como el panel definitivo de visibilidad operativa y auditoría forense. Al interactuar con SVX Command, los ingenieros pueden analizar las métricas de precisión emitidas por el Copilot, revisar las discrepancias corregidas automáticamente y validar los reportes de conformidad, garantizando que solo la información con un nivel de confianza absoluto sea inyectada en el entorno productivo.'
+      },
       buttonText: 'Revisar Auditorías',
       icon: <ShieldCheck className="w-3.5 h-3.5 text-[#107C41]" />,
       gradient: 'bg-[#F1F9F5] border-[#DFF6DD]',
@@ -44,7 +57,11 @@ export default function SVXCommandsDashboard() {
     },
     'Canceled': {
       title: 'Operational Support & Control',
-      description: 'Seguridad corporativa y gestión de excepciones. Soporte de nivel experto con autenticación Azure OAuth para mitigar fallos en transmisiones no resueltas y garantizar control total del ecosistema.',
+      description: {
+        short: 'Centro de control de excepciones en SVX Command protegido por Azure OAuth para mitigar riesgos, rastrear logs de errores y recuperar flujos interrumpidos.',
+        p1: 'El módulo de soporte y control operativo está dedicado a la resiliencia del ecosistema, la seguridad empresarial y la mitigación proactiva de riesgos técnicos. Implementa una arquitectura de seguridad robusta basada en la autenticación perimetral vía Azure OAuth para restringir los accesos, además de proveer un soporte de nivel experto para aislar fallas críticas en transmisiones no resueltas, previniendo que incidentes aislados comprometan la estabilidad del sistema.',
+        p2: 'A través de SVX Command, los administradores del sistema disponen de un centro de control de excepciones altamente avanzado que centraliza los logs de errores estructurados, trazas de depuración y alertas de seguridad. SVX Command permite realizar un seguimiento minucioso de los procesos cancelados o interrumpidos, facilitando herramientas de reintento inteligente y análisis de causa raíz para garantizar un control total y un retorno rápido al estado operativo óptimo.',
+      },
       buttonText: 'Ver Logs de Excepciones',
       icon: <HelpCircle className="w-3.5 h-3.5 text-[#A80000]" />,
       gradient: 'bg-[#FDE7E9] border-[#F3B0B4]',
@@ -55,69 +72,33 @@ export default function SVXCommandsDashboard() {
 
   const currentBanner = bannerContent[activeTab] || bannerContent['On Going'];
 
-  // Data Real de alto impacto adaptada al ecosistema operativo SVX
   const analyticsMetrics = [
-    { 
-      label: 'Manual Excel Interventions', 
-      value: '0 Pending', 
-      change: '-180h/mo manual labor', 
-      changeColor: 'text-[#107C41]', 
-      icon: <Database className="w-3.5 h-3.5 text-[#025A9E]" /> 
-    },
-    { 
-      label: 'Automated ETL Volume', 
-      value: '4.2 TB Ingested', 
-      change: 'XML • CSV • PDF unified', 
-      changeColor: 'text-[#464775]', 
-      icon: <Cpu className="w-3.5 h-3.5 text-[#464775]" /> 
-    },
-    { 
-      label: 'AI Audited Compliance', 
-      value: '99.8% Perfect', 
-      change: '0 structural anomalies', 
-      changeColor: 'text-[#107C41]', 
-      icon: <ShieldCheck className="w-3.5 h-3.5 text-[#107C41]" /> 
-    },
+    { label: 'Manual Excel Interventions', value: '0 Pending', change: '-180h/mo manual labor', changeColor: 'text-[#107C41]', icon: <Database className="w-3.5 h-3.5 text-[#025A9E]" /> },
+    { label: 'Automated ETL Volume', value: '4.2 TB Ingested', change: 'XML • CSV • PDF unified', changeColor: 'text-[#464775]', icon: <Cpu className="w-3.5 h-3.5 text-[#464775]" /> },
+    { label: 'AI Audited Compliance', value: '99.8% Perfect', change: '0 structural anomalies', changeColor: 'text-[#107C41]', icon: <ShieldCheck className="w-3.5 h-3.5 text-[#107C41]" /> },
   ];
 
-  const ongoingPipelines = [
-    { id: 'PIPE-XML-092', catalog: 'Industrial Tools Corp', format: 'XML', size: '42.1 MB', progress: 85, status: 'Processing' },
-    { id: 'PIPE-CSV-114', catalog: 'Automotive Fasteners LLC', format: 'CSV', size: '128.5 MB', progress: 40, status: 'Transforming' },
-  ];
-
-  const systemLogs = [
-    { timestamp: '11:32:15', type: 'SUCCESS', message: 'Auth session tokens renewed via GOOGLE Cloud Console OAuth provider.' },
-  ];
+  // ==========================================
+  // ESTADO ADICIONAL CONTROLADO PARA EL POPUP
+  // ==========================================
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="w-full h-[70vh] bg-[#FFF] font-sans antialiased text-[#242424] p-4 space-y-4">
+    <div className="w-full h-auto bg-[#FFF] font-sans antialiased text-[#242424] p-4 space-y-4">
       
-      {/* ==========================================
-          HEADER SECTION (Fluent Style)
-         ========================================== */}
+      {/* HEADER */}
       <header className="flex items-center justify-between bg-white border border-[#E0E0E0] rounded-md p-4 shadow-2xs">
         <div className="flex items-center">
-          <img 
-            src="/logo.png" 
-            alt="SVX Commands Logo" 
-            className="h-7 w-auto object-contain"
-          />
+          <img src="/logo.png" alt="SVX Commands Logo" className="h-7 w-auto object-contain" />
         </div>
-        
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono font-bold bg-[#EDEBE9] text-[#242424] px-2 py-1 rounded-sm border border-[#D2D0CE]">
             CLUSTER: PROD-US-EAST
           </span>
-          <button className="p-2 rounded-md hover:bg-[#F3F2F1] text-[#616161] hover:text-[#242424] transition-colors relative focus:outline-none">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#A80000] rounded-full"></span>
-          </button>
         </div>
       </header>
 
-      {/* ==========================================
-          ANALYTICS COUNTER BAR
-         ========================================== */}
+      {/* ANALYTICS BAR */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {analyticsMetrics.map((metric, i) => (
           <div key={i} className="bg-white border border-[#E0E0E0] rounded-md p-2.5 flex items-center justify-between shadow-2xs">
@@ -127,19 +108,15 @@ export default function SVXCommandsDashboard() {
             </div>
             <div className="text-right flex flex-col items-end gap-0.5">
               <div className="p-1.5 bg-[#F3F2F1] rounded-sm border border-[#EDEBE9]">{metric.icon}</div>
-              <span className={`text-[9px] font-medium ${metric.changeColor || 'text-[#107C41]'}`}>{metric.change}</span>
+              <span className={`text-[9px] font-medium ${metric.changeColor}`}>{metric.change}</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ==========================================
-          MASTER TWO-COLUMN GRID WORKSPACE
-         ========================================== */}
+      {/* WORKSPACE */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        
-        {/* LEFT COMPACT WORKSPACE: CONFIGURATION & NOTIFICATIONS (5 Cols) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-12 space-y-4">
           
           {/* TABS FILTER */}
           <div className="w-full flex gap-1 border-b border-[#E0E0E0] bg-white px-2 rounded-t-md pt-1 overflow-x-auto no-scrollbar">
@@ -161,111 +138,87 @@ export default function SVXCommandsDashboard() {
             })}
           </div>
 
-          {/* DYNAMIC AI BANNER */}
+          {/* DYNAMIC AI BANNER RESPONSIVO */}
           <section className={`w-full rounded-md border p-4 transition-all duration-300 shadow-2xs ${currentBanner.gradient}`}>
             <div className="flex items-start justify-between">
               <div className="space-y-1 w-full">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-2">
                   <div className="w-5 h-5 rounded-sm bg-[#242424]/5 flex items-center justify-center shrink-0">
                     {currentBanner.icon}
                   </div>
-                  <h2 className={`text-xs font-normal uppercase tracking-wider ${currentBanner.textColor}`}>
+                  <h2 className={`text-xs font-bold uppercase tracking-wider ${currentBanner.textColor}`}>
                     {currentBanner.title}
                   </h2>
                 </div>
-                <p className="text-[11px] text-[#505050] font-light leading-relaxed pt-1.5">
-                  {currentBanner.description}
-                </p>
+                
+                {/* CONTENEDOR DE TEXTO CON LÓGICA RESPONSIVA CSS */}
+                <div className="text-[11px] text-[#505050] font-light leading-relaxed">
+                  
+                  {/* Vista corta: Se muestra por defecto en pantallas pequeñas, se oculta en 'md' (>=768px) */}
+                  <p className="block md:hidden text-justify italic">
+                    {currentBanner.description.short}
+                  </p>
+
+                  {/* Vista extensa: Oculta por defecto en móviles, se muestra en 'md' como dos párrafos separados */}
+                  <div className="hidden md:block space-y-3">
+                    <p className="text-justify">{currentBanner.description.p1}</p>
+                    <p className="text-justify">{currentBanner.description.p2}</p>
+                  </div>
+
+                </div>
+
               </div>
             </div>
             <div className="mt-4">
-              <button className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-sm transition-colors duration-150 focus:outline-none shadow-3xs ${currentBanner.btnBg}`}>
+              {/* Evento onClick inyectado quirúrgicamente sin cambiar la línea estructural */}
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-sm transition-colors duration-150 focus:outline-none shadow-3xs ${currentBanner.btnBg}`}
+              >
                 <Sparkles className="w-3.5 h-3.5" />
                 {currentBanner.buttonText}
               </button>
             </div>
           </section>
 
-          {/* MEETING CARD (Ecosystem Pipeline Room) */}
-          <div className="w-full bg-white border border-[#E0E0E0] hover:border-[#C8C8C8] rounded-md p-4 transition-all duration-200 shadow-2xs relative">
-            <div className="flex items-center justify-between pt-2 border-t border-[#F3F2F1]">
-              <div className="flex items-center -space-x-1.5 overflow-hidden">
-                <div className="h-6 w-6 rounded-full bg-[#464775] text-white flex items-center justify-center text-[9px] font-bold border border-white">AM</div>
-                <div className="h-6 w-6 rounded-full bg-[#107C41] text-white flex items-center justify-center text-[9px] font-bold border border-white">JV</div>
-                <div className="h-6 w-6 rounded-full bg-[#F3F2F1] text-[#616161] flex items-center justify-center text-[9px] font-bold border border-[#E0E0E0]">+3</div>
-              </div>
-              <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#464775] hover:bg-[#3b3c63] text-white text-xs font-semibold rounded-sm transition-colors focus:outline-none">
-                <span>Coordination</span>
-              </button>
-            </div>
-          </div>
-
         </div>
-
-        {/* RIGHT COMPLEX WORKSPACE: ACTIVE PIPELINES & TELEMETRY LOGS (7 Cols) */}
-        <div className="lg:col-span-7 space-y-4">
-          
-          {/* COMPONENTE: PIPELINES ACTIVOS EN TIEMPO REAL */}
-          <div className="bg-white border border-[#E0E0E0] rounded-md shadow-2xs overflow-hidden">
-            <div className="p-3.5 border-b border-[#E0E0E0] bg-[#FAFAFA] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileCode className="w-4 h-4 text-[#464775]" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#242424]">Live ETL Trackers</h3>
-              </div>
-              <button className="p-1 hover:bg-[#EDEBE9] rounded-sm transition-colors text-[#616161] hover:text-[#242424]">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
-              </button>
-            </div>
-            
-            <div className="divide-y divide-[#E0E0E0]">
-              {ongoingPipelines.map((pipe, idx) => (
-                <div key={idx} className="p-4 space-y-2 hover:bg-[#FFFA] transition-colors">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold bg-[#F3F2F1] px-1.5 py-0.5 rounded-sm border border-[#E0E0E0] text-[#242424]">{pipe.id}</span>
-                      <span className="font-semibold text-[#242424]">{pipe.catalog}</span>
-                    </div>
-                    <span className="text-[10px] text-[#A80000] bg-[#FDE7E9] px-2 py-0.5 rounded-full font-medium animate-pulse">{pipe.status}</span>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <div className="w-full bg-[#EDEBE9] h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-[#464775] h-full transition-all duration-500" style={{ width: `${pipe.progress}%` }}></div>
-                    </div>
-                    <div className="flex justify-between text-[10px] text-[#616161] font-mono">
-                      <span>Format: {pipe.format} • Size: {pipe.size}</span>
-                      <span>{pipe.progress}% Transformed</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* COMPONENTE: CONSOLA DE TELEMETRÍA Y LOGS DEL SISTEMA */}
-          <div className="bg-white border border-[#E0E0E0] rounded-md shadow-2xs overflow-hidden">
-            <div className="p-3.5 border-b border-[#E0E0E0] bg-[#FAFAFA] flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-[#242424]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#242424]">Core System Telemetry</h3>
-            </div>
-            <div className="p-3 bg-[#111111] font-mono text-[11px] leading-relaxed text-[#D4D4D4] h-20 overflow-y-auto space-y-2 rounded-b-md">
-              {systemLogs.map((log, idx) => (
-                <div key={idx} className="flex items-start gap-2 border-b border-[#292929] pb-1.5 last:border-0">
-                  <span className="text-[#858585] shrink-0">[{log.timestamp}]</span>
-                  <span className={`font-bold shrink-0 ${
-                    log.type === 'SUCCESS' ? 'text-[#57F287]' : log.type === 'WARNING' ? 'text-[#FEE75C]' : 'text-[#3498DB]'
-                  }`}>
-                    {log.type}
-                  </span>
-                  <span className="text-[#E5E5E5]">{log.message}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-
       </div>
+
+      {/* ==========================================
+          POPUP COMPLETAMENTE VACÍO AL 70% VIEWPORT
+         ========================================== */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs transition-opacity duration-200">
+          {/* Fondo para cerrar al hacer clic afuera */}
+          <div className="absolute inset-0" onClick={() => setIsModalOpen(false)} />
+          
+          {/* Canvas estructural vacío de 70vw x 70vh */}
+          <div className="relative w-[70vw] h-[70vh] bg-white border border-[#E0E0E0] rounded-lg shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            
+            {/* Botón flotante para cerrar interno */}
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 z-50 p-1 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors border border-slate-100"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Espacio limpio para tus importaciones condicionales */}
+            <div className="flex-1 w-full h-full overflow-y-auto p-6">
+              {/* 
+                Puedes mapear tus componentes usando la variable nativa del componente:
+                {activeTab === 'On Going' && <TuComponenteIngesta />}
+                {activeTab === 'Up Coming' && <TuComponentePipelines />}
+                {activeTab === 'Ended' && <TuComponenteAuditoria />}
+                {activeTab === 'Canceled' && <TuComponenteLogs />}
+              */}
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

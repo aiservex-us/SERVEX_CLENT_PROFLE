@@ -62,7 +62,7 @@ export default function MenuInicial() {
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
           <div 
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" 
+            className="absolute inset-0 bg-white backdrop-blur-[2px]" 
             onClick={() => setShowExitModal(false)} 
           />
           

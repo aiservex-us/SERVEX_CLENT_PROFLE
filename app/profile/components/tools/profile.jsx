@@ -131,43 +131,42 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
       </div>
 
       {/* Internal Access Section - SVX Copilot & Logout Container */}
-      <div className="mt-3 mx-5 mb-5 p-4 border border-[#E0E0E0] bg-[#FAFAFA] rounded-xl text-center shrink-0 flex flex-col justify-between items-center min-h-[200px]">
-        
-        <div className="w-full">
-          <h3 className="text-[10px] font-bold text-[#292929] mb-2 tracking-tight uppercase">
-            Svx Copilot System
-          </h3>
+{/* max-[700px]:min-h-0 reduce el alto mínimo en pantallas chicas porque ya no hay texto que alojar */}
+<div className="mt-3 mx-5 mb-5 p-4 border border-[#E0E0E0] bg-[#FAFAFA] rounded-xl text-center shrink-0 flex flex-col justify-between items-center min-h-[200px] max-[700px]:min-h-0 max-[700px]:p-2">
+  
+  {/* Ocultamos todo el bloque del Copilot (Título, Logo y Descripción) si la pantalla es menor a 700px */}
+  <div className="w-full max-[700px]:hidden">
+    <h3 className="text-[10px] font-bold text-[#292929] mb-2 tracking-tight uppercase">
+      Svx Copilot System
+    </h3>
 
-          <div className="inline-block relative">
-            <div className="relative group inline-block">
-              <a 
-                href="https://servex-ai-iota.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center p-1.5 rounded-md hover:bg-[#F3F2F1] transition-all duration-200 cursor-pointer focus:outline-none"
-              >
-                <img 
-                  src="/logo2.png" 
-                  alt="SVX Copilot" 
-                  className="h-5 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-                />
-              </a>
-
-        
-              
-            </div>
-          </div>
-
-          <p className="text-[10px] text-[#616161] mt-1 max-w-[200px] mx-auto leading-relaxed">
-            Gestión inteligente de catálogos técnicos.
-          </p>
-        </div>
-
-        {/* Logout Button */}
-        <div className="w-full pt-3 mt-3 border-t border-[#E0E0E0]/60">
-          <LogoutButton />
-        </div>
+    <div className="inline-block relative">
+      <div className="relative group inline-block">
+        <a 
+          href="https://servex-ai-iota.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center p-1.5 rounded-md hover:bg-[#F3F2F1] transition-all duration-200 cursor-pointer focus:outline-none"
+        >
+          <img 
+            src="/logo2.png" 
+            alt="SVX Copilot" 
+            className="h-5 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+          />
+        </a>
       </div>
+    </div>
+
+    <p className="text-[10px] text-[#616161] mt-1 max-w-[200px] mx-auto leading-relaxed">
+      Gestión inteligente de catálogos técnicos.
+    </p>
+  </div>
+
+  {/* Contenedor del Logout: Quitamos la línea divisoria superior (border-t) y los márgenes en pantallas menores a 700px */}
+  <div className="w-full pt-3 mt-3 border-t border-[#E0E0E0]/60 max-[700px]:border-t-0 max-[700px]:pt-0 max-[700px]:mt-0">
+    <LogoutButton />
+  </div>
+</div>
     </div>
   );
 };

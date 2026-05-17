@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Se agrega useEffect
 import {
   LayoutDashboard,
   SearchCode,
@@ -30,6 +30,20 @@ export default function MenuLateral({
   setCollapsed
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Efecto para forzar que inicie cerrado y se abra automáticamente tras 4 segundos
+  useEffect(() => {
+    // Nos aseguramos de que empiece cerrado al cargar la página
+    setCollapsed(true);
+
+    // Temporizador para abrirlo tras 4000ms (4 segundos)
+    const timer = setTimeout(() => {
+      setCollapsed(false);
+    }, 4000);
+
+    // Limpieza del temporizador si el componente se desmonta antes de los 4 segundos
+    return () => clearTimeout(timer);
+  }, [setCollapsed]);
 
   const filteredItems = menuItems.filter(item =>
     item.label.toLowerCase().includes(searchQuery.toLowerCase())

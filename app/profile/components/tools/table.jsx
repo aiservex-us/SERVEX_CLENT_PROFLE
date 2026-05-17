@@ -21,7 +21,7 @@ export default function ClientSubmissionsMatrix() {
 
   // ESTADO PARA PAGINACIÓN
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 11;
+  const itemsPerPage = 20;
 
   // 1. Cargar la lista inicial de envíos
   useEffect(() => {

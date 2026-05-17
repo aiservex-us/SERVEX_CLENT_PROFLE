@@ -17,10 +17,8 @@ export default function SVXCommandsDashboard() {
     'On Going': {
       title: 'SVX Central Ingestion Engine',
       description: {
-        // Texto corto para pantallas menores a 768px (< 700px)
         short: 'Infraestructura de SVX Command para la ingesta masiva e inteligente de catálogos técnicos e inventarios desde formatos XML, CSV y PDF en un único flujo estandarizado.',
-        // Texto extenso para pantallas grandes
-        p1: 'Esta infraestructura representa el núcleo de recepción masiva de datos de la plataforma, diseñada específicamente para resolver el caos operativo derivado de múltiples fuentes heterogéneas. El motor unifica de manera absoluta la ingesta de catálogos técnicos e inventarios corporativos de gran volumen, procesando arquitecturas de datos complejas como archivos XML profundamente anidados, esquemas CSV masivos y documentos PDF no estructurados en un único flujo de entrada estandarizado y de alta disponibilidad.',
+        p1: 'Esta infraestructura representa el núcleo de recepción masiva de datos de la plataforma, diseñada específicamente para resolver el caos operativo derivado de múltiples fuentes heterogéneas. El motor unifica de manera absoluta la ingesta de catálogos técnicos e inventarios corporativos de gran volumen, procesando arquitecturas de datos complejas como archivos XML profundamente aninados, esquemas CSV masivos y documentos PDF no estructurados en un único flujo de entrada estandarizado y de alta disponibilidad.',
         p2: 'Bajo el monitoreo en tiempo real de SVX Command, esta fase de ingesta asegura una tasa de transferencia óptima y una latencia mínima mediante colas de procesamiento asíncronas. SVX Command supervisa activamente el estado de los canales de entrada, gestionando las asignaciones de memoria y garantizando que el aprovisionamiento de información sea continuo, seguro y completamente transparente antes de ser derivado a las capas de transformación.'
       },
       buttonText: 'Ver Estado de Ingesta',
@@ -170,7 +168,6 @@ export default function SVXCommandsDashboard() {
               </div>
             </div>
             <div className="mt-4">
-              {/* Evento onClick inyectado quirúrgicamente sin cambiar la línea estructural */}
               <button 
                 onClick={() => setIsModalOpen(true)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-sm transition-colors duration-150 focus:outline-none shadow-3xs ${currentBanner.btnBg}`}
@@ -185,35 +182,34 @@ export default function SVXCommandsDashboard() {
       </div>
 
       {/* ==========================================
-          POPUP COMPLETAMENTE VACÍO AL 70% VIEWPORT
+          POPUP ADAPTADO CON SCROLL ACTIVO EN CELULARES
          ========================================== */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs transition-opacity duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 transition-opacity duration-200">
           {/* Fondo para cerrar al hacer clic afuera */}
           <div className="absolute inset-0" onClick={() => setIsModalOpen(false)} />
           
-          {/* Canvas estructural vacío de 70vw x 70vh */}
-          <div className="relative w-[70vw] h-[70vh] bg-white border border-[#E0E0E0] rounded-lg shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          {/* 
+            CAMBIO AQUÍ: 
+            En celulares usa el 92% del ancho y 85% del alto (w-[92vw] h-[85vh]),
+            y a partir de pantallas medianas ('md:') vuelve a tu configuración original (w-[70vw] h-[70vh]).
+            Se agrega overflow-y-auto en la raíz del modal para asegurar scroll general si el dispositivo es excesivamente pequeño.
+          */}
+          <div className="relative w-[92vw] h-[85vh] md:w-[70vw] md:h-[70vh] bg-white border border-[#E0E0E0] rounded-lg shadow-2xl flex flex-col overflow-y-auto md:overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             
             {/* Botón flotante para cerrar interno */}
             <button 
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 z-50 p-1 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors border border-slate-100"
+              className="absolute top-4 right-4 z-50 p-1 rounded-md text-slate-400 bg-white/80 backdrop-blur-xs hover:bg-slate-100 hover:text-slate-600 transition-colors border border-slate-100"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            {/* Espacio limpio para tus importaciones condicionales */}
-            <div className="flex-1 w-full h-full overflow-y-auto p-6">
-              {/* 
-                Puedes mapear tus componentes usando la variable nativa del componente:
-                {activeTab === 'On Going' && <TuComponenteIngesta />}
-                {activeTab === 'Up Coming' && <TuComponentePipelines />}
-                {activeTab === 'Ended' && <TuComponenteAuditoria />}
-                {activeTab === 'Canceled' && <TuComponenteLogs />}
-              */}
+            {/* Espacio limpio para el contenido inyectado */}
+            <div className="flex-1 w-full h-full overflow-y-auto p-4 sm:p-6">
+              {/* Aquí renderizarás tus vistas de autenticación, login o administración */}
             </div>
 
           </div>

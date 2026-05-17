@@ -21,7 +21,7 @@ export default function ClientSubmissionsMatrix() {
 
   // ESTADO PARA PAGINACIÓN
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 11;
 
   // 1. Cargar la lista inicial de envíos
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function ClientSubmissionsMatrix() {
     });
   }, [localRows, searchTerm]);
 
-  // segmentación de datos por paginación (de a 20 productos)
+  // segmentación de datos por paginación (de a 11 productos)
   const paginatedRows = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -153,16 +153,11 @@ export default function ClientSubmissionsMatrix() {
     try {
       setIsSaving(true);
 
-      /* 
-         Estrategia de segmentación: Para mantener la integridad de los datos, 
-         re-inyectaremos el set de datos modificado al 'data_slot_1' y limpiaremos los excedentes,
-         o puedes guardar todo el bloque unificado en 'data_slot_1' si tu lógica de negocio lo acepta.
-      */
       const { error: updateError } = await supabase
         .from('client_submissions')
         .update({
-          data_slot_1: localRows, // Guardamos la matriz modificada consolidada
-          data_slot_2: null,       // Limpiamos los sub-slots redundantes para evitar duplicados
+          data_slot_1: localRows, 
+          data_slot_2: null,       
           data_slot_3: null,
           data_slot_4: null,
           data_slot_5: null,
@@ -173,7 +168,6 @@ export default function ClientSubmissionsMatrix() {
 
       if (updateError) throw updateError;
 
-      // Refrescar el estado base de la aplicación con la nueva estructura confirmada
       const { data: freshData } = await supabase
         .from('client_submissions')
         .select('*')
@@ -229,88 +223,79 @@ export default function ClientSubmissionsMatrix() {
 
   return (
     <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
-      <div className="w-full max-w-[90vw] mx-auto space-y-3">
+      <div className="w-full max-w-[90vw] mx-auto">
         
-        {/* Panel Superior de Control e Inputs */}
-        <div className="bg-white p-4 rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-sm font-semibold text-[#242424] tracking-tight">Estructura de Datos Analizada</h1>
-            <p className="text-[11px] text-[#616161]">Visualización matricial de slots JSONB</p>
-          </div>
+        {/* Matriz Principal con el Header Integrado */}
+        <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
+          
+          {/* Header Compacto de la Tabla */}
+          <div className="px-4 py-2 border-b border-[#E0E0E0] bg-[#F0F0F0] flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-[#242424]">Estructura de Datos Analizada</span>
+              <span className="text-[10px] text-[#616161]">
+                {fetchingSlots ? 'Actualizando...' : isEditing ? 'Modificando JSON localmente' : 'Visualización matricial de slots JSONB'}
+              </span>
+            </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-            {/* Input de Búsqueda */}
-            <div className="relative w-full sm:w-[240px]">
+            {/* Controles alineados a la derecha del Header */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Input de Búsqueda */}
               <input
                 type="text"
-                placeholder="Filtrar por SKU, nombre, valor..."
+                placeholder="Filtrar por SKU, nombre..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 disabled={isEditing}
-                className="w-full bg-[#F5F5F5] border border-transparent border-b-[#616161] rounded-sm px-2.5 py-1 text-xs font-normal text-[#242424] placeholder-[#616161] hover:bg-[#EDEBE9] focus:bg-white focus:border-[#5B5FC7] focus:border-b-2 outline-none transition-all font-sans disabled:opacity-50"
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all disabled:opacity-50 w-[160px]"
               />
-            </div>
 
-            {/* Selector de Envío */}
-            <select
-              id="submission-select"
-              value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
-              disabled={isEditing}
-              className="w-full sm:w-[200px] bg-white border border-[#D2D2D2] border-b-[#616161] rounded-sm px-2.5 py-1 text-xs font-normal text-[#242424] hover:border-[#616161] focus:border-b-2 focus:border-b-[#5B5FC7] outline-none transition-all cursor-pointer disabled:opacity-50"
-            >
-              {submissions.map((sub) => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.company_name || `ID: ${sub.id}`}
-                </option>
-              ))}
-            </select>
+              {/* Selector de Envío */}
+              <select
+                id="submission-select"
+                value={selectedId}
+                onChange={(e) => setSelectedId(e.target.value)}
+                disabled={isEditing}
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] focus:border-[#5B5FC7] outline-none cursor-pointer disabled:opacity-50 max-w-[160px]"
+              >
+                {submissions.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.company_name || `ID: ${sub.id}`}
+                  </option>
+                ))}
+              </select>
 
-            {/* BOTONES DE ACCIÓN DE EDICIÓN FLUENT DESIGN */}
-            <div className="flex gap-1 w-full sm:w-auto border-l border-slate-200 pl-1">
-              {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="w-full sm:w-auto bg-[#5B5FC7] hover:bg-[#484B97] text-white text-xs font-medium px-4 py-1 rounded-sm shadow-sm transition-all"
-                >
-                  Editar Celdas
-                </button>
-              ) : (
-                <>
+              {/* Botones de Acción */}
+              <div className="flex gap-1 border-l border-slate-300 pl-1">
+                {!isEditing ? (
                   <button
-                    onClick={handleSaveChanges}
-                    disabled={isSaving}
-                    className="w-full sm:w-auto bg-[#107C41] hover:bg-[#0A5C30] text-white text-xs font-medium px-3 py-1 rounded-sm shadow-sm transition-all disabled:opacity-50"
+                    onClick={() => setIsEditing(true)}
+                    className="bg-[#5B5FC7] hover:bg-[#484B97] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
                   >
-                    {isSaving ? 'Guardando...' : 'Guardar'}
+                    Editar Celdas
                   </button>
-                  <button
-                    onClick={handleCancelChanges}
-                    disabled={isSaving}
-                    className="w-full sm:w-auto bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-xs font-medium px-3 py-1 rounded-sm transition-all disabled:opacity-50"
-                  >
-                    Cancelar
-                  </button>
-                </>
-              )}
+                ) : (
+                  <>
+                    <button
+                      onClick={handleSaveChanges}
+                      disabled={isSaving}
+                      className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
+                    >
+                      {isSaving ? '...' : 'Guardar'}
+                    </button>
+                    <button
+                      onClick={handleCancelChanges}
+                      disabled={isSaving}
+                      className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Matriz Principal */}
-        <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
-          
-          <div className="px-4 py-2 border-b border-[#E0E0E0] bg-[#F0F0F0] flex justify-between items-center text-[11px]">
-            <span className="font-semibold text-[#424242]">
-              {fetchingSlots ? 'Actualizando...' : isEditing ? 'Modo de Edición Activo (Hojas Inline)' : 'Dataset Matrix'}
-            </span>
-            {isEditing && (
-              <span className="text-[#107C41] font-semibold animate-pulse text-[10px]">
-                ● Modificando JSON localmente
-              </span>
-            )}
-          </div>
-
+          {/* Tabla de Datos */}
           {paginatedRows.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
               No se encontraron celdas para mostrar.
@@ -350,7 +335,6 @@ export default function ClientSubmissionsMatrix() {
                             className={`p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[250px] transition-all`}
                           >
                             {isEditing ? (
-                              // Campo de entrada nativo sin bordes toscos para simular Excel
                               <input
                                 type="text"
                                 value={cellValue !== null && cellValue !== undefined ? cellValue : ''}

@@ -191,7 +191,7 @@ export default function ClientSubmissionsMatrix() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[99%] bg-[#F5F5F5] text-xs font-semibold text-[#616161] font-sans">
+      <div className="flex items-center justify-center min-h-[90%] bg-[#F5F5F5] text-xs font-semibold text-[#616161] font-sans">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
           Conectando con Supabase y recuperando metadatos...

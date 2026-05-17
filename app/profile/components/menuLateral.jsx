@@ -13,13 +13,12 @@ import {
   X,
   LayoutTemplate,
   FileDiff,
-  GitCompare // <--- ¡Asegúrate de que esta línea esté aquí!
-} from 'lucide-react';;
+  GitCompare 
+} from 'lucide-react';
 
 const menuItems = [
   { id: 'Profile', label: 'PROFILE', icon: LayoutDashboard, sub: 'Profile' },
   { id: 'Cataloge', label: 'Cataloge', icon: FileDiff, sub: 'Cataloge' },
-
 ];
 
 export default function MenuLateral({
@@ -115,7 +114,6 @@ export default function MenuLateral({
             >
               <div className={`flex items-center w-full ${collapsed ? 'justify-center' : 'gap-3'}`}>
                 <div className={`${isActive ? 'text-[#464775]' : 'text-slate-400'} transition-all duration-300`}>
-                  {/* ICONO REDUCIDO: 15px colapsado, 17px abierto */}
                   <Icon size={collapsed ? 15 : 17} strokeWidth={isActive ? 2.5 : 2} />
                 </div>
                 
@@ -161,7 +159,7 @@ export default function MenuLateral({
           );
         })}
 
-        {/* TARJETA SVX COPILOT */}
+        {/* TARJETA SVX COPILOT (Color exacto [#464775] y sombra de dispersión calibrada) */}
         <div className={`
           mt-2 flex items-center rounded-xl transition-all duration-300
           ${collapsed ? 'justify-center h-10' : 'p-2 bg-[#464775] text-white shadow-lg shadow-[#464775]/20'}

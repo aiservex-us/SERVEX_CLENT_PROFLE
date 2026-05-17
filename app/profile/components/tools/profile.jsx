@@ -3,7 +3,7 @@ import Table from './table'
 import React, { useState, useEffect } from 'react';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
 import LogoutButton from './LogoutButton';
-
+import Compoents_Profile from './profile_components/profile_content'
 // =========================================================================
 // COMPONENT 1: CLIENT PROFILE SECTION (Full-Height Solid Section)
 // =========================================================================
@@ -281,7 +281,7 @@ export default function Home() {
 
         {/* RIGHT COLUMN: MAIN CONTENT & DATA MANAGEMENT */}
         <main className="lg:col-span-8 w-full bg-white border border-[#E0E0E0] rounded-xl p-4 md:p-6 shadow-xs h-[85vh]">
-          <p>hola</p>
+          <Compoents_Profile  />
         </main>
 
       </div>

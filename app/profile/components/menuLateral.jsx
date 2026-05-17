@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react'; // Se agrega useEffect
+import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   SearchCode,
@@ -13,15 +13,19 @@ import {
   X,
   LayoutTemplate,
   FileDiff,
-  GitCompare 
+  GitCompare,
+  // Nuevos iconos importados para dar coherencia visual:
+  MonitorPlay,
+  UserCheck,
+  FolderKanban,
+  MessageSquareCode
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'Presentation', label: 'Presentation', icon: FileDiff, sub: 'Presentation' },
-  { id: 'Profile', label: 'PROFILE', icon: LayoutDashboard, sub: 'Profile' },
-  { id: 'Cataloge', label: 'Cataloge', icon: FileDiff, sub: 'Cataloge' },
-  { id: 'AI_Chat', label: 'AI_Chat', icon: FileDiff, sub: 'AI_Chat' },
-  
+  { id: 'Presentation', label: 'Presentation', icon: MonitorPlay, sub: 'Welcome Screen' },
+  { id: 'Profile', label: 'PROFILE', icon: UserCheck, sub: 'User Account' },
+  { id: 'Cataloge', label: 'Cataloge', icon: FolderKanban, sub: 'Management' },
+  { id: 'AI_Chat', label: 'AI_Chat', icon: MessageSquareCode, sub: 'Svx Assistant' },
 ];
 
 export default function MenuLateral({
@@ -95,7 +99,7 @@ export default function MenuLateral({
           <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
             <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors">
               <img
-                src="/logosEmpresas/lesro.png"
+                src="/logo2.png"
                 alt="Logo"
                 className={`object-contain transition-all duration-300 ${collapsed ? 'w-4 h-4' : 'w-5 h-5'}`}
               />
@@ -106,7 +110,7 @@ export default function MenuLateral({
               ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
             `}>
               <span className="font-bold text-[12px] tracking-tight text-slate-800 whitespace-nowrap uppercase">
-                DATA LESRO
+                SVX Tool
               </span>
             </div>
           </div>

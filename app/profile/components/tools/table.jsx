@@ -357,22 +357,22 @@ export default function ClientSubmissionsMatrix() {
                     <button
                       onClick={() => setIsDeleteMode(true)}
                       disabled={headers.length === 0}
-                      className="bg-[#A80000] hover:bg-[#820000] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
+                      className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
                     >
-                      Eliminar Producto
+                      Eliminar
                     </button>
                     <button
                       onClick={handleOpenModal}
                       disabled={headers.length === 0}
-                      className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
+                      className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
                     >
-                      Añadir Producto
+                      Añadir
                     </button>
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="bg-[#5B5FC7] hover:bg-[#484B97] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
+                      className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
                     >
-                      Editar Celdas
+                      Editar
                     </button>
                   </>
                 )}

@@ -27,7 +27,7 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: "url('/fondo3.jpg')",
+            backgroundImage: "url('/fndPrfile.jpg')",
             
           }}
         />

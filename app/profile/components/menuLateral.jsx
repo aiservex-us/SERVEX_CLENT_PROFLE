@@ -17,8 +17,10 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
+  { id: 'Presentation', label: 'Presentation', icon: FileDiff, sub: 'Presentation' },
   { id: 'Profile', label: 'PROFILE', icon: LayoutDashboard, sub: 'Profile' },
   { id: 'Cataloge', label: 'Cataloge', icon: FileDiff, sub: 'Cataloge' },
+  
 ];
 
 export default function MenuLateral({

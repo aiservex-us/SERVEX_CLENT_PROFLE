@@ -7,10 +7,10 @@ import { X, AlertCircle } from 'lucide-react';
 import Cataloge from './components/tools/table'
 import MenuLateral from './components/menuLateral';
 import Profile from './components/tools/profile'
-
+import Present from './components/tools/precentarion'
 export default function MenuInicial() {
   // Inicializado en 'Profile' para que cargue esta vista por defecto de una vez
-  const [active, setActive] = useState('Profile');
+  const [active, setActive] = useState('Presentation');
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 
@@ -51,7 +51,7 @@ export default function MenuInicial() {
     switch (active) {
       case 'Profile': return <Profile />;
       case 'Cataloge': return <Cataloge />;
-
+      case 'Presentation': return <Present />;
       default:
         return <div className="p-6 text-gray-500">View under construction.</div>;
     }

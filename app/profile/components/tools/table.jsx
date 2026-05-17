@@ -27,9 +27,9 @@ export default function ClientSubmissionsMatrix() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({});
 
-  // ESTADO PARA LA SELECCIÓN DE FILAS (ELIMINACIÓN)
-  // Guarda los originalIndex de los productos seleccionados para evitar desajustes por orden o paginación
-  const [selectedRowIndexes, setSelectedRowIndexes] = useState([]);
+  // ESTADOS DE CONTROL PARA LA ELIMINACIÓN CONDICIONAL
+  const [isDeleteMode, setIsDeleteMode] = useState(false); // Activa visualmente las opciones de borrado
+  const [selectedRowIndexes, setSelectedRowIndexes] = useState([]); // Almacena índices seleccionados
 
   // 1. Cargar la lista inicial de envíos
   useEffect(() => {
@@ -66,8 +66,9 @@ export default function ClientSubmissionsMatrix() {
         setFetchingSlots(true);
         setSearchTerm(''); 
         setIsEditing(false); // Apaga el modo edición al cambiar de cliente
+        setIsDeleteMode(false); // Apaga el modo eliminación al cambiar de cliente
         setCurrentPage(1); // Reinicia a la primera página al cambiar de cliente
-        setSelectedRowIndexes([]); // Limpia la selección de filas
+        setSelectedRowIndexes([]); // Limpia la selección
         const { data, error: sbError } = await supabase
           .from('client_submissions')
           .select('*')
@@ -185,7 +186,8 @@ export default function ClientSubmissionsMatrix() {
       
       setActiveSubmission(freshData);
       setIsEditing(false);
-      setSelectedRowIndexes([]); // Resetea la selección tras guardar
+      setIsDeleteMode(false); // Apaga el modo eliminar tras guardar con éxito
+      setSelectedRowIndexes([]); 
       alert('💾 Cambios persistidos con éxito en Supabase.');
     } catch (err) {
       console.error('❌ Error guardando la matriz:', err);
@@ -229,11 +231,9 @@ export default function ClientSubmissionsMatrix() {
 
   const handleAddProductSubmit = async (e) => {
     e.preventDefault();
-    // Inyecta el nuevo producto al principio de la matriz actual
     const updatedRows = [newProduct, ...localRows];
     setLocalRows(updatedRows);
     setIsModalOpen(false);
-    // Persistencia inmediata usando la lógica nativa
     await handleSaveChanges(updatedRows);
   };
 
@@ -243,10 +243,8 @@ export default function ClientSubmissionsMatrix() {
     const allSelectedOnPage = paginatedIndexes.every(idx => selectedRowIndexes.includes(idx));
 
     if (allSelectedOnPage) {
-      // Si todos están seleccionados en la página actual, los removemos de la selección global
       setSelectedRowIndexes(prev => prev.filter(idx => !paginatedIndexes.includes(idx)));
     } else {
-      // Agregamos solo los que falten de la página actual sin duplicar
       setSelectedRowIndexes(prev => Array.from(new Set([...prev, ...paginatedIndexes])));
     }
   };
@@ -260,7 +258,11 @@ export default function ClientSubmissionsMatrix() {
   };
 
   const handleDeleteSelected = async () => {
-    if (selectedRowIndexes.length === 0) return;
+    if (selectedRowIndexes.length === 0) {
+      // Si el usuario sale del modo eliminar sin seleccionar nada
+      setIsDeleteMode(false);
+      return;
+    }
     
     const confirmMessage = selectedRowIndexes.length === 1 
       ? '¿Está seguro de que desea eliminar el producto seleccionado?' 
@@ -268,12 +270,15 @@ export default function ClientSubmissionsMatrix() {
 
     if (!window.confirm(confirmMessage)) return;
 
-    // Filtramos las filas locales removiendo las que coincidan con los índices seleccionados
     const updatedRows = localRows.filter((_, index) => !selectedRowIndexes.includes(index));
     setLocalRows(updatedRows);
     
-    // Guardar cambios inmediatamente en Supabase
     await handleSaveChanges(updatedRows);
+  };
+
+  const handleCancelDeleteMode = () => {
+    setIsDeleteMode(false);
+    setSelectedRowIndexes([]);
   };
 
   const isAllPageSelected = useMemo(() => {
@@ -312,32 +317,20 @@ export default function ClientSubmissionsMatrix() {
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#242424]">Estructura de Datos Analizada</span>
               <span className="text-[10px] text-[#616161]">
-                {fetchingSlots ? 'Actualizando...' : isEditing ? 'Modificando JSON localmente' : 'Visualización matricial de slots JSONB'}
+                {fetchingSlots ? 'Actualizando...' : isEditing ? 'Modificando JSON localmente' : isDeleteMode ? 'Selección de registros para depuración masiva' : 'Visualización matricial de slots JSONB'}
               </span>
             </div>
 
             {/* Controles alineados a la derecha del Header */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Botón de Eliminación Reactivo */}
-              {selectedRowIndexes.length > 0 && !isEditing && (
-                <button
-                  onClick={handleDeleteSelected}
-                  className="bg-[#A80000] hover:bg-[#820000] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all flex items-center gap-1 mr-2"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Eliminar ({selectedRowIndexes.length})
-                </button>
-              )}
-
+              
               {/* Input de Búsqueda */}
               <input
                 type="text"
                 placeholder="Filtrar por SKU, nombre..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                disabled={isEditing}
+                disabled={isEditing || isDeleteMode}
                 className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all disabled:opacity-50 w-[160px]"
               />
 
@@ -346,7 +339,7 @@ export default function ClientSubmissionsMatrix() {
                 id="submission-select"
                 value={selectedId}
                 onChange={(e) => setSelectedId(e.target.value)}
-                disabled={isEditing}
+                disabled={isEditing || isDeleteMode}
                 className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] focus:border-[#5B5FC7] outline-none cursor-pointer disabled:opacity-50 max-w-[160px]"
               >
                 {submissions.map((sub) => (
@@ -358,8 +351,16 @@ export default function ClientSubmissionsMatrix() {
 
               {/* Botones de Acción */}
               <div className="flex gap-1 border-l border-slate-300 pl-1">
-                {!isEditing ? (
+                {/* FLUJO 1: MODO INACTIVO (Estado estándar de lectura) */}
+                {!isEditing && !isDeleteMode && (
                   <>
+                    <button
+                      onClick={() => setIsDeleteMode(true)}
+                      disabled={headers.length === 0}
+                      className="bg-[#A80000] hover:bg-[#820000] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
+                    >
+                      Eliminar Producto
+                    </button>
                     <button
                       onClick={handleOpenModal}
                       disabled={headers.length === 0}
@@ -374,7 +375,30 @@ export default function ClientSubmissionsMatrix() {
                       Editar Celdas
                     </button>
                   </>
-                ) : (
+                )}
+
+                {/* FLUJO 2: MODO ELIMINACIÓN ACTIVO */}
+                {isDeleteMode && (
+                  <>
+                    <button
+                      onClick={handleDeleteSelected}
+                      disabled={isSaving || selectedRowIndexes.length === 0}
+                      className="bg-[#A80000] hover:bg-[#820000] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 font-bold"
+                    >
+                      {selectedRowIndexes.length === 0 ? 'Seleccione Filas' : `Confirmar Borrado (${selectedRowIndexes.length})`}
+                    </button>
+                    <button
+                      onClick={handleCancelDeleteMode}
+                      disabled={isSaving}
+                      className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                )}
+
+                {/* FLUJO 3: MODO EDICIÓN EN LÍNEA ACTIVO */}
+                {isEditing && (
                   <>
                     <button
                       onClick={() => handleSaveChanges()}
@@ -406,17 +430,20 @@ export default function ClientSubmissionsMatrix() {
               <table className="table-fixed border-collapse text-left text-xs w-max min-w-full">
                 <thead className="bg-[#F5F5F5] sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    {/* Columna Checkbox de Selección Global */}
-                    <th className="w-9 px-2 py-2 text-center bg-[#EDEBE9] sticky left-0 z-40 border-r border-b border-[#D2D2D2] select-none">
-                      <input
-                        type="checkbox"
-                        checked={isAllPageSelected}
-                        onChange={handleSelectAllPageToggle}
-                        disabled={isEditing}
-                        className="cursor-pointer accent-[#5B5FC7]"
-                      />
-                    </th>
-                    <th className="w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#616161] bg-[#EDEBE9] sticky left-11 z-30 border-r border-b border-[#D2D2D2] select-none">
+                    {/* Columna Checkbox: SOLO VISIBLE SI ISDELETEMODE ES TRUE */}
+                    {isDeleteMode && (
+                      <th className="w-9 px-2 py-2 text-center bg-[#EDEBE9] sticky left-0 z-40 border-r border-b border-[#D2D2D2] select-none">
+                        <input
+                          type="checkbox"
+                          checked={isAllPageSelected}
+                          onChange={handleSelectAllPageToggle}
+                          className="cursor-pointer accent-[#5B5FC7]"
+                        />
+                      </th>
+                    )}
+                    
+                    {/* El desplazamiento "sticky left" del index se autoajusta si la columna checkbox aparece */}
+                    <th className={`w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#616161] bg-[#EDEBE9] sticky z-30 border-r border-b border-[#D2D2D2] select-none ${isDeleteMode ? 'left-9' : 'left-0'}`}>
                       #
                     </th>
                     {headers.map((header) => (
@@ -439,18 +466,19 @@ export default function ClientSubmissionsMatrix() {
                         className={`transition-colors duration-75 group ${isRowSelected ? 'bg-[#EBF3FC] hover:bg-[#E2EEFA]' : 'hover:bg-[#F3F2F1]'}`}
                       >
                         
-                        {/* Celda del Checkbox Individual */}
-                        <td className={`px-2 py-1.5 text-center border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-[#F5F5F5] group-hover:bg-[#EDEBE9]'}`}>
-                          <input
-                            type="checkbox"
-                            checked={isRowSelected}
-                            onChange={() => handleSelectRowToggle(originalIndex)}
-                            disabled={isEditing}
-                            className="cursor-pointer accent-[#5B5FC7]"
-                          />
-                        </td>
+                        {/* Celda Checkbox Opcional: SOLO SE RENDERIZA SI ISDELETEMODE ES TRUE */}
+                        {isDeleteMode && (
+                          <td className={`px-2 py-1.5 text-center border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-[#F5F5F5] group-hover:bg-[#EDEBE9]'}`}>
+                            <input
+                              type="checkbox"
+                              checked={isRowSelected}
+                              onChange={() => handleSelectRowToggle(originalIndex)}
+                              className="cursor-pointer accent-[#5B5FC7]"
+                            />
+                          </td>
+                        )}
 
-                        <td className={`px-2 py-1.5 text-center text-[10px] font-semibold text-[#616161] border-r border-[#E0E0E0] sticky left-11 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-[#F5F5F5] group-hover:bg-[#EDEBE9]'}`}>
+                        <td className={`px-2 py-1.5 text-center text-[10px] font-semibold text-[#616161] border-r border-[#E0E0E0] sticky z-10 select-none border-b border-[#F0F0F0] transition-colors ${isDeleteMode ? 'left-9' : 'left-0'} ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-[#F5F5F5] group-hover:bg-[#EDEBE9]'}`}>
                           {originalIndex + 1}
                         </td>
 
@@ -497,7 +525,7 @@ export default function ClientSubmissionsMatrix() {
               <span>COLS: {headers.length}</span>
               <span>ROWS: {filteredRowsWithIndex.length}</span>
               {selectedRowIndexes.length > 0 && (
-                <span className="text-[#5B5FC7]">SELECTED: {selectedRowIndexes.length}</span>
+                <span className="text-[#A80000]">SELECCIONADOS PARA BORRAR: {selectedRowIndexes.length}</span>
               )}
             </div>
             

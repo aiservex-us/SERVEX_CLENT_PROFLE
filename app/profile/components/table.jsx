@@ -191,7 +191,7 @@ export default function ClientSubmissionsMatrix() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[90%] bg-[#F5F5F5] text-xs font-semibold text-[#616161] font-sans">
+      <div className="flex items-center justify-center min-h-[90%] bg-[#FFF] text-xs font-semibold text-[#616161] font-sans">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
           Conectando con Supabase y recuperando metadatos...
@@ -209,7 +209,7 @@ export default function ClientSubmissionsMatrix() {
   }
 
   return (
-    <div className="min-h-[80%] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
+    <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto space-y-3">
         
         {/* Panel Superior de Control e Inputs */}
@@ -297,7 +297,7 @@ export default function ClientSubmissionsMatrix() {
               No se encontraron celdas para mostrar.
             </div>
           ) : (
-           <div className="w-full overflow-x-auto overflow-y-auto max-h-[85vh] relative scrollbar-thin scrollbar-thumb-gray-300">
+           <div className="w-full overflow-x-auto overflow-y-auto max-h-[80vh] relative scrollbar-thin scrollbar-thumb-gray-300">
               <table className="table-fixed border-collapse text-left text-xs w-full">
                 <thead className="bg-[#F5F5F5] sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>

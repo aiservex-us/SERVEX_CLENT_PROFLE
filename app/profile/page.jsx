@@ -394,6 +394,7 @@ export default function Home() {
       {/* MAIN APP CONTENT */}
       <main className="flex-1 min-w-0 p-6 pt-16 md:pt-6">
         {/* Your main content here */}
+        
   <Table />
       </main>
 

@@ -19,6 +19,10 @@ export default function ClientSubmissionsMatrix() {
   const [localRows, setLocalRows] = useState([]); // Clona los registros combinados para edición inline
   const [isSaving, setIsSaving] = useState(false);
 
+  // ESTADO PARA PAGINACIÓN
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   // 1. Cargar la lista inicial de envíos
   useEffect(() => {
     async function getSubmissionsList() {
@@ -54,6 +58,7 @@ export default function ClientSubmissionsMatrix() {
         setFetchingSlots(true);
         setSearchTerm(''); 
         setIsEditing(false); // Apaga el modo edición al cambiar de cliente
+        setCurrentPage(1); // Reinicia a la primera página al cambiar de cliente
         const { data, error: sbError } = await supabase
           .from('client_submissions')
           .select('*')
@@ -84,6 +89,11 @@ export default function ClientSubmissionsMatrix() {
     }
     fetchFullSubmission();
   }, [selectedId]);
+
+  // Reiniciar a la primera página si cambia el término de búsqueda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // 3. Extraer dinámicamente las llaves estables del JSON original para las columnas
   const headers = useMemo(() => {
@@ -128,6 +138,15 @@ export default function ClientSubmissionsMatrix() {
       });
     });
   }, [localRows, searchTerm]);
+
+  // segmentación de datos por paginación (de a 20 productos)
+  const paginatedRows = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredRowsWithIndex.slice(startIndex, endIndex);
+  }, [filteredRowsWithIndex, currentPage]);
+
+  const totalPages = Math.ceil(filteredRowsWithIndex.length / itemsPerPage) || 1;
 
   // 6. Guardar cambios en Supabase reestructurando de vuelta a data_slots
   const handleSaveChanges = async () => {
@@ -292,12 +311,12 @@ export default function ClientSubmissionsMatrix() {
             )}
           </div>
 
-          {filteredRowsWithIndex.length === 0 ? (
+          {paginatedRows.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
               No se encontraron celdas para mostrar.
             </div>
           ) : (
-           <div className="w-full overflow-x-auto overflow-y-auto max-h-[80vh] relative scrollbar-thin scrollbar-thumb-gray-300">
+           <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
               <table className="table-fixed border-collapse text-left text-xs w-full">
                 <thead className="bg-[#F5F5F5] sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
@@ -316,7 +335,7 @@ export default function ClientSubmissionsMatrix() {
                 </thead>
 
                 <tbody className="bg-white divide-y divide-[#F0F0F0]">
-                  {filteredRowsWithIndex.map(({ row, originalIndex }, rowIndex) => (
+                  {paginatedRows.map(({ row, originalIndex }) => (
                     <tr key={originalIndex} className="hover:bg-[#F3F2F1] transition-colors duration-75 group">
                       
                       <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#616161] bg-[#F5F5F5] border-r border-[#E0E0E0] sticky left-0 z-10 group-hover:bg-[#EDEBE9] select-none border-b border-[#F0F0F0]">
@@ -360,9 +379,33 @@ export default function ClientSubmissionsMatrix() {
             </div>
           )}
 
-          <div className="bg-[#F5F5F5] px-4 py-2 border-t border-[#E0E0E0] flex justify-end gap-4 text-[10px] font-semibold text-[#616161] select-none">
-            <span>COLS: {headers.length}</span>
-            <span>ROWS: {localRows.length}</span>
+          {/* Footer con Paginación Integrada */}
+          <div className="bg-[#F5F5F5] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
+            <div className="flex gap-4">
+              <span>COLS: {headers.length}</span>
+              <span>ROWS: {filteredRowsWithIndex.length}</span>
+            </div>
+            
+            {/* Controles de Navegación de Página */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#EDEBE9] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+              >
+                Anterior
+              </button>
+              <span className="text-[#242424] font-normal px-1">
+                Página <strong className="font-semibold">{currentPage}</strong> de {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#EDEBE9] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         </div>
 

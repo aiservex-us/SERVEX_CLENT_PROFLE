@@ -1,83 +1,181 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { supabase } from '@/app/lib/supabaseClient'; // Ajusta la ruta según tu estructura
+import React, { useEffect, useState, useRef } from 'react';
+import { supabase } from '@/app/lib/supabaseClient';
 
-export default function FileSlotsManager() {
+export default function FileSlotsManager({ onSelectSlot }) {
   const [loading, setLoading] = useState(true);
   const [submissionData, setSubmissionData] = useState(null);
   const [availableFiles, setAvailableFiles] = useState([]);
   const [error, setError] = useState(null);
+  const [processingSlot, setProcessingSlot] = useState(null);
+  
+  const fileInputRef = useRef(null);
+  const targetSlotRef = useRef(null);
+
+  // Mapeo maestro estático alineado con tu DDL (excluyendo el slot 7 faltante)
+  const ALL_SLOTS = [
+    { key: 'data_slot_1', label: 'Slot 01' },
+    { key: 'data_slot_2', label: 'Slot 02' },
+    { key: 'data_slot_3', label: 'Slot 03' },
+    { key: 'data_slot_4', label: 'Slot 04' },
+    { key: 'data_slot_5', label: 'Slot 05' },
+    { key: 'data_slot_6', label: 'Slot 06' },
+    { key: 'data_slot_8', label: 'Slot 08' },
+  ];
+
+  const fetchUserSlots = async () => {
+    try {
+      setLoading(true);
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) throw sessionError;
+      if (!session?.user) {
+        setError('No se encontró una sesión activa o credenciales empresariales.');
+        return;
+      }
+
+      const { data, error: dbError } = await supabase
+        .from('client_submissions')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (dbError && dbError.code !== 'PGRST116') throw dbError;
+
+      if (data) {
+        setSubmissionData(data);
+        
+        // Mapear el estado actual de los slots en DB
+        const mapped = ALL_SLOTS.map(slot => ({
+          ...slot,
+          data: data[slot.key]
+        }));
+        
+        setAvailableFiles(mapped);
+      }
+    } catch (err) {
+      console.error('Error en infraestructura SVX Ingestion Engine:', err);
+      setError('Error de sincronización con la infraestructura de ingesta.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchUserSlots() {
-      try {
-        setLoading(true);
-        
-        // 1. Obtener la sesión del usuario actual
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) throw sessionError;
-        if (!session?.user) {
-          setError('No se encontró una sesión activa.');
-          setLoading(false);
-          return;
-        }
-
-        // 2. Consultar la tabla filtrando por el user_id del usuario autenticado
-        const { data, error: dbError } = await supabase
-          .from('client_submissions')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single(); // Asumiendo un registro único de configuración/perfil por usuario
-
-        if (dbError && dbError.code !== 'PGRST116') { 
-          // PGRST116 significa que no encontró registros, lo cual es un escenario válido al inicio
-          throw dbError;
-        }
-
-        if (data) {
-          setSubmissionData(data);
-          
-          // 3. Mapear e identificar cuáles slots contienen archivos válidos
-          // Asumimos que tu JSONB guarda una estructura como: { fileName: 'archivo.csv', rowCount: 150, uploadedAt: '...' }
-          const slots = [
-            { key: 'data_slot_1', label: 'Data Slot 1', data: data.data_slot_1 },
-            { key: 'data_slot_2', label: 'Data Slot 2', data: data.data_slot_2 },
-            { key: 'data_slot_3', label: 'Data Slot 3', data: data.data_slot_3 },
-            { key: 'data_slot_4', label: 'Data Slot 4', data: data.data_slot_4 },
-            { key: 'data_slot_5', label: 'Data Slot 5', data: data.data_slot_5 },
-            { key: 'data_slot_6', label: 'Data Slot 6', data: data.data_slot_6 },
-            { key: 'data_slot_8', label: 'Data Slot 8', data: data.data_slot_8 }, // Nota: saltaste el 7 en tu DDL
-          ];
-
-          // Filtrar solo los slots que no estén vacíos (null)
-          const activeFiles = slots.filter(slot => slot.data !== null);
-          setAvailableFiles(activeFiles);
-        }
-      } catch (err) {
-        console.error('Error cargando slots de datos:', err);
-        setError('Error al conectar con el motor de ingesta de datos.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchUserSlots();
   }, []);
 
-  // Acción simulada para procesar o inspeccionar el CSV/JSON del slot
-  const handleInspectSlot = (slotKey, slotContent) => {
-    console.log(`Abriendo visor para el slot: ${slotKey}`, slotContent);
-    // Aquí puedes disparar la lógica para cargar el visor del dataset
+  // Función interna para parsear de manera nativa texto plano de CSV a JSON estructurado
+  const parseCSVToJSON = (text) => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+    if (lines.length === 0) return [];
+    
+    // Tratamiento adaptativo de delimitadores comunes comerciales
+    const delimiter = lines[0].includes(';') ? ';' : ',';
+    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
+    
+    return lines.slice(1).map(line => {
+      const values = line.split(delimiter);
+      const obj = {};
+      headers.forEach((header, index) => {
+        const val = values[index];
+        obj[header] = val !== undefined ? val.trim().replace(/^["']|["']$/g, '') : null;
+      });
+      return obj;
+    });
+  };
+
+  // Disparador del explorador de archivos asignado a un slot objetivo
+  const triggerFileInput = (slotKey) => {
+    targetSlotRef.current = slotKey;
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Manejador del Input File (Lectura e Inyección Masiva en Supabase)
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    const slotKey = targetSlotRef.current;
+    if (!file || !slotKey) return;
+
+    try {
+      setProcessingSlot(slotKey);
+      const reader = new FileReader();
+
+      reader.onload = async (event) => {
+        try {
+          const text = event.target.result;
+          const parsedRows = parseCSVToJSON(text);
+
+          if (parsedRows.length === 0) {
+            alert('El archivo no contiene filas procesables.');
+            return;
+          }
+
+          // Construcción de la estructura de metadatos unificada
+          const payload = {
+            fileName: file.name,
+            rowCount: parsedRows.length,
+            uploadedAt: new Date().toISOString(),
+            rows: parsedRows
+          };
+
+          // Actualización atómica en la columna JSONB correspondiente
+          const { error: uploadError } = await supabase
+            .from('client_submissions')
+            .update({ [slotKey]: payload })
+            .eq('id', submissionData.id);
+
+          if (uploadError) throw uploadError;
+
+          await fetchUserSlots(); // Re-sincronización en caliente
+        } catch (innerErr) {
+          console.error(innerErr);
+          alert('Error crítico convirtiendo el dataset a JSON.');
+        } finally {
+          setProcessingSlot(null);
+          e.target.value = ''; // Limpieza del buffer del input
+        }
+      };
+
+      reader.readAsText(file);
+    } catch (err) {
+      console.error(err);
+      setProcessingSlot(null);
+    }
+  };
+
+  // Remoción del set de datos en caliente (Borrado lógico / Set null)
+  const handleDeleteSlot = async (slotKey, fileName) => {
+    if (!window.confirm(`¿Confirmar purga y vaciado completo del slot asignado a "${fileName}"?`)) return;
+
+    try {
+      setProcessingSlot(slotKey);
+
+      const { error: purgeError } = await supabase
+        .from('client_submissions')
+        .update({ [slotKey]: null })
+        .eq('id', submissionData.id);
+
+      if (purgeError) throw purgeError;
+
+      await fetchUserSlots();
+    } catch (err) {
+      console.error('Error al depurar slot:', err);
+      alert('No se pudo vaciar la memoria del slot seleccionado.');
+    } finally {
+      setProcessingSlot(null);
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12 bg-[#f3f2f1] rounded-lg border border-[#e0e0e0]">
+      <div className="flex items-center justify-center p-16 bg-[#FFF] rounded-sm border border-[#EDEBE9] font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-[#0078d4] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-[#323130] font-medium">Sincronizando con SVX Command Engine...</p>
+          <div className="w-5 h-5 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs text-[#616161] font-semibold tracking-wide">Mapeando infraestructura SVX Ingestion Engine...</p>
         </div>
       </div>
     );
@@ -85,81 +183,144 @@ export default function FileSlotsManager() {
 
   if (error) {
     return (
-      <div className="p-4 bg-[#fde7e9] border-l-4 border-[#a80000] text-[#a80000] rounded-r text-sm font-medium">
-        {error}
+      <div className="p-3.5 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans font-medium">
+        <span className="font-bold">SVX Protocol Error:</span> {error}
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-6 bg-[#f3f2f1] rounded-xl border border-[#e0e0e0] shadow-sm font-sans">
-      {/* Header corporativo */}
-      <div className="mb-6 pb-4 border-b border-[#e0e0e0]">
-        <h2 className="text-xl font-semibold text-[#323130] tracking-tight">
-          {submissionData?.company_name || 'Panel Corporativo'}
-        </h2>
-        <p className="text-xs text-[#605e5c] mt-1">
-          Infraestructura de Ingesta Masiva • Gestión de Catálogos e Inventarios Activos
-        </p>
-      </div>
+    <div className="w-full bg-[#F5F5F5] rounded-sm border border-[#E0E0E0] p-5 font-sans antialiased text-[#242424]">
+      
+      {/* Input oculto reutilizable para interceptar subidas */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileUpload} 
+        accept=".csv" 
+        className="hidden" 
+      />
 
-      {availableFiles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg border border-[#e0e0e0] text-center">
-          <span className="text-3xl mb-2">📁</span>
-          <h3 className="text-sm font-semibold text-[#323130]">No hay sets de datos activos</h3>
-          <p className="text-xs text-[#605e5c] max-w-sm mt-1">
-            Todos los data slots asignados están vacíos. Sube un archivo CSV o XML para inicializar el motor.
+      {/* Cabecera Fluent */}
+      <div className="mb-5 pb-3 border-b border-[#E0E0E0] flex items-center justify-between">
+        <div>
+          <h2 className="text-xs font-bold text-[#242424] tracking-tight uppercase">
+            {submissionData?.company_name || 'Buffers de Ingesta Asignados'}
+          </h2>
+          <p className="text-[10px] text-[#616161] mt-0.5">
+            Orquestación en Tiempo Real y Carga Homologada de Arreglos Técnicos
           </p>
         </div>
-      ) : (
-        /* Grid de slots disponibles con estética limpia y profesional */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {availableFiles.map((slot) => {
-            // Asignación segura de variables asumiendo que guardas metadata básica en el jsonb
-            const fileName = slot.data.fileName || 'Dataset Técnico Estructurado';
-            const rowCount = slot.data.rows || slot.data.rowCount || 'N/A';
-            const uploadDate = slot.data.uploadedAt ? new Date(slot.data.uploadedAt).toLocaleDateString() : 'Reciente';
-
-            return (
-              <div 
-                key={slot.key}
-                className="group relative flex flex-col justify-between p-4 bg-white hover:bg-[#faf9f8] border border-[#e0e0e0] hover:border-[#0078d4] rounded-lg shadow-sm transition-all duration-200"
-              >
-                <div>
-                  {/* Badge de Identificación del Slot */}
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="px-2 py-0.5 text-[10px] font-semibold tracking-wider text-[#0078d4] bg-[#eff6fc] rounded-full uppercase">
-                      {slot.label}
-                    </span>
-                    <span className="text-[11px] text-[#a19f9d]">{uploadDate}</span>
-                  </div>
-
-                  {/* Detalles del archivo */}
-                  <h4 className="text-sm font-semibold text-[#323130] line-clamp-1 mb-1 group-hover:text-[#0078d4] transition-colors">
-                    {fileName}
-                  </h4>
-                  
-                  <div className="flex items-center gap-2 mt-2 text-xs text-[#605e5c]">
-                    <span className="flex items-center gap-1">
-                      📊 <strong>Registros:</strong> {rowCount}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Acciones del Slot */}
-                <div className="mt-5 pt-3 border-t border-[#f3f2f1] flex justify-end">
-                  <button
-                    onClick={() => handleInspectSlot(slot.key, slot.data)}
-                    className="px-3 py-1.5 text-xs font-medium text-white bg-[#0078d4] hover:bg-[#106ebe] active:bg-[#005a9e] rounded-md transition-colors shadow-sm"
-                  >
-                    Examinar Data
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+        <div className="text-[10px] font-mono text-[#464775] bg-[#ECECFF] px-2 py-0.5 rounded-sm border border-[#D5D6E9]">
+          SVX_COMMAND_STORAGE
         </div>
-      )}
+      </div>
+
+      {/* Grid General de Slots (Se muestran todos para control completo de subida/baja) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {availableFiles.map((slot) => {
+          const hasData = slot.data !== null;
+          const rawContent = slot.data;
+          const fileName = rawContent?.fileName || 'Technical_Dataset_Ingested.csv';
+          
+          const rowCount = Array.isArray(rawContent) 
+            ? rawContent.length 
+            : (rawContent?.rows?.length || rawContent?.rowCount || 0);
+            
+          const uploadDate = rawContent?.uploadedAt 
+            ? new Date(rawContent.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) 
+            : 'Buffer Vacío';
+
+          const isCurrentProcessing = processingSlot === slot.key;
+
+          return (
+            <div 
+              key={slot.key}
+              className={`group flex flex-col justify-between p-3.5 bg-white border rounded-sm transition-all duration-150 relative ${
+                hasData 
+                  ? 'border-[#E0E0E0] hover:border-[#464775] shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(70,71,117,0.12)]' 
+                  : 'border-dashed border-[#C8C6C4] bg-[#FAFAFA] hover:bg-white hover:border-[#464775]'
+              }`}
+            >
+              {/* Bloqueador de Operación Local (Spinner de carga por slot) */}
+              {isCurrentProcessing && (
+                <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-10 flex items-center justify-center rounded-sm">
+                  <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+
+              <div>
+                {/* Cabecera del Slot */}
+                <div className="flex justify-between items-center mb-2">
+                  <span className={`px-2 py-0.5 text-[9px] font-bold tracking-wider rounded-sm uppercase font-mono ${
+                    hasData 
+                      ? 'text-[#464775] bg-[#ECECFF] border border-[#D5D6E9]' 
+                      : 'text-[#616161] bg-[#F3F2F1] border border-[#EDEBE9]'
+                  }`}>
+                    {slot.label}
+                  </span>
+                  <span className="text-[9px] font-medium text-[#878685] font-mono">{uploadDate}</span>
+                </div>
+
+                {/* Detalles Condicionales de la Data */}
+                {hasData ? (
+                  <>
+                    <h4 className="text-xs font-bold text-[#242424] truncate group-hover:text-[#464775] transition-colors font-mono" title={fileName}>
+                      {fileName}
+                    </h4>
+                    <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#616161]">
+                      <span className="text-[#464775]">⚡</span>
+                      <span className="font-medium text-[10px]">
+                        Registros Procesados: <strong className="font-semibold text-[#242424] font-mono">{rowCount}</strong>
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-2">
+                    <p className="text-[11px] italic text-[#A19F9D] font-medium">Asignación libre de memoria</p>
+                    <p className="text-[9px] text-[#A19F9D] mt-0.5">Listo para parsear e indexar CSV</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Botonera de Control Inferior */}
+              <div className="mt-4 pt-2.5 border-t border-[#F3F2F1] flex gap-1.5 justify-end">
+                {hasData ? (
+                  <>
+                    {/* Botón de Purgado */}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSlot(slot.key, fileName)}
+                      className="px-2 py-1 bg-white hover:bg-[#FDE7E9] text-[#A80007] border border-[#F3B0B4] text-[10px] font-medium rounded-sm transition-all cursor-pointer"
+                      title="Vaciar memoria de la columna"
+                    >
+                      Purgar
+                    </button>
+
+                    {/* Botón de Inyección a la matriz principal */}
+                    <button
+                      type="button"
+                      onClick={() => onSelectSlot && onSelectSlot(rawContent)}
+                      className="flex-1 sm:flex-initial px-3 py-1 bg-white hover:bg-[#464775] text-[#464775] hover:text-white border border-[#464775] text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.98]"
+                    >
+                      Examinar E Inyectar
+                    </button>
+                  </>
+                ) : (
+                  /* Botón para subir archivo si el slot está limpio */
+                  <button
+                    type="button"
+                    onClick={() => triggerFileInput(slot.key)}
+                    className="w-full px-3 py-1 bg-[#464775] hover:bg-[#353659] text-white text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-1"
+                  >
+                    <span>📤</span> Cargar Dataset
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

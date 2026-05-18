@@ -1,177 +1,107 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import React, { useState } from 'react';
+import { LogOut, X, AlertTriangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { supabaseGoogle } from '@/app/lib/supabaseClient';
 
-export default function FileSlotsManager({ onSelectSlot }) {
-  const [loading, setLoading] = useState(true);
-  const [submissionData, setSubmissionData] = useState(null);
-  const [availableFiles, setAvailableFiles] = useState([]);
-  const [error, setError] = useState(null);
+const LogoutButton = () => {
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    async function fetchUserSlots() {
-      try {
-        setLoading(true);
-        
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) throw sessionError;
-        if (!session?.user) {
-          setError('No se encontró una sesión activa o credenciales empresariales.');
-          setLoading(false);
-          return;
-        }
-
-        const { data, error: dbError } = await supabase
-          .from('client_submissions')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
-
-        if (dbError && dbError.code !== 'PGRST116') { 
-          throw dbError;
-        }
-
-        if (data) {
-          setSubmissionData(data);
-          
-          const slots = [
-            { key: 'data_slot_1', label: 'Slot 01', data: data.data_slot_1 },
-            { key: 'data_slot_2', label: 'Slot 02', data: data.data_slot_2 },
-            { key: 'data_slot_3', label: 'Slot 03', data: data.data_slot_3 },
-            { key: 'data_slot_4', label: 'Slot 04', data: data.data_slot_4 },
-            { key: 'data_slot_5', label: 'Slot 05', data: data.data_slot_5 },
-            { key: 'data_slot_6', label: 'Slot 06', data: data.data_slot_6 },
-            { key: 'data_slot_8', label: 'Slot 08', data: data.data_slot_8 },
-          ];
-
-          const activeFiles = slots.filter(slot => slot.data !== null);
-          setAvailableFiles(activeFiles);
-        }
-      } catch (err) {
-        console.error('Error cargando slots de datos en SVX:', err);
-        setError('Error al sincronizar con la infraestructura de ingesta.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchUserSlots();
-  }, []);
-
-  const handleInspectSlot = (slotKey, slotContent) => {
-    if (onSelectSlot) {
-      onSelectSlot(slotContent);
+  const handleLogout = async () => {
+    try {
+      setIsSubmitting(true);
+      const { error } = await supabaseGoogle.auth.signOut();
+      if (error) throw error;
+      
+      setIsOpen(false);
+      router.push('/');
+    } catch (error) {
+      console.error('Error logging out:', error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-16 bg-[#FFF] rounded-sm border border-[#EDEBE9] font-sans">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-5 h-5 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs text-[#616161] font-semibold tracking-wide">Mapeando infraestructura SVX Ingestion Engine...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-3.5 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans font-medium">
-        <span className="font-bold">SVX Protocol Error:</span> {error}
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full bg-[#F5F5F5] rounded-sm border border-[#E0E0E0] p-5 font-sans antialiased text-[#242424]">
-      
-      {/* Header Estilo Fluent Teams */}
-      <div className="mb-5 pb-3 border-b border-[#E0E0E0] flex items-center justify-between">
-        <div>
-          <h2 className="text-xs font-bold text-[#242424] tracking-tight uppercase">
-            {submissionData?.company_name || 'Datasets Corporativos'}
-          </h2>
-          <p className="text-[10px] text-[#616161] mt-0.5">
-            Ecosistema de Orquestación y Transmisión de Catálogos Técnicos
-          </p>
-        </div>
-        <div className="text-[10px] font-mono text-[#464775] bg-[#ECECFF] px-2 py-0.5 rounded-sm border border-[#D5D6E9]">
-          SVX_COMMAND_MODE
-        </div>
-      </div>
+    <>
+      {/* Botón de activación con micro-interacciones avanzadas */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="group relative flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[10px] font-bold uppercase tracking-wider text-[#464775] bg-[#f0f0f7] border border-[#d8d8eb] shadow-2xs transition-all duration-300 ease-out hover:bg-[#c7c7df] hover:border-[#53548b] hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-2xs focus:outline-none"
+        title="Sign out corporate session"
+      >
+        <LogOut 
+          size={11} 
+          className="shrink-0 transition-transform duration-300 ease-out group-hover:-translate-x-[2px]" 
+        />
+        <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-[#464775] after:transition-all after:duration-300 group-hover:after:w-full">
+          Sign Out
+        </span>
+      </button>
 
-      {availableFiles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-sm border border-[#E0E0E0] text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <span className="text-xl mb-2">📊</span>
-          <h3 className="text-xs font-bold text-[#242424]">Ningún slot cargado en memoria</h3>
-          <p className="text-[10px] text-[#616161] max-w-xs mt-1">
-            Los buffers JSONB del cliente están limpios. Inyecte un flujo estructurado desde los flujos de automatización.
-          </p>
-        </div>
-      ) : (
-        /* Grid de Slots */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {availableFiles.map((slot) => {
-            const rawContent = slot.data;
-            const fileName = rawContent?.fileName || 'Technical_Dataset_Ingested.csv';
+      {/* Modal Personalizado (Fluent Overlay) */}
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-xs transition-opacity duration-200">
+          
+          {/* Contenedor del Modal */}
+          <div className="w-full max-w-[340px] bg-white rounded-[6px] border border-[#E0E0E0] shadow-xl overflow-hidden font-sans antialiased animate-in fade-in zoom-in-95 duration-150">
             
-            const rowCount = Array.isArray(rawContent) 
-              ? rawContent.length 
-              : (rawContent?.rows?.length || rawContent?.rowCount || 'N/A');
-              
-            const uploadDate = rawContent?.uploadedAt 
-              ? new Date(rawContent.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) 
-              : 'Indexación Reciente';
-
-            return (
-              <div 
-                key={slot.key}
-                className="group flex flex-col justify-between p-3.5 bg-white border border-[#E0E0E0] hover:border-[#464775] rounded-sm shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(70,71,117,0.12)] transition-all duration-150 relative"
-              >
-                <div>
-                  {/* Metadata de Control */}
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#464775] bg-[#ECECFF] border border-[#D5D6E9] rounded-sm uppercase font-mono">
-                      {slot.label}
-                    </span>
-                    <span className="text-[9px] font-medium text-[#878685] font-mono">{uploadDate}</span>
-                  </div>
-
-                  {/* Nombre del Archivo Indexado */}
-                  <h4 
-                    className="text-xs font-bold text-[#242424] truncate group-hover:text-[#464775] transition-colors font-mono"
-                    title={fileName}
-                  >
-                    {fileName}
-                  </h4>
-                  
-                  {/* Indicador de filas */}
-                  <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#616161]">
-                    <span className="text-[#464775]">⚡</span>
-                    <span className="font-medium text-[10px]">
-                      Registros Procesados: <strong className="font-semibold text-[#242424] font-mono">{rowCount}</strong>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Acción de Selección */}
-                <div className="mt-4 pt-2.5 border-t border-[#F3F2F1] flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => handleInspectSlot(slot.key, slot.data)}
-                    className="w-full sm:w-auto px-3 py-1 bg-white hover:bg-[#464775] text-[#464775] hover:text-white border border-[#464775] text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.98]"
-                  >
-                    Examinar E Inyectar
-                  </button>
-                </div>
+            {/* Header del Modal */}
+            <div className="flex items-center justify-between px-4 py-3 bg-[#F5F5F5] border-b border-[#E0E0E0]">
+              <div className="flex items-center gap-1.5 text-[#464775]">
+                <AlertTriangle size={14} className="text-[#E0A75E]" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Confirm Action</span>
               </div>
-            );
-          })}
+              <button 
+                onClick={() => !isSubmitting && setIsOpen(false)}
+                className="text-[#616161] hover:text-[#242424] transition-colors focus:outline-none"
+                disabled={isSubmitting}
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Cuerpo del Modal */}
+            <div className="p-4">
+              <h4 className="text-[13px] font-bold text-[#242424] leading-tight">
+                Sign Out Corporate Session?
+              </h4>
+              <p className="text-[11px] text-[#616161] font-normal mt-1.5 leading-normal">
+                You will be redirected to the landing page. Private configurations for <span className="font-semibold text-[#464775]">SVX Copilot</span> won't be accessible until you log back in.
+              </p>
+            </div>
+
+            {/* Footer de Acciones */}
+            <div className="flex items-center justify-end gap-2 px-4 py-3 bg-[#FAFAFA] border-t border-[#E0E0E0]">
+              <button
+                onClick={() => setIsOpen(false)}
+                disabled={isSubmitting}
+                className="px-3 py-1.5 text-[11px] font-semibold text-[#616161] bg-white border border-[#D1D1D1] rounded-[4px] hover:bg-[#F3F2F1] hover:text-[#242424] transition-all duration-150 focus:outline-none disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                disabled={isSubmitting}
+                className="flex items-center justify-center min-w-[80px] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white bg-[#464775] rounded-[4px] hover:bg-[#3b3c63] border border-transparent shadow-xs transition-all duration-150 focus:outline-none disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                ) : (
+                  'Disconnect'
+                )}
+              </button>
+            </div>
+
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
-}
+};
+
+export default LogoutButton;

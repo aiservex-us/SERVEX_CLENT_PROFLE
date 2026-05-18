@@ -24,7 +24,7 @@ export default function MenuInicial() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setActive('Profile');
-    }, 4000);
+    }, 1500);
 
     // Limpieza del temporizador si el componente se desmonta antes de cumplirse el tiempo
     return () => clearTimeout(timer);

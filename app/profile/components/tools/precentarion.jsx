@@ -17,7 +17,7 @@ const WelcomeScreen = () => {
         {/* Contenedor del Logo con animación de lujo (Smooth Scale + Fade In) */}
         <div 
           className={`
-            transition-all duration-3000 ease-[cubic-bezier(0.25,1,0.5,1)]
+            transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)]
             hover:opacity-100 table-cell
             ${isLoaded ? 'opacity-90 scale-100 blur-0' : 'opacity-0 scale-75 blur-[2px]'}
           `}

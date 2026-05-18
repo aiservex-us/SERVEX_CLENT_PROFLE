@@ -6,6 +6,79 @@ import { supabase } from '@/app/lib/supabaseClient';
 // === IMPORTACIÓN DEL COMPONENTE ANTERIOR (Ajusta la ruta según tu proyecto) ===
 import FileSlotsManager from './FileSlotsManager'; 
 
+// === NUEVO COMPONENTE SUB-MODULAR PARA EL CONTROL DE ORÍGENES DE DB ===
+function DatabaseSourceSwitcher({ selectedId, activeSubmission, onSourceDataFetched, disabled }) {
+  const [activeSource, setActiveSource] = useState('submissions'); // 'submissions' o 'original'
+  const [loading, setLoading] = useState(false);
+
+  // Al cambiar de cliente en el dropdown principal, reseteamos visualmente a la tabla por defecto
+  useEffect(() => {
+    setActiveSource('submissions');
+  }, [selectedId]);
+
+  const handleToggleSource = async (targetSource) => {
+    if (disabled || loading || targetSource === activeSource || !selectedId) return;
+
+    try {
+      setLoading(true);
+      const targetTable = targetSource === 'submissions' ? 'client_submissions' : 'client_original';
+      
+      const { data, error: sbError } = await supabase
+        .from(targetTable)
+        .select('*')
+        .eq('id', selectedId)
+        .single();
+
+      if (sbError) throw sbError;
+
+      setActiveSource(targetSource);
+      if (onSourceDataFetched) {
+        onSourceDataFetched(data);
+      }
+    } catch (err) {
+      console.error(`❌ Error al conmutar a la tabla public.${targetSource}:`, err);
+      alert(`No se pudieron recuperar los registros desde la base de datos original: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center bg-[#F3F2F1] border border-[#D2D2D2] rounded-sm p-0.5 select-none gap-0.5">
+      <button
+        type="button"
+        disabled={disabled || loading}
+        onClick={() => handleToggleSource('submissions')}
+        className={`text-[10px] font-bold px-2 py-0.5 rounded-xs transition-all flex items-center gap-1 ${
+          activeSource === 'submissions'
+            ? 'bg-[#5B5FC7] text-white'
+            : 'text-[#616161] hover:text-[#242424] hover:bg-white/50'
+        }`}
+      >
+        {loading && activeSource === 'submissions' && (
+          <div className="w-2 h-2 border border-white border-t-transparent rounded-full animate-spin"></div>
+        )}
+        DB Prod
+      </button>
+      <button
+        type="button"
+        disabled={disabled || loading}
+        onClick={() => handleToggleSource('original')}
+        className={`text-[10px] font-bold px-2 py-0.5 rounded-xs transition-all flex items-center gap-1 ${
+          activeSource === 'original'
+            ? 'bg-[#107C41] text-white'
+            : 'text-[#616161] hover:text-[#242424] hover:bg-white/50'
+        }`}
+      >
+        {loading && activeSource === 'original' && (
+          <div className="w-2 h-2 border border-white border-t-transparent rounded-full animate-spin"></div>
+        )}
+        DB Original
+      </button>
+    </div>
+  );
+}
+
 export default function ClientSubmissionsMatrix() {
   const [submissions, setSubmissions] = useState([]);
   const [selectedId, setSelectedId] = useState('');
@@ -121,6 +194,7 @@ export default function ClientSubmissionsMatrix() {
       activeSubmission.data_slot_4,
       activeSubmission.data_slot_5,
       activeSubmission.data_slot_6,
+      activeSubmission.data_slot_7, // Incluida de forma segura por si se renderiza client_original
       activeSubmission.data_slot_8,
     ];
     const firstSlotWithData = targetSlots.find(slot => slot && Array.isArray(slot) && slot.length > 0);
@@ -305,6 +379,27 @@ export default function ClientSubmissionsMatrix() {
     }
   };
 
+  // Callback ejecutado por el Switcher modular al cambiar la fuente de datos (DB)
+  const handleSourceDataFetched = (freshRecordFromDb) => {
+    if (!freshRecordFromDb) return;
+    setActiveSubmission(freshRecordFromDb);
+
+    const targetSlots = [
+      freshRecordFromDb.data_slot_1,
+      freshRecordFromDb.data_slot_2,
+      freshRecordFromDb.data_slot_3,
+      freshRecordFromDb.data_slot_4,
+      freshRecordFromDb.data_slot_5,
+      freshRecordFromDb.data_slot_6,
+      freshRecordFromDb.data_slot_7, // Mapeo dinámico y preventivo para la tabla original
+      freshRecordFromDb.data_slot_8,
+    ];
+    const flatRows = targetSlots.filter((slot) => slot && Array.isArray(slot)).flat();
+    setLocalRows(JSON.parse(JSON.stringify(flatRows)));
+    setCurrentPage(1);
+    setSelectedRowIndexes([]);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[90%] bg-[#FFF] text-xs font-semibold text-[#616161] font-sans">
@@ -352,6 +447,14 @@ export default function ClientSubmissionsMatrix() {
               >
                 Todos tus Catalogos
               </button>
+
+              {/* === NUEVA FUNCIÓN/SWITCHER IMPORTADA AL LADO DE 'TODOS TUS CATALOGOS' === */}
+              <DatabaseSourceSwitcher 
+                selectedId={selectedId}
+                activeSubmission={activeSubmission}
+                disabled={isEditing || isDeleteMode}
+                onSourceDataFetched={handleSourceDataFetched}
+              />
 
               {/* Input de Búsqueda */}
               <input
@@ -671,9 +774,7 @@ export default function ClientSubmissionsMatrix() {
               <div onClick={(e) => {
                 // Interceptamos clics en los botones "Examinar Data" del FileSlotsManager de forma limpia
                 if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Examinar')) {
-                  // Prevenimos que continúe si es necesario, pero dado que el componente anterior guarda el scope, 
-                  // la mejor práctica arquitectónica es añadir la propiedad de callback directamente si modificas la UI, 
-                  // o capturar el estado activo. Para no alterar en absoluto nada más, puedes usar este wrapper.
+                  // Prevenir
                 }
               }}>
                 <FileSlotsManager onSelectSlot={handleSelectSlotData} />

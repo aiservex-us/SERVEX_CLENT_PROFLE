@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
 import LogoutButton from './LogoutButton';
 import Compoents_Profile from './profile_components/profile_content'
+
 // =========================================================================
 // COMPONENT 1: CLIENT PROFILE SECTION (Full-Height Solid Section)
 // =========================================================================
@@ -12,7 +13,7 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
     return (
       <div className="flex flex-col items-center justify-center p-8 min-h-[400px] w-full bg-white rounded-xl border border-[#E0E0E0]">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#6264A7]"></div>
-        <p className="text-xs text-[#616161] mt-3 animate-pulse">Cargando credenciales de operador...</p>
+        <p className="text-xs text-[#616161] mt-3 animate-pulse">Loading operator credentials...</p>
       </div>
     );
   }
@@ -22,13 +23,12 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
   return (
     <div className="w-full h-[86vh] bg-white font-sans antialiased border border-[#E0E0E0] rounded-xl overflow-hidden shadow-xs transition-all duration-300 flex flex-col">
       
-      {/* Full-bleed Cover con un degradado sutil corporativo */}
+      {/* Full-bleed Cover with a subtle corporate gradient */}
       <div className="relative h-28 w-full bg-gradient-to-r from-[#4F5188] to-[#6264A7] overflow-hidden shrink-0">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
             backgroundImage: "url('/fndPrfile.jpg')",
-            
           }}
         />
         <div className="absolute top-3 right-3">
@@ -54,7 +54,7 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
                 {profileData.name.charAt(0).toUpperCase()}
               </div>
             )}
-            <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#107C41] border-2 border-white rounded-full" title="Operador Activo"></div>
+            <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#107C41] border-2 border-white rounded-full" title="Active Operator"></div>
           </div>
         </div>
       </div>
@@ -83,90 +83,144 @@ const ClientProfileSection = ({ profileData, loading, hasError }) => {
           <svg className="w-3.5 h-3.5 flex-shrink-0 text-[#A80000] mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <span className="leading-tight font-medium">Parámetros de sesión locales o fallback activos.</span>
+          <span className="leading-tight font-medium">Local session parameters or fallback data active.</span>
         </div>
       )}
 
-      {/* SEGMENTO DE ALTA CALIDAD: METADATOS TÉCNICOS Y DEL SISTEMA */}
-      <div className="mx-5 px-3 py-2.5 bg-[#FAFAFA] rounded-xl border border-[#E0E0E0] space-y-2.5 flex-1 overflow-y-auto min-h-[140px]">
+      {/* HIGH-QUALITY SEGMENT: TECHNICAL & SYSTEM METADATA (5 SECTIONS TOTAL) */}
+      <div className="mx-5 px-3 py-2.5 bg-[#FAFAFA] rounded-xl border border-[#E0E0E0] space-y-2.5 flex-1 overflow-y-auto min-h-[140px] scrollbar-thin">
+        
+        {/* CARD 1: ECOSYSTEM & ORGANIZATION */}
         <div>
-          <span className="text-[9px] font-bold text-[#71717A] uppercase tracking-wider block mb-1">Ecosistema & Organización</span>
+          <span className="text-[9px] font-bold text-[#71717A] uppercase tracking-wider block mb-1">Ecosystem & Organization</span>
           <div className="bg-white border border-[#E5E5E7] rounded-lg p-2 space-y-1.5">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-[#616161]">Compañía</span>
+              <span className="text-[#616161]">Company</span>
               <span className="font-semibold text-[#242424] truncate max-w-[140px]">{profileData.companyName}</span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-[#616161]">ID Operador</span>
+              <span className="text-[#616161]">Operator ID</span>
               <span className="font-mono text-[10px] text-[#616161] select-all truncate max-w-[120px]" title={profileData.uid}>
                 {profileData.uid}
               </span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-[#616161]">Ubicación</span>
+              <span className="text-[#616161]">Location</span>
               <span className="text-[#242424] font-medium">{profileData.location}</span>
             </div>
           </div>
         </div>
 
+        {/* CARD 2: INTEGRATION METRICS */}
         <div>
-          <span className="text-[9px] font-bold text-[#71717A] uppercase tracking-wider block mb-1">Métricas de Integración (CET)</span>
+          <span className="text-[9px] font-bold text-[#71717A] uppercase tracking-wider block mb-1">Integration Metrics (CET)</span>
           <div className="bg-white border border-[#E5E5E7] rounded-lg p-2 space-y-1.5">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-[#616161]">Último Acceso</span>
+              <span className="text-[#616161]">Last Access</span>
               <span className="font-mono text-[#242424]">{profileData.lastSignIn}</span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-[#616161]">Pipelines Activos</span>
+              <span className="text-[#616161]">Active Pipelines</span>
               <span className="font-bold text-[#107C41] bg-[#DFF6DD] px-1.5 py-0.2 rounded-sm text-[10px]">
                 {profileData.activePipelines}
               </span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-[#616161]">Auditorías Ejecutadas</span>
+              <span className="text-[#616161]">Executed Audits</span>
               <span className="font-mono font-medium text-[#242424]">{profileData.auditCount}</span>
             </div>
           </div>
         </div>
+
+        {/* CARD 3: CENTRALIZED INFRASTRUCTURE */}
+        <div>
+          <span className="text-[9px] font-bold text-[#71717A] uppercase tracking-wider block mb-1">Centralized Infrastructure</span>
+          <div className="bg-white border border-[#E5E5E7] rounded-lg p-2 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#616161]">Data Architecture</span>
+              <span className="font-bold text-[#5B5FC7] bg-[#EFEFFF] px-1.5 py-0.2 rounded-sm text-[10px] uppercase">
+                Single Source of Truth
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#616161]">Integrity (No Excel)</span>
+              <span className="font-medium text-[#107C41]">100% Relational</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#616161]">Synchronization</span>
+              <span className="font-mono text-[#242424]">Real-Time (SSOT)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* CARD 4: CONCURRENCY CONTROL */}
+        <div>
+          <span className="text-[9px] font-bold text-[#71717A] uppercase tracking-wider block mb-1">Concurrency Control</span>
+          <div className="bg-white border border-[#E5E5E7] rounded-lg p-2 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#616161]">User Access</span>
+              <span className="font-semibold text-[#242424]">Simultaneous Multi-Operator</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#616161]">State Locking</span>
+              <span className="font-mono text-[10px] text-[#107C41] bg-[#DFF6DD] px-1.5 py-0.2 rounded-sm font-bold">
+                PROTECTED_LOCK
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* CARD 5: TYPE INTEGRITY & VALIDATION */}
+        <div>
+          <span className="text-[9px] font-bold text-[#71717A] uppercase tracking-wider block mb-1">Strict Data Validation</span>
+          <div className="bg-white border border-[#E5E5E7] rounded-lg p-2 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#616161]">Type Checking</span>
+              <span className="text-[#242424] font-medium">Fixed Schema (Non-Corruptible)</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#616161]">Data Ingestion</span>
+              <span className="font-semibold text-[#5B5FC7]">Sanitized via API</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Internal Access Section - SVX Copilot & Logout Container */}
-{/* max-[700px]:min-h-0 reduce el alto mínimo en pantallas chicas porque ya no hay texto que alojar */}
-<div className="mt-3 mx-5 mb-5 p-4 border border-[#E0E0E0] bg-[#FAFAFA] rounded-xl text-center shrink-0 flex flex-col justify-between items-center min-h-[200px] max-[700px]:min-h-0 max-[700px]:p-2">
-  
-  {/* Ocultamos todo el bloque del Copilot (Título, Logo y Descripción) si la pantalla es menor a 700px */}
-  <div className="w-full max-[700px]:hidden">
-    <h3 className="text-[10px] font-bold text-[#292929] mb-2 tracking-tight uppercase">
-      Svx Copilot System
-    </h3>
+      <div className="mt-3 mx-5 mb-5 p-4 border border-[#E0E0E0] bg-[#FAFAFA] rounded-xl text-center shrink-0 flex flex-col justify-between items-center min-h-[200px] max-[700px]:min-h-0 max-[700px]:p-2">
+        
+        <div className="w-full max-[700px]:hidden">
+          <h3 className="text-[10px] font-bold text-[#292929] mb-2 tracking-tight uppercase">
+            Svx Copilot System
+          </h3>
 
-    <div className="inline-block relative">
-      <div className="relative group inline-block">
-        <a 
-          href="https://servex-ai-iota.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center p-1.5 rounded-md hover:bg-[#F3F2F1] transition-all duration-200 cursor-pointer focus:outline-none"
-        >
-          <img 
-            src="/logo2.png" 
-            alt="SVX Copilot" 
-            className="h-5 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-          />
-        </a>
+          <div className="inline-block relative">
+            <div className="relative group inline-block">
+              <a 
+                href="https://servex-ai-iota.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center p-1.5 rounded-md hover:bg-[#F3F2F1] transition-all duration-200 cursor-pointer focus:outline-none"
+              >
+                <img 
+                  src="/logo2.png" 
+                  alt="SVX Copilot" 
+                  className="h-5 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                />
+              </a>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-[#616161] mt-1 max-w-[200px] mx-auto leading-relaxed">
+            Intelligent management of technical catalogs.
+          </p>
+        </div>
+
+        <div className="w-full pt-3 mt-3 border-t border-[#E0E0E0]/60 max-[700px]:border-t-0 max-[700px]:pt-0 max-[700px]:mt-0">
+          <LogoutButton />
+        </div>
       </div>
-    </div>
-
-    <p className="text-[10px] text-[#616161] mt-1 max-w-[200px] mx-auto leading-relaxed">
-      Gestión inteligente de catálogos técnicos.
-    </p>
-  </div>
-
-  {/* Contenedor del Logout: Quitamos la línea divisoria superior (border-t) y los márgenes en pantallas menores a 700px */}
-  <div className="w-full pt-3 mt-3 border-t border-[#E0E0E0]/60 max-[700px]:border-t-0 max-[700px]:pt-0 max-[700px]:mt-0">
-    <LogoutButton />
-  </div>
-</div>
     </div>
   );
 };
@@ -185,7 +239,7 @@ export default function Home() {
         setLoadingProfile(true);
         setHasErrorProfile(false);
         
-        // 1. Obtener la sesión real de Supabase
+        // 1. Get real session from Supabase
         const { data: { user }, error: authError } = await supabaseGoogle.auth.getUser();
         if (authError) throw authError;
 
@@ -194,7 +248,7 @@ export default function Home() {
           const userName = user.user_metadata?.full_name || 'SVX Operator';
           const userEmail = user.email || '';
           
-          // Formatear fechas desde los claims nativos
+          // Format registration dates from native claims
           const registrationDate = new Date(user.created_at).toLocaleDateString('en-US', {
             year: 'numeric', month: 'short', day: 'numeric'
           });
@@ -202,10 +256,10 @@ export default function Home() {
             ? new Date(user.last_sign_in_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
             : 'Just now';
 
-          // Detectar el proveedor de autenticación de forma dinámica
+          // Detect authentication provider dynamically
           const authProvider = user.app_metadata?.provider || 'Google/Azure';
 
-          // 2. Traer información de la base de datos empresarial
+          // 2. Fetch data from enterprise database
           const { data: submission, error: dbError } = await supabaseGoogle
             .from('client_submissions')
             .select('company_name, country, city')
@@ -214,9 +268,8 @@ export default function Home() {
 
           if (dbError) throw dbError;
 
-          // NOTA: Estas métricas de pipelines se pueden conectar a tu tabla de logs o auditoría real mediante un conteo simple.
           setProfileData({
-            uid: user.id.substring(0, 18) + '...', // Evitar IDs excesivamente largos en UI
+            uid: user.id.substring(0, 18) + '...', 
             avatar: userAvatar,
             name: userName,
             email: userEmail,
@@ -228,8 +281,8 @@ export default function Home() {
             companyName: submission?.company_name || 'Servex US Partner',
             location: submission?.country && submission?.city 
               ? `${submission.city}, ${submission.country}` 
-              : 'Bogotá, CO', // Fallback dinámico regional
-            activePipelines: '4 Active', // Mock de alta calidad convertible a un .select('count') real
+              : 'New York, US', 
+            activePipelines: '4 Active', 
             auditCount: '142 Runs'
           });
         } else {
@@ -256,7 +309,7 @@ export default function Home() {
         role: 'SYS_ARCHITECT',
         environment: 'STAGING_ENV',
         companyName: 'Servex Enterprise',
-        location: 'Bogotá, CO',
+        location: 'New York, US',
         activePipelines: 'Beta Mode',
         auditCount: '0 Total'
       });

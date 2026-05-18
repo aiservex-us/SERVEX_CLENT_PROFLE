@@ -17,27 +17,25 @@ export default function SVXCommandsDashboard() {
     'On Going': {
       title: 'SVX Central Ingestion Engine',
       description: {
-        short: 'Infraestructura de SVX Command para la ingesta masiva e inteligente de catálogos técnicos e inventarios desde formatos XML, CSV y PDF en un único flujo estandarizado.',
-        p1: 'Esta infraestructura representa el núcleo de recepción masiva de datos de la plataforma, diseñada específicamente para resolver el caos operativo derivado de múltiples fuentes heterogéneas. El motor unifica de manera absoluta la ingesta de catálogos técnicos e inventarios corporativos de gran volumen, procesando arquitecturas de datos complejas como archivos XML profundamente anidados, esquemas CSV masivos y documentos PDF no estructurados en un único flujo de entrada estandarizado y de alta disponibilidad.',
-        p2: 'Bajo el monitoreo en tiempo real de SVX Command, esta fase de ingesta asegura una tasa de transferencia óptima y una latencia mínima mediante colas de procesamiento asíncronas. SVX Command supervisa activamente el estado de los canales de entrada, gestionando las asignaciones de memoria y garantizando que el aprovisionamiento de información sea continuo, seguro y completamente transparente antes de ser derivado a las capas de transformación.'
+        short: 'SVX Command infrastructure for the massive, intelligent ingestion of technical catalogs and inventories from EXCEL and CSV formats into a single standardized workflow.',
+        p1: 'This infrastructure serves as the high-volume data reception core of the platform, specifically engineered to resolve the operational chaos caused by multiple heterogeneous sources. The engine fully unifies the ingestion of massive technical catalogs and corporate inventories, processing complex data architectures like deeply nested EXCEL files and unstructured, massive CSV schemas into a single, standardized, high-availability input stream.',
+        p2: 'Under the real-time monitoring of SVX Command, this ingestion phase ensures an optimal transfer rate and minimal latency using asynchronous processing queues. SVX Command actively supervises the status of input channels, managing memory allocations and ensuring that data provisioning remains continuous, secure, and completely transparent before routing it to the transformation layers.'
       },
-      buttonText: 'Ver Estado de Ingesta',
+      buttonText: 'View Ingestion Status',
       icon: <Layers className="w-3.5 h-3.5 text-[#484B97]" />,
-      // Degradado sutil neutro-púrpura que emula el header de tu tabla
-   gradient: 'bg-gradient-to-r from-white via-[#F5F7FF] to-[#EDF2FF] border-[#D2D6E8]',
+      gradient: 'bg-gradient-to-r from-white via-[#F5F7FF] to-[#EDF2FF] border-[#D2D6E8]',
       textColor: 'text-[#242424]',
       btnBg: 'bg-[#484B97] hover:bg-[#5B5FC7] text-white transition-all rounded-sm',
     },
     'Up Coming': {
       title: 'Automated ETL Pipelines',
       description: {
-        short: 'Consola unificada en SVX Command para la ejecución automática de pipelines en tiempo real, procesando flujos ETL para eliminar la manipulación manual de datos.',
-        p1: 'La fase de orquestación automatizada representa la maduración del flujo de datos a través de pipelines de extracción, transformación y limpieza profunda (ETL) que operan en tiempo real. Este sistema se encarga de aplicar reglas de negocio sumamente estrictas, normalizar unidades de medida, enriquecer atributos técnicos y eliminar registros duplicados o corruptos, erradicando por completo la intervención manual y mitigando el riesgo de errores operativos en las bases de datos corporativas.',
-        p2: 'Toda esta secuencia es gobernada de forma centralizada por SVX Command, el cual actúa como la consola maestra de administración. Desde SVX Command se configuran los desencadenadores automáticos, se gestiona la concurrencia de las tareas y se optimiza la carga de trabajo de los agentes de procesamiento, garantizando que los datos purificados estén disponibles de manera predictiva para su posterior análisis o sincronización externa.'
+        short: 'Unified console within SVX Command for the automated, real-time execution of pipelines, processing ETL workflows to eliminate manual data manipulation.',
+        p1: 'The automated orchestration phase represents the optimization of data flows through continuous extraction, transformation, and deep cleaning (ETL) pipelines operating in real time. This system enforces strict business logic, normalizes units of measure, enriches technical attributes, and eliminates duplicate or corrupt records—completely eradicating manual intervention and mitigating operational risks within corporate databases.',
+        p2: 'This entire sequence is centrally governed by SVX Command, acting as the master administration console. From SVX Command, automated triggers are configured, task concurrency is managed, and the workload of processing agents is optimized, ensuring that purified data is predictively available for subsequent analysis or external synchronization.'
       },
-      buttonText: 'Monitorear Pipelines',
+      buttonText: 'Monitor Pipelines',
       icon: <Cpu className="w-3.5 h-3.5 text-[#5B5FC7]" />,
-      // Transición limpia hacia un azul pastel muy suave
       gradient: 'bg-gradient-to-r from-white via-[#F5F7FF] to-[#EDF2FF] border-[#D2D6E8]',
       textColor: 'text-[#242424]',
       btnBg: 'bg-[#484B97] hover:bg-[#5B5FC7] text-white transition-all rounded-sm',
@@ -45,13 +43,12 @@ export default function SVXCommandsDashboard() {
     'Ended': {
       title: 'CET Intelligent Auditing',
       description: {
-        short: 'Auditorías automáticas gestionadas mediante SVX Copilot y visualizadas en SVX Command para validar la integridad semántica y taxonómica de los catálogos.',
-        p1: 'Esta sección se enfoca en el aseguramiento de la calidad, la gobernanza de datos y la validación rigurosa mediante algoritmos avanzados de Inteligencia Artificial. Cada catálogo técnico y estructura de datos que finaliza el procesamiento es sometido a una auditoría automatizada impulsada por SVX Copilot, evaluando la consistencia taxonómica, la integridad de los enlaces y el cumplimiento estricto de los estándares corporativos globales exigidos por Servex US antes de autorizar su consolidación.',
-        p2: 'SVX Command consolida el historial completo de estas auditorías inteligentes, sirviendo como el panel definitivo de visibilidad operativa y auditoría forense. Al interactuar con SVX Command, los ingenieros pueden analizar las métricas de precisión emitidas por el Copilot, revisar las discrepancias corregidas automáticamente y validar los reportes de conformidad, garantizando que solo la información con un nivel de confianza absoluto sea inyectada en el entorno productivo.'
+        short: 'Automated audits managed via SVX Copilot and visualized in SVX Command to validate the semantic and taxonomic integrity of catalogs.',
+        p1: 'This section focuses on quality assurance, data governance, and rigorous validation powered by advanced Artificial Intelligence algorithms. Every technical catalog and data structure that completes processing undergoes an automated audit driven by SVX Copilot, which evaluates taxonomic consistency, link integrity, and strict compliance with the global corporate standards required by Servex US before authorizing consolidation.',
+        p2: 'SVX Command consolidates the complete historical record of these intelligent audits, serving as the definitive panel for operational visibility and forensic auditing. By interacting with SVX Command, engineers can analyze the accuracy metrics generated by the Copilot, review automatically corrected discrepancies, and validate compliance reports, ensuring that only data with absolute confidence levels is injected into the production environment.'
       },
-      buttonText: 'Revisar Auditorías',
+      buttonText: 'Review Audits',
       icon: <ShieldCheck className="w-3.5 h-3.5 text-[#616161]" />,
-      // Eliminado el verde. Ahora usa un gris quirúrgico de alta fidelidad, minimalista
       gradient: 'bg-gradient-to-r from-white via-[#FAF9F8] to-[#F3F2F1] border-[#E0E0E0]',
       textColor: 'text-[#242424]',
       btnBg: 'bg-[#616161] hover:bg-[#484848] text-white transition-all rounded-sm',
@@ -59,13 +56,12 @@ export default function SVXCommandsDashboard() {
     'Canceled': {
       title: 'Operational Support & Control',
       description: {
-        short: 'Centro de control de excepciones en SVX Command protegido por Azure OAuth para mitigar riesgos, rastrear logs de errores y recuperar flujos interrumpidos.',
-        p1: 'El módulo de soporte y control operativo está dedicado a la resiliencia del ecosistema, la seguridad empresarial y la mitigación proactiva de riesgos técnicos. Implementa una arquitectura de seguridad robusta basada en la autenticación perimetral vía Azure OAuth para restringir los accesos, además de proveer un soporte de nivel experto para aislar fallas críticas en transmisiones no resueltas, previniendo que incidentes aislados comprometan la estabilidad del sistema.',
-        p2: 'A través de SVX Command, los administradores del sistema disponen de un centro de control de excepciones altamente avanzado que centraliza los logs de errores structured, trazas de depuración y alertas de seguridad. SVX Command permite realizar un seguimiento minucioso de los procesos cancelados o interrumpidos, facilitando herramientas de reintento inteligente y análisis de causa raíz para garantizar un control total y un retorno rápido al estado operativo óptimo.',
+        short: 'Exception control center within SVX Command secured by Azure OAuth to mitigate risks, track error logs, and recover interrupted data streams.',
+        p1: 'The operational support and control module is dedicated to ecosystem resilience, enterprise security, and proactive technical risk mitigation. It implements a robust security architecture based on perimeter authentication via Azure OAuth to restrict access, while providing expert-level support to isolate critical failures in unresolved transmissions, preventing isolated incidents from compromising system stability.',
+        p2: 'Through SVX Command, system administrators have access to a highly advanced exception control center that centralizes structured error logs, debugging traces, and security alerts. SVX Command enables meticulous tracking of canceled or interrupted processes, providing intelligent retry tools and root-cause analysis to ensure total control and a swift return to an optimal operational state.'
       },
-      buttonText: 'Ver Logs de Excepciones',
+      buttonText: 'View Exception Logs',
       icon: <HelpCircle className="w-3.5 h-3.5 text-[#7A7574]" />,
-      // Eliminado el rojo de alerta. Transición mate ultra limpia hacia un gris topo/cálido corporativo
       gradient: 'bg-gradient-to-r from-white via-[#FBFBFA] to-[#F5F4F3] border-[#E1DFDD]',
       textColor: 'text-[#242424]',
       btnBg: 'bg-[#7A7574] hover:bg-[#615E5C] text-white transition-all rounded-sm',

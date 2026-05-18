@@ -24,7 +24,7 @@ export default function SVXCommandsDashboard() {
       buttonText: 'Ver Estado de Ingesta',
       icon: <Layers className="w-3.5 h-3.5 text-[#484B97]" />,
       // Degradado sutil neutro-púrpura que emula el header de tu tabla
-      gradient: 'bg-gradient-to-r from-white via-[#F5F7FF] to-[#EDF2FF] border-[#D2D6E8]',
+   gradient: 'bg-gradient-to-r from-white via-[#F5F7FF] to-[#EDF2FF] border-[#D2D6E8]',
       textColor: 'text-[#242424]',
       btnBg: 'bg-[#484B97] hover:bg-[#5B5FC7] text-white transition-all rounded-sm',
     },

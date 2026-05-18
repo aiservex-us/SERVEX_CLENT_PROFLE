@@ -95,7 +95,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
     }
   };
 
-  // Manejador del Input File (Lectura e Inyección Masiva en Supabase simultánea)
+  // Manejador del Input File (Lectura e Inyección Masiva en Supabase con soporte de Upsert seguro)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     const slotKey = targetSlotRef.current;
@@ -123,7 +123,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
             rows: parsedRows
           };
 
-          // Actualización atómica en paralelo sobre ambas tablas de forma simultánea
+          // Ejecución en paralelo: update para submissions y upsert preventivo para original
           const [resSubmissions, resOriginal] = await Promise.all([
             supabase
               .from('client_submissions')
@@ -131,14 +131,19 @@ export default function FileSlotsManager({ onSelectSlot }) {
               .eq('id', submissionData.id),
             supabase
               .from('client_original')
-              .update({ [slotKey]: payload })
-              .eq('user_id', submissionData.user_id) // Match seguro por user_id corporativo
+              .upsert(
+                { 
+                  user_id: submissionData.user_id, 
+                  [slotKey]: payload 
+                }, 
+                { onConflict: 'user_id' }
+              )
           ]);
 
           if (resSubmissions.error) throw resSubmissions.error;
           if (resOriginal.error) throw resOriginal.error;
 
-          await fetchUserSlots(); // Re-sincronización en caliente desde el buffer visual
+          await fetchUserSlots(); // Re-sincronización en caliente
         } catch (innerErr) {
           console.error(innerErr);
           alert('Error crítico convirtiendo o guardando el dataset en el cluster.');
@@ -155,14 +160,14 @@ export default function FileSlotsManager({ onSelectSlot }) {
     }
   };
 
-  // Remoción del set de datos en caliente (Borrado lógico / Set null en ambas tablas simultáneamente)
+  // Remoción del set de datos en caliente (Vaciado sincrónico en cascada)
   const handleDeleteSlot = async (slotKey, fileName) => {
     if (!window.confirm(`¿Confirmar purga y vaciado completo del slot asignado a "${fileName}"?`)) return;
 
     try {
       setProcessingSlot(slotKey);
 
-      // Mutación atómica en paralelo para limpiar el slot en ambas tablas
+      // Limpieza simultánea garantizando la existencia mediante upsert/update equivalentes
       const [resSubmissions, resOriginal] = await Promise.all([
         supabase
           .from('client_submissions')
@@ -170,8 +175,13 @@ export default function FileSlotsManager({ onSelectSlot }) {
           .eq('id', submissionData.id),
         supabase
           .from('client_original')
-          .update({ [slotKey]: null })
-          .eq('user_id', submissionData.user_id)
+          .upsert(
+            { 
+              user_id: submissionData.user_id, 
+              [slotKey]: null 
+            }, 
+            { onConflict: 'user_id' }
+          )
       ]);
 
       if (resSubmissions.error) throw resSubmissions.error;

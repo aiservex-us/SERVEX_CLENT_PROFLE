@@ -35,6 +35,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
         return;
       }
 
+      // Consulta de visualización y estado de carga: Exclusiva de client_submissions
       const { data, error: dbError } = await supabase
         .from('client_submissions')
         .select('*')
@@ -94,7 +95,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
     }
   };
 
-  // Manejador del Input File (Lectura e Inyección Masiva en Supabase)
+  // Manejador del Input File (Lectura e Inyección Masiva en Supabase simultánea)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     const slotKey = targetSlotRef.current;
@@ -122,18 +123,25 @@ export default function FileSlotsManager({ onSelectSlot }) {
             rows: parsedRows
           };
 
-          // Actualización atómica en la columna JSONB correspondiente
-          const { error: uploadError } = await supabase
-            .from('client_submissions')
-            .update({ [slotKey]: payload })
-            .eq('id', submissionData.id);
+          // Actualización atómica en paralelo sobre ambas tablas de forma simultánea
+          const [resSubmissions, resOriginal] = await Promise.all([
+            supabase
+              .from('client_submissions')
+              .update({ [slotKey]: payload })
+              .eq('id', submissionData.id),
+            supabase
+              .from('client_original')
+              .update({ [slotKey]: payload })
+              .eq('user_id', submissionData.user_id) // Match seguro por user_id corporativo
+          ]);
 
-          if (uploadError) throw uploadError;
+          if (resSubmissions.error) throw resSubmissions.error;
+          if (resOriginal.error) throw resOriginal.error;
 
-          await fetchUserSlots(); // Re-sincronización en caliente
+          await fetchUserSlots(); // Re-sincronización en caliente desde el buffer visual
         } catch (innerErr) {
           console.error(innerErr);
-          alert('Error crítico convirtiendo el dataset a JSON.');
+          alert('Error crítico convirtiendo o guardando el dataset en el cluster.');
         } finally {
           setProcessingSlot(null);
           e.target.value = ''; // Limpieza del buffer del input
@@ -147,24 +155,32 @@ export default function FileSlotsManager({ onSelectSlot }) {
     }
   };
 
-  // Remoción del set de datos en caliente (Borrado lógico / Set null)
+  // Remoción del set de datos en caliente (Borrado lógico / Set null en ambas tablas simultáneamente)
   const handleDeleteSlot = async (slotKey, fileName) => {
     if (!window.confirm(`¿Confirmar purga y vaciado completo del slot asignado a "${fileName}"?`)) return;
 
     try {
       setProcessingSlot(slotKey);
 
-      const { error: purgeError } = await supabase
-        .from('client_submissions')
-        .update({ [slotKey]: null })
-        .eq('id', submissionData.id);
+      // Mutación atómica en paralelo para limpiar el slot en ambas tablas
+      const [resSubmissions, resOriginal] = await Promise.all([
+        supabase
+          .from('client_submissions')
+          .update({ [slotKey]: null })
+          .eq('id', submissionData.id),
+        supabase
+          .from('client_original')
+          .update({ [slotKey]: null })
+          .eq('user_id', submissionData.user_id)
+      ]);
 
-      if (purgeError) throw purgeError;
+      if (resSubmissions.error) throw resSubmissions.error;
+      if (resOriginal.error) throw resOriginal.error;
 
       await fetchUserSlots();
     } catch (err) {
       console.error('Error al depurar slot:', err);
-      alert('No se pudo vaciar la memoria del slot seleccionado.');
+      alert('No se pudo vaciar la memoria del slot seleccionado en el pipeline.');
     } finally {
       setProcessingSlot(null);
     }

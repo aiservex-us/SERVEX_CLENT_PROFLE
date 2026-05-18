@@ -1,4 +1,3 @@
-// app/lib/supabaseClient.js
 import { createClient } from '@supabase/supabase-js';
 
 //
@@ -16,7 +15,7 @@ const supabaseAnonKey = 'sb_publishable_usgTKwhsIpmNIiGa_F4tiw_ah3THCTJ';
  * Esto hace que el navegador guarde los tokens en lugares distintos.
  */
 
-// Cliente para Trabajadores (Microsoft / Azure) - Usará el nombre por defecto o uno específico
+// Cliente para Trabajadores / Internos
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storageKey: 'sb-worker-session', // Llave única para trabajadores
@@ -25,7 +24,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Cliente para Clientes (Google / Customer Portal)
+// Cliente para Clientes externos / Google Portal
 export const supabaseGoogle = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storageKey: 'sb-customer-session', // Llave única para clientes externos
@@ -36,24 +35,11 @@ export const supabaseGoogle = createClient(supabaseUrl, supabaseAnonKey, {
 
 //
 // =======================
-// AUTH (SOLO AZURE / TRABAJADORES)
+// AUTH GENERAL & SESIONES
 // =======================
 //
 
-// 🔐 Login con Microsoft Entra ID (Azure)
-export async function signInWithAzure() {
-  // Usa la instancia 'supabase' (Trabajadores)
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'azure',
-  });
-
-  if (error) {
-    console.error('❌ Error login Azure:', error);
-    throw error;
-  }
-}
-
-// 👤 Obtener usuario autenticado (TRABAJADORES)
+// Obtener usuario autenticado de la sesión por defecto (supabase)
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
 
@@ -68,23 +54,8 @@ export async function getCurrentUser() {
   if (!data?.user) return null;
 
   const user = data.user;
-  const email =
-    user.email ||
-    user.user_metadata?.email ||
-    user.user_metadata?.preferred_username ||
-    null;
-
+  const email = user.email || user.user_metadata?.email || user.user_metadata?.preferred_username || null;
   const provider = user.app_metadata?.provider;
-
-  const isAzure = provider === 'azure';
-  const isAuthorizedDomain =
-    email && email.toLowerCase().endsWith('@servex-us.com');
-
-  if (!isAzure || !isAuthorizedDomain) {
-    console.warn('🚫 Acceso denegado:', { email, provider });
-    await supabase.auth.signOut();
-    return null;
-  }
 
   return {
     id: user.id,
@@ -94,7 +65,7 @@ export async function getCurrentUser() {
   };
 }
 
-// 🔁 Escuchar cambios de sesión
+// Escuchar cambios de sesión del cliente base
 export function subscribeToAuthState(callback) {
   const {
     data: { subscription },
@@ -105,7 +76,7 @@ export function subscribeToAuthState(callback) {
   return subscription;
 }
 
-// 🚪 Logout (TRABAJADORES)
+// Logout General (supabase)
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) {
@@ -115,7 +86,7 @@ export async function signOut() {
 
 //
 // =======================
-// DATA
+// PERSISTENCIA DE DATOS
 // =======================
 //
 
@@ -132,7 +103,7 @@ export async function saveAuditToSupabase({ audit_content, user }) {
         audit_content: JSON.stringify(audit_content),
         user_id: user.id,
         user_email: user.email,
-        provider: user.provider,
+        provider: user.provider || 'unknown',
       },
     ])
     .select();

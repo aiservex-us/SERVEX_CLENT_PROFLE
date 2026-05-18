@@ -266,7 +266,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="h-[75vh] w-full bg-[#FAFAFA] text-[#242424] antialiased p-4 md:p-8">
+    <div className="h-[75vh] w-full bg-[#FFF] text-[#242424] antialiased p-4 md:p-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* LEFT COLUMN: THE NEW TECH-READY PROFILE */}

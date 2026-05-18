@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'Presentation', label: 'Presentation', icon: MonitorPlay, sub: 'Welcome Screen' },
+
   { id: 'Profile', label: 'PROFILE', icon: UserCheck, sub: 'User Account' },
   { id: 'Cataloge', label: 'Cataloge', icon: FolderKanban, sub: 'Management' },
   { id: 'AI_Chat', label: 'AI_Chat', icon: MessageSquareCode, sub: 'Svx Assistant' },

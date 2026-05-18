@@ -95,7 +95,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
     }
   };
 
-  // Manejador del Input File (Lectura e Inyección Masiva en Supabase con soporte de Upsert seguro)
+  // Manejador del Input File (Lectura e Inyección Masiva en Supabase)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     const slotKey = targetSlotRef.current;
@@ -123,21 +123,16 @@ export default function FileSlotsManager({ onSelectSlot }) {
             rows: parsedRows
           };
 
-          // Ejecución en paralelo: update para submissions y upsert preventivo para original
+          // Inyección en paralelo simétrica usando el user_id de la sesión/registro actual
           const [resSubmissions, resOriginal] = await Promise.all([
             supabase
               .from('client_submissions')
               .update({ [slotKey]: payload })
-              .eq('id', submissionData.id),
+              .eq('user_id', submissionData.user_id),
             supabase
               .from('client_original')
-              .upsert(
-                { 
-                  user_id: submissionData.user_id, 
-                  [slotKey]: payload 
-                }, 
-                { onConflict: 'user_id' }
-              )
+              .update({ [slotKey]: payload })
+              .eq('user_id', submissionData.user_id)
           ]);
 
           if (resSubmissions.error) throw resSubmissions.error;
@@ -160,28 +155,23 @@ export default function FileSlotsManager({ onSelectSlot }) {
     }
   };
 
-  // Remoción del set de datos en caliente (Vaciado sincrónico en cascada)
+  // Remoción del set de datos en caliente (Vaciado sincrónico en cascada de ambas tablas)
   const handleDeleteSlot = async (slotKey, fileName) => {
     if (!window.confirm(`¿Confirmar purga y vaciado completo del slot asignado a "${fileName}"?`)) return;
 
     try {
       setProcessingSlot(slotKey);
 
-      // Limpieza simultánea garantizando la existencia mediante upsert/update equivalentes
+      // Limpieza simultánea garantizando la remoción en ambas tablas apuntando al user_id
       const [resSubmissions, resOriginal] = await Promise.all([
         supabase
           .from('client_submissions')
           .update({ [slotKey]: null })
-          .eq('id', submissionData.id),
+          .eq('user_id', submissionData.user_id),
         supabase
           .from('client_original')
-          .upsert(
-            { 
-              user_id: submissionData.user_id, 
-              [slotKey]: null 
-            }, 
-            { onConflict: 'user_id' }
-          )
+          .update({ [slotKey]: null })
+          .eq('user_id', submissionData.user_id)
       ]);
 
       if (resSubmissions.error) throw resSubmissions.error;

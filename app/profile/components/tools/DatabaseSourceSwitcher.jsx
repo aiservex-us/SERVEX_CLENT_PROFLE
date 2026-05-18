@@ -32,13 +32,20 @@ export default function DatabaseSourceSwitcher({ selectedId, onSourceDataFetched
         // Determinamos dinámicamente la tabla de destino en Supabase
         const targetTable = activeSource === 'submissions' ? 'client_submissions' : 'client_original';
         
+        // Usamos .maybeSingle() en lugar de .single() para prevenir errores fatales de coerción 406 
+        // si el registro no existe o hay redundancia de llaves en la base de datos de auditoría
         const { data, error } = await supabase
           .from(targetTable)
           .select('*')
           .eq('id', selectedId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+
+        // Si no se encuentra información en la tabla secundaria, alertamos y revertimos de forma segura
+        if (!data) {
+          throw new Error(`El registro con ID [${selectedId}] no tiene un espejo equivalente en la tabla public.${targetTable}.`);
+        }
 
         // Si la consulta es exitosa, enviamos el payload completo de vuelta al componente matriz
         if (onSourceDataFetched) {
@@ -49,8 +56,9 @@ export default function DatabaseSourceSwitcher({ selectedId, onSourceDataFetched
         }
       } catch (err) {
         console.error(`❌ Error recuperando información desde public.${activeSource === 'submissions' ? 'client_submissions' : 'client_original'}:`, err);
-        alert(`Error al cambiar de origen de datos: ${err.message}`);
-        // Fallback defensivo: revertir estado visual en caso de error de red o de registros inexistentes en el espejo
+        alert(`Aviso de Origen: ${err.message}`);
+        
+        // Fallback defensivo: revertir estado visual en caso de registros inexistentes
         setActiveSource('submissions');
       } finally {
         setLoading(false);
@@ -60,17 +68,18 @@ export default function DatabaseSourceSwitcher({ selectedId, onSourceDataFetched
     fetchSourceData();
   }, [activeSource, selectedId]);
 
-  const toggleSource = () => {
-    if (disabled || loading) return;
-    setActiveSource((prev) => (prev === 'submissions' ? 'original' : 'submissions'));
+  // Manejadores explícitos por botón para evitar comportamientos cíclicos o rebotes inesperados
+  const handleSelectSource = (source) => {
+    if (disabled || loading || activeSource === source) return;
+    setActiveSource(source);
   };
 
   return (
-    <div className="flex items-center bg-[#F3F2F1] border border-[#D2D2D2] rounded-sm p-0.5 select-none transition-all">
+    <div className="flex items-center bg-[#F3F2F1] border border-[#D2D2D2] rounded-sm p-0.5 select-none gap-0.5 transition-all">
       <button
         type="button"
         disabled={disabled || loading}
-        onClick={toggleSource}
+        onClick={() => handleSelectSource('submissions')}
         className={`text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-xs transition-all duration-150 flex items-center gap-1 ${
           activeSource === 'submissions'
             ? 'bg-[#5B5FC7] text-white shadow-xs'
@@ -87,7 +96,7 @@ export default function DatabaseSourceSwitcher({ selectedId, onSourceDataFetched
       <button
         type="button"
         disabled={disabled || loading}
-        onClick={toggleSource}
+        onClick={() => handleSelectSource('original')}
         className={`text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-xs transition-all duration-150 flex items-center gap-1 ${
           activeSource === 'original'
             ? 'bg-[#107C41] text-white shadow-xs'

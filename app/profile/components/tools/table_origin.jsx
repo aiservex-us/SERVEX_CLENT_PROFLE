@@ -132,13 +132,12 @@ export default function ClientSubmissionsMatrix() {
       setIsSlotsModalOpen(false);
     }
   };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-          Recuperando matriz de datos...
+          Retrieving master data matrix...
         </div>
       </div>
     );
@@ -147,7 +146,7 @@ export default function ClientSubmissionsMatrix() {
   if (error) {
     return (
       <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
-        <span className="font-bold">Error de sincronización:</span> {error}
+        <span className="font-bold">Synchronization error:</span> {error}
       </div>
     );
   }
@@ -158,12 +157,12 @@ export default function ClientSubmissionsMatrix() {
         
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
-          {/* Header de Operaciones / Filtros */}
+          {/* Operations / Filters Header */}
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-[#242424]">Visualizador de Catálogo</span>
+              <span className="text-xs font-bold text-[#242424]">Master Catalog Viewer</span>
               <span className="text-[10px] text-[#616161]">
-                {fetchingSlots ? 'Actualizando matriz...' : 'Consulta interactiva de registros en tiempo real'}
+                {fetchingSlots ? 'Updating matrix...' : 'Viewing original catalog, without changes or updates'}
               </span>
             </div>
 
@@ -173,12 +172,12 @@ export default function ClientSubmissionsMatrix() {
                 onClick={() => setIsSlotsModalOpen(true)}
                 className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5"
               >
-                Explorar Slots
+                Explore Slots
               </button>
 
               <input
                 type="text"
-                placeholder="Buscar en la matriz..."
+                placeholder="Search matrix..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[180px]"
@@ -199,10 +198,10 @@ export default function ClientSubmissionsMatrix() {
             </div>
           </div>
 
-          {/* Tabla */}
+          {/* Table */}
           {paginatedRows.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No se encontraron registros coincidentes.
+              No matching records found.
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
@@ -210,7 +209,7 @@ export default function ClientSubmissionsMatrix() {
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
                     <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-30 border-r border-b border-[#E0E0E0] select-none">
-                      Índice
+                      Index
                     </th>
                     {headers.map((header) => (
                       <th
@@ -257,11 +256,11 @@ export default function ClientSubmissionsMatrix() {
             </div>
           )}
 
-          {/* Footer de Paginación */}
+          {/* Pagination Footer */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
-              <span>ATRIBUTOS: {headers.length}</span>
-              <span>REGISTROS FILTRADOS: {filteredRows.length} de {localRows.length}</span>
+              <span>ATTRIBUTES: {headers.length}</span>
+              <span>FILTERED RECORDS: {filteredRows.length} of {localRows.length}</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -270,17 +269,17 @@ export default function ClientSubmissionsMatrix() {
                 disabled={currentPage === 1}
                 className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40"
               >
-                Anterior
+                Previous
               </button>
               <span className="text-[#242424] font-normal px-1">
-                Página <strong className="font-semibold">{currentPage}</strong> de {totalPages}
+                Page <strong className="font-semibold">{currentPage}</strong> of {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40"
               >
-                Siguiente
+                Next
               </button>
             </div>
           </div>
@@ -288,14 +287,14 @@ export default function ClientSubmissionsMatrix() {
 
       </div>
 
-      {/* MODAL: Explorador de Data Slots */}
+      {/* MODAL: Data Slots Explorer */}
       {isSlotsModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#242424]">Cambiar Origen de Datos</span>
-                <span className="text-[10px] text-[#616161]">Seleccione el set estructurado que desea auditar</span>
+                <span className="text-xs font-bold text-[#242424]">Change Data Source</span>
+                <span className="text-[10px] text-[#616161]">Select the structured set you wish to audit</span>
               </div>
               <button 
                 onClick={() => setIsSlotsModalOpen(false)}
@@ -315,7 +314,7 @@ export default function ClientSubmissionsMatrix() {
                 onClick={() => setIsSlotsModalOpen(false)}
                 className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm transition-all"
               >
-                Cerrar
+                Close
               </button>
             </div>
           </div>

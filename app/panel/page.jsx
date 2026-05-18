@@ -23,15 +23,7 @@ export default function Home() {
   if (loading) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white">
-        <div className="relative w-18 h-18 animate-pulse"> {/* Puedes ajustar el tamaño aquí */}
-          <Image 
-            src="/logo2.png" 
-            alt="Logo" 
-            fill
-            priority
-            className="object-contain"
-          />
-        </div>
+        <div className="w-8 h-8 border-3 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }

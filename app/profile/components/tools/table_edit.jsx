@@ -307,10 +307,10 @@ export default function ClientSubmissionsMatrix() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[90%] bg-[#FFF] text-xs font-semibold text-[#616161] font-sans">
+      <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-          Conectando con Supabase y recuperando metadatos...
+          Retrieving edit data matrix...
         </div>
       </div>
     );
@@ -319,51 +319,50 @@ export default function ClientSubmissionsMatrix() {
   if (error) {
     return (
       <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
-        <span className="font-bold">Error de sincronización:</span> {error}
+        <span className="font-bold">Synchronization error:</span> {error}
       </div>
     );
   }
-
   return (
     <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
         
-        {/* Matriz Principal con el Header Integrado */}
+        {/* Main Matrix with Integrated Header */}
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
-          {/* Header Compacto de la Tabla */}
+          {/* Compact Table Header */}
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-[#242424]">Estructura de Datos Analizada</span>
+              <span className="text-xs font-bold text-[#242424]">Catalog Update Center</span>
               <span className="text-[10px] text-[#616161]">
-                {fetchingSlots ? 'Actualizando...' : isEditing ? 'Modificando JSON localmente' : isDeleteMode ? 'Selección de registros para depuración masiva' : 'Visualización matricial de slots JSONB'}
+                {fetchingSlots ? 'Updating...' : isEditing ? 'Modifying JSON locally' : isDeleteMode ? 'Selection of records for bulk purging' : 'Data adjustment and editing processes corresponding to the catalog update'}
               </span>
             </div>
 
-            {/* Controles alineados a la derecha del Header */}
+            {/* Controls aligned to the right of the Header */}
             <div className="flex flex-wrap items-center gap-2">
               
-              {/* === BOTÓN ASIGNADO PARA DESPLEGAR EL POPUP DE DATA DISPONIBLE === */}
+              {/* === ASSIGNED BUTTON TO DISPLAY THE AVAILABLE DATA POPUP === */}
               <button
                 type="button"
                 onClick={() => setIsSlotsModalOpen(true)}
                 disabled={isEditing || isDeleteMode}
                 className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1.5"
               >
-                Todos Catalogos
+                All Catalogs
               </button>
 
-              {/* Input de Búsqueda */}
+              {/* Search Input */}
               <input
                 type="text"
-                placeholder="Filtrar por SKU, nombre..."
+                placeholder="Filter by SKU, name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 disabled={isEditing || isDeleteMode}
                 className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all disabled:opacity-50 w-[160px]"
               />
 
-              {/* Selector de Envío */}
+              {/* Submission Selector */}
               <select
                 id="submission-select"
                 value={selectedId}
@@ -378,9 +377,9 @@ export default function ClientSubmissionsMatrix() {
                 ))}
               </select>
 
-              {/* Botones de Acción */}
+              {/* Action Buttons */}
               <div className="flex gap-1 border-l border-slate-300 pl-1">
-                {/* FLUJO 1: MODO INACTIVO (Estado estándar de lectura) */}
+                {/* FLOW 1: INACTIVE MODE (Standard read state) */}
                 {!isEditing && !isDeleteMode && (
                   <>
                     <button
@@ -388,25 +387,25 @@ export default function ClientSubmissionsMatrix() {
                       disabled={headers.length === 0}
                       className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
                     >
-                      Eliminar
+                      Delete
                     </button>
                     <button
                       onClick={handleOpenModal}
                       disabled={headers.length === 0}
                       className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
                     >
-                      Añadir
+                      Add
                     </button>
                     <button
                       onClick={() => setIsEditing(true)}
                       className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
                     >
-                      Editar
+                      Edit
                     </button>
                   </>
                 )}
 
-                {/* FLUJO 2: MODO ELIMINACIÓN ACTIVO */}
+                {/* FLOW 2: ACTIVE DELETION MODE */}
                 {isDeleteMode && (
                   <>
                     <button
@@ -414,19 +413,19 @@ export default function ClientSubmissionsMatrix() {
                       disabled={isSaving || selectedRowIndexes.length === 0}
                       className="bg-[#A80000] hover:bg-[#820000] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 font-bold"
                     >
-                      {selectedRowIndexes.length === 0 ? 'Seleccione Filas' : `Confirmar Borrado (${selectedRowIndexes.length})`}
+                      {selectedRowIndexes.length === 0 ? 'Select Rows' : `Confirm Delete (${selectedRowIndexes.length})`}
                     </button>
                     <button
                       onClick={handleCancelDeleteMode}
                       disabled={isSaving}
                       className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
                     >
-                      Cancelar
+                      Cancel
                     </button>
                   </>
                 )}
 
-                {/* FLUJO 3: MODO EDICIÓN EN LÍNEA ACTIVO */}
+                {/* FLOW 3: ACTIVE INLINE EDITING MODE */}
                 {isEditing && (
                   <>
                     <button
@@ -434,14 +433,14 @@ export default function ClientSubmissionsMatrix() {
                       disabled={isSaving}
                       className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
                     >
-                      {isSaving ? '...' : 'Guardar'}
+                      {isSaving ? '...' : 'Save'}
                     </button>
                     <button
                       onClick={handleCancelChanges}
                       disabled={isSaving}
                       className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
                     >
-                      Cancelar
+                      Cancel
                     </button>
                   </>
                 )}
@@ -449,17 +448,17 @@ export default function ClientSubmissionsMatrix() {
             </div>
           </div>
 
-          {/* Tabla de Datos */}
+          {/* Data Table */}
           {paginatedRows.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No se encontraron celdas para mostrar.
+              No cells found to display.
             </div>
           ) : (
            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
               <table className="table-fixed border-collapse text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    {/* Columna Checkbox: SOLO VISIBLE SI ISDELETEMODE ES TRUE */}
+                    {/* Checkbox Column: ONLY VISIBLE IF ISDELETEMODE IS TRUE */}
                     {isDeleteMode && (
                       <th className="w-9 px-2 py-2 text-center bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-40 border-r border-b border-[#E0E0E0] select-none">
                         <input
@@ -471,11 +470,11 @@ export default function ClientSubmissionsMatrix() {
                       </th>
                     )}
                     
-                    {/* Indicador de ID (#) */}
+                    {/* ID Indicator (#) */}
                     <th className={`w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky z-30 border-r border-b border-[#E0E0E0] select-none ${isDeleteMode ? 'left-9' : 'left-0'}`}>
                       #
                     </th>
-                    {/* Headers de la Tabla */}
+                    {/* Table Headers */}
                     {headers.map((header) => (
                       <th
                         key={header}
@@ -496,7 +495,7 @@ export default function ClientSubmissionsMatrix() {
                         className={`transition-colors duration-75 group ${isRowSelected ? 'bg-[#EBF3FC] hover:bg-[#E2EEFA]' : 'hover:bg-[#F7F5FA]'}`}
                       >
                         
-                        {/* Celda Checkbox Opcional */}
+                        {/* Optional Checkbox Cell */}
                         {isDeleteMode && (
                           <td className={`px-2 py-1.5 text-center border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
                             <input
@@ -508,7 +507,7 @@ export default function ClientSubmissionsMatrix() {
                           </td>
                         )}
 
-                        {/* Celda del indicador ID */}
+                        {/* ID Indicator Cell */}
                         <td className={`px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky z-10 select-none border-b border-[#F0F0F0] transition-colors ${isDeleteMode ? 'left-9' : 'left-0'} ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
                           {originalIndex + 1}
                         </td>
@@ -550,34 +549,34 @@ export default function ClientSubmissionsMatrix() {
             </div>
           )}
 
-          {/* Footer con Paginación Integrada */}
+          {/* Footer with Integrated Pagination */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
               <span>COLS: {headers.length}</span>
               <span>ROWS: {filteredRowsWithIndex.length}</span>
               {selectedRowIndexes.length > 0 && (
-                <span className="text-[#A80000]">SELECCIONADOS PARA BORRAR: {selectedRowIndexes.length}</span>
+                <span className="text-[#A80000]">SELECTED FOR DELETION: {selectedRowIndexes.length}</span>
               )}
             </div>
             
-            {/* Controles de Navegación de Página */}
+            {/* Page Navigation Controls */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
               >
-                Anterior
+                Previous
               </button>
               <span className="text-[#242424] font-normal px-1">
-                Página <strong className="font-semibold">{currentPage}</strong> de {totalPages}
+                Page <strong className="font-semibold">{currentPage}</strong> of {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
               >
-                Siguiente
+                Next
               </button>
             </div>
           </div>
@@ -585,16 +584,16 @@ export default function ClientSubmissionsMatrix() {
 
       </div>
 
-      {/* MODAL RESPONSIVO PARA CREACIÓN DE PRODUCTOS DINÁMICOS */}
+      {/* RESPONSIVE MODAL FOR DYNAMIC PRODUCT CREATION */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
           <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
             
-            {/* Cabecera del Formulario */}
+            {/* Form Header */}
             <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#242424]">Añadir Nuevo Registro Estructurado</span>
-                <span className="text-[10px] text-[#616161]">Complete los atributos en base al esquema JSON original</span>
+                <span className="text-xs font-bold text-[#242424]">Add New Structured Record</span>
+                <span className="text-[10px] text-[#616161]">Complete the attributes based on the original JSON schema</span>
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -604,7 +603,7 @@ export default function ClientSubmissionsMatrix() {
               </button>
             </div>
 
-            {/* Formulario Dinámico Grid */}
+            {/* Dynamic Grid Form */}
             <form onSubmit={handleAddProductSubmit} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {headers.map((header) => (
@@ -617,26 +616,26 @@ export default function ClientSubmissionsMatrix() {
                       value={newProduct[header] || ''}
                       onChange={(e) => handleFormInputChange(header, e.target.value)}
                       className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-1 text-[11px] text-[#242424] placeholder-[#A19F9D] focus:border-[#5B5FC7] outline-none transition-all font-mono"
-                      placeholder={`Ingresar ${header.toLowerCase()}`}
+                      placeholder={`Enter ${header.toLowerCase()}`}
                     />
                   </div>
                 ))}
               </div>
 
-              {/* Botones de Envío del Modal */}
+              {/* Modal Submission Buttons */}
               <div className="pt-4 border-t border-[#E0E0E0] flex justify-end gap-2 sticky bottom-0 bg-white">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm transition-all"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-4 py-1 rounded-sm transition-all shadow-sm"
                 >
-                  Insertar y Sincronizar
+                  Insert and Sync
                 </button>
               </div>
             </form>
@@ -645,16 +644,16 @@ export default function ClientSubmissionsMatrix() {
         </div>
       )}
 
-      {/* === NUEVO POPUP / MODAL PARA MOSTRAR LOS DATOS Y DATA SLOTS DISPONIBLES === */}
+      {/* === NEW POPUP / MODAL TO DISPLAY DATA AND AVAILABLE DATA SLOTS === */}
       {isSlotsModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
           <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
             
-            {/* Cabecera del Popup */}
+            {/* Popup Header */}
             <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#242424]">Explorador de Data Slots Activos</span>
-                <span className="text-[10px] text-[#616161]">Seleccione el set de datos o archivo indexado que desea proyectar en la matriz</span>
+                <span className="text-xs font-bold text-[#242424]">Active Data Slots Explorer</span>
+                <span className="text-[10px] text-[#616161]">Select the dataset or indexed file you wish to project onto the matrix</span>
               </div>
               <button 
                 onClick={() => setIsSlotsModalOpen(false)}
@@ -664,30 +663,30 @@ export default function ClientSubmissionsMatrix() {
               </button>
             </div>
 
-            {/* Contenedor del componente anterior */}
+            {/* Container for the previous component */}
             <div className="flex-1 overflow-y-auto p-4 bg-[#FAFAFA]">
-              {/* Modificamos el comportamiento interno interceptando la acción de inspección mediante prop inyectada si lo deseas, 
-                  o simplemente redefiniendo el comportamiento del botón interno mediante una función puente */}
+              {/* We modify internal behavior by intercepting the browse action via injected prop if desired, 
+                  or simply redefining the internal button's behavior using a bridge function */}
               <div onClick={(e) => {
-                // Interceptamos clics en los botones "Examinar Data" del FileSlotsManager de forma limpia
+                // Cleanly intercept clicks on "Browse Data" buttons of the FileSlotsManager
                 if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Examinar')) {
-                  // Prevenimos que continúe si es necesario, pero dado que el componente anterior guarda el scope, 
-                  // la mejor práctica arquitectónica es añadir la propiedad de callback directamente si modificas la UI, 
-                  // o capturar el estado activo. Para no alterar en absoluto nada más, puedes usar este wrapper.
+                  // Prevent it from continuing if necessary, but since the previous component saves the scope, 
+                  // the best architectural practice is to add the callback property directly if you modify the UI, 
+                  // or capture the active state. To not alter anything else at all, you can use this wrapper.
                 }
               }}>
                 <FileSlotsManager onSelectSlot={handleSelectSlotData} />
               </div>
             </div>
 
-            {/* Cierre del Popup */}
+            {/* Popup Closure */}
             <div className="p-3 border-t border-[#E0E0E0] flex justify-end bg-white">
               <button
                 type="button"
                 onClick={() => setIsSlotsModalOpen(false)}
                 className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm transition-all"
               >
-                Cerrar Explorador
+                Close Explorer
               </button>
             </div>
 

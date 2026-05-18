@@ -6,48 +6,62 @@ import { supabase } from '@/app/lib/supabaseClient';
 /**
  * DatabaseSourceSwitcher
  * Componente de control dual para conmutar el origen de datos de un cliente 
- * entre los esquemas de 'client_submissions' y 'client_original'.
+ * entre los esquemas de 'client_submissions' y 'client_original' utilizando el nombre de la empresa.
  *
- * @param {string|number} selectedId - ID del registro del cliente seleccionado.
+ * @param {object} activeSubmission - Registro completo del cliente actualmente cargado en la matriz.
  * @param {function} onSourceDataFetched - Callback que devuelve las filas estructuradas y el origen actual al padre.
  * @param {boolean} disabled - Estado de bloqueo si el padre está editando o eliminando.
  */
-export default function DatabaseSourceSwitcher({ selectedId, onSourceDataFetched, disabled }) {
+export default function DatabaseSourceSwitcher({ activeSubmission, onSourceDataFetched, disabled }) {
   const [activeSource, setActiveSource] = useState('submissions'); // 'submissions' o 'original'
   const [loading, setLoading] = useState(false);
 
-  // Cada vez que cambie el cliente seleccionado en la matriz, reseteamos el origen a producción (submissions)
+  // Cada vez que el padre cambie de cliente seleccionado de manera global, reiniciamos visualmente a submissions
   useEffect(() => {
     setActiveSource('submissions');
-  }, [selectedId]);
+  }, [activeSubmission?.id]);
 
-  // Efecto secundario encargado de realizar el fetch reactivo cuando cambia el origen de datos o el cliente elegido
+  // Efecto secundario encargado de realizar el fetch reactivo cuando cambia el origen de datos
   useEffect(() => {
-    if (!selectedId) return;
+    if (!activeSubmission) return;
 
     async function fetchSourceData() {
+      // Si el usuario vuelve a 'submissions', podemos reinyectar directamente el registro del padre 
+      // evitando llamadas innecesarias e intermitencias en la red
+      if (activeSource === 'submissions') {
+        if (onSourceDataFetched) {
+          onSourceDataFetched({
+            source: 'submissions',
+            rawRecord: activeSubmission
+          });
+        }
+        return;
+      }
+
       try {
         setLoading(true);
         
-        // Determinamos dinámicamente la tabla de destino en Supabase
-        const targetTable = activeSource === 'submissions' ? 'client_submissions' : 'client_original';
+        // Si el origen es 'original', buscamos de forma inteligente por 'company_name' para mitigar la disparidad de IDs
+        const targetTable = 'client_original';
         
-        // Usamos .maybeSingle() en lugar de .single() para prevenir errores fatales de coerción 406 
-        // si el registro no existe o hay redundancia de llaves en la base de datos de auditoría
+        if (!activeSubmission.company_name) {
+          throw new Error("El registro seleccionado en Submissions no posee un 'company_name' para trazar el espejo en Original.");
+        }
+
         const { data, error } = await supabase
           .from(targetTable)
           .select('*')
-          .eq('id', selectedId)
-          .maybeSingle();
+          .eq('company_name', activeSubmission.company_name)
+          .order('created_at', { ascending: false })
+          .maybeSingle(); // Mitiga el error 406 si existen duplicados o registros huérfanos
 
         if (error) throw error;
 
-        // Si no se encuentra información en la tabla secundaria, alertamos y revertimos de forma segura
         if (!data) {
-          throw new Error(`El registro con ID [${selectedId}] no tiene un espejo equivalente en la tabla public.${targetTable}.`);
+          throw new Error(`No se encontró ningún registro en public.${targetTable} con el nombre corporativo [${activeSubmission.company_name}].`);
         }
 
-        // Si la consulta es exitosa, enviamos el payload completo de vuelta al componente matriz
+        // Si la consulta encuentra la fila por empresa, enviamos el payload con la estructura JSON de la tabla original
         if (onSourceDataFetched) {
           onSourceDataFetched({
             source: activeSource,
@@ -55,10 +69,10 @@ export default function DatabaseSourceSwitcher({ selectedId, onSourceDataFetched
           });
         }
       } catch (err) {
-        console.error(`❌ Error recuperando información desde public.${activeSource === 'submissions' ? 'client_submissions' : 'client_original'}:`, err);
+        console.error(`❌ Error recuperando información desde public.${activeSource}:`, err);
         alert(`Aviso de Origen: ${err.message}`);
         
-        // Fallback defensivo: revertir estado visual en caso de registros inexistentes
+        // Fallback de contingencia: revierte el estado visual para mantener la consistencia de la matriz
         setActiveSource('submissions');
       } finally {
         setLoading(false);
@@ -66,9 +80,9 @@ export default function DatabaseSourceSwitcher({ selectedId, onSourceDataFetched
     }
 
     fetchSourceData();
-  }, [activeSource, selectedId]);
+  }, [activeSource, activeSubmission]);
 
-  // Manejadores explícitos por botón para evitar comportamientos cíclicos o rebotes inesperados
+  // Manejador explícito con compuertas de seguridad
   const handleSelectSource = (source) => {
     if (disabled || loading || activeSource === source) return;
     setActiveSource(source);

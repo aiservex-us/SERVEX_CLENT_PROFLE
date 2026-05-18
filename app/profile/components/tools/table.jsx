@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient'; 
 
+// === IMPORTACIÓN DEL COMPONENTE ANTERIOR (Ajusta la ruta según tu proyecto) ===
+import FileSlotsManager from './FileSlotsManager'; 
+
 export default function ClientSubmissionsMatrix() {
   const [submissions, setSubmissions] = useState([]);
   const [selectedId, setSelectedId] = useState('');
@@ -30,6 +33,9 @@ export default function ClientSubmissionsMatrix() {
   // ESTADOS DE CONTROL PARA LA ELIMINACIÓN CONDICIONAL
   const [isDeleteMode, setIsDeleteMode] = useState(false); // Activa visualmente las opciones de borrado
   const [selectedRowIndexes, setSelectedRowIndexes] = useState([]); // Almacena índices seleccionados
+
+  // === NUEVO ESTADO PARA EL POPUP DE DATA DISPONIBLE ===
+  const [isSlotsModalOpen, setIsSlotsModalOpen] = useState(false);
 
   // 1. Cargar la lista inicial de envíos
   useEffect(() => {
@@ -286,6 +292,19 @@ export default function ClientSubmissionsMatrix() {
     return paginatedRows.map(p => p.originalIndex).every(idx => selectedRowIndexes.includes(idx));
   }, [paginatedRows, selectedRowIndexes]);
 
+  // === NUEVA FUNCIÓN INTERCEPTORA PARA CARGAR EL DATA SLOT SELECCIONADO EN LA TABLA ===
+  const handleSelectSlotData = (slotContent) => {
+    if (slotContent && (Array.isArray(slotContent) || typeof slotContent === 'object')) {
+      // Si el slot contiene la metadata del archivo original junto con las filas de productos:
+      const targetRows = Array.isArray(slotContent) ? slotContent : (slotContent.rows || []);
+      setLocalRows(JSON.parse(JSON.stringify(targetRows)));
+      setCurrentPage(1);
+      setIsSlotsModalOpen(false);
+    } else {
+      alert("El slot seleccionado no contiene registros estructurados legibles.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[90%] bg-[#FFF] text-xs font-semibold text-[#616161] font-sans">
@@ -312,7 +331,7 @@ export default function ClientSubmissionsMatrix() {
         {/* Matriz Principal con el Header Integrado */}
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
-          {/* Header Compacto de la Tabla - Modificado con degradado donde predomina el blanco */}
+          {/* Header Compacto de la Tabla */}
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#242424]">Estructura de Datos Analizada</span>
@@ -324,6 +343,16 @@ export default function ClientSubmissionsMatrix() {
             {/* Controles alineados a la derecha del Header */}
             <div className="flex flex-wrap items-center gap-2">
               
+              {/* === BOTÓN ASIGNADO PARA DESPLEGAR EL POPUP DE DATA DISPONIBLE === */}
+              <button
+                type="button"
+                onClick={() => setIsSlotsModalOpen(true)}
+                disabled={isEditing || isDeleteMode}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1.5"
+              >
+                <span>📂</span> Data Disponible
+              </button>
+
               {/* Input de Búsqueda */}
               <input
                 type="text"
@@ -442,11 +471,11 @@ export default function ClientSubmissionsMatrix() {
                       </th>
                     )}
                     
-                    {/* Indicador de ID (#) - Predomina el blanco con un toque degradado muy sutil */}
+                    {/* Indicador de ID (#) */}
                     <th className={`w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky z-30 border-r border-b border-[#E0E0E0] select-none ${isDeleteMode ? 'left-9' : 'left-0'}`}>
                       #
                     </th>
-                    {/* Headers de la Tabla - Predomina el blanco con un toque degradado muy sutil */}
+                    {/* Headers de la Tabla */}
                     {headers.map((header) => (
                       <th
                         key={header}
@@ -467,7 +496,7 @@ export default function ClientSubmissionsMatrix() {
                         className={`transition-colors duration-75 group ${isRowSelected ? 'bg-[#EBF3FC] hover:bg-[#E2EEFA]' : 'hover:bg-[#F7F5FA]'}`}
                       >
                         
-                        {/* Celda Checkbox Opcional: SOLO SE RENDERIZA SI ISDELETEMODE ES TRUE */}
+                        {/* Celda Checkbox Opcional */}
                         {isDeleteMode && (
                           <td className={`px-2 py-1.5 text-center border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
                             <input
@@ -479,7 +508,7 @@ export default function ClientSubmissionsMatrix() {
                           </td>
                         )}
 
-                        {/* Celda del indicador ID en el cuerpo de la tabla */}
+                        {/* Celda del indicador ID */}
                         <td className={`px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky z-10 select-none border-b border-[#F0F0F0] transition-colors ${isDeleteMode ? 'left-9' : 'left-0'} ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
                           {originalIndex + 1}
                         </td>
@@ -521,7 +550,7 @@ export default function ClientSubmissionsMatrix() {
             </div>
           )}
 
-          {/* Footer con Paginación Integrada - Modificado con degradado pastel ultra sutil donde predomina el blanco */}
+          {/* Footer con Paginación Integrada */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
               <span>COLS: {headers.length}</span>
@@ -556,12 +585,12 @@ export default function ClientSubmissionsMatrix() {
 
       </div>
 
-      {/* MODAL RESPONSIVO DE ALTA FIDELIDAD PARA CREACIÓN DE PRODUCTOS DINÁMICOS */}
+      {/* MODAL RESPONSIVO PARA CREACIÓN DE PRODUCTOS DINÁMICOS */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
           <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
             
-            {/* Cabecera del Formulario - Modificado con el mismo patrón sutil donde predomina el blanco */}
+            {/* Cabecera del Formulario */}
             <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-[#242424]">Añadir Nuevo Registro Estructurado</span>
@@ -611,6 +640,56 @@ export default function ClientSubmissionsMatrix() {
                 </button>
               </div>
             </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* === NUEVO POPUP / MODAL PARA MOSTRAR LOS DATOS Y DATA SLOTS DISPONIBLES === */}
+      {isSlotsModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            
+            {/* Cabecera del Popup */}
+            <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-[#242424]">Explorador de Data Slots Activos</span>
+                <span className="text-[10px] text-[#616161]">Seleccione el set de datos o archivo indexado que desea proyectar en la matriz</span>
+              </div>
+              <button 
+                onClick={() => setIsSlotsModalOpen(false)}
+                className="text-[#616161] hover:text-[#242424] text-xs font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Contenedor del componente anterior */}
+            <div className="flex-1 overflow-y-auto p-4 bg-[#FAFAFA]">
+              {/* Modificamos el comportamiento interno interceptando la acción de inspección mediante prop inyectada si lo deseas, 
+                  o simplemente redefiniendo el comportamiento del botón interno mediante una función puente */}
+              <div onClick={(e) => {
+                // Interceptamos clics en los botones "Examinar Data" del FileSlotsManager de forma limpia
+                if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Examinar')) {
+                  // Prevenimos que continúe si es necesario, pero dado que el componente anterior guarda el scope, 
+                  // la mejor práctica arquitectónica es añadir la propiedad de callback directamente si modificas la UI, 
+                  // o capturar el estado activo. Para no alterar en absoluto nada más, puedes usar este wrapper.
+                }
+              }}>
+                <FileSlotsManager onSelectSlot={handleSelectSlotData} />
+              </div>
+            </div>
+
+            {/* Cierre del Popup */}
+            <div className="p-3 border-t border-[#E0E0E0] flex justify-end bg-white">
+              <button
+                type="button"
+                onClick={() => setIsSlotsModalOpen(false)}
+                className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm transition-all"
+              >
+                Cerrar Explorador
+              </button>
+            </div>
 
           </div>
         </div>

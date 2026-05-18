@@ -200,17 +200,29 @@ const TeamsForm = () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
-      const { error } = await supabaseGoogle.from('client_submissions').insert([{
-        ...formData, user_id: user?.id,
+      
+      // Creamos la estructura unificada del payload para mantener la misma información
+      const payload = {
+        ...formData,
+        user_id: user?.id,
         data_slot_1: jsonSlots[0] || null, 
         data_slot_2: jsonSlots[1] || null,
         data_slot_3: jsonSlots[2] || null, 
         data_slot_4: jsonSlots[3] || null,
         data_slot_5: jsonSlots[4] || null, 
         data_slot_6: jsonSlots[5] || null,
+        data_slot_8: jsonSlots[7] || null, // Se añade explícitamente data_slot_8 mapeado
         created_at: new Date().toISOString()
-      }]);
-      if (error) throw error;
+      };
+
+      // Ejecución paralela y simultánea en ambas bases de datos independientes
+      const [resSubmissions, resOriginal] = await Promise.all([
+        supabaseGoogle.from('client_submissions').insert([payload]),
+        supabaseGoogle.from('client_original').insert([payload])
+      ]);
+
+      if (resSubmissions.error) throw resSubmissions.error;
+      if (resOriginal.error) throw resOriginal.error;
       
       showTeamsToast("Information successfully uploaded to the system. Redirecting...");
     } catch (err) { 
@@ -516,7 +528,7 @@ const TeamsForm = () => {
                 disabled={isSignOutSubmitting}
               >
                 {/* Close X SVG */}
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>

@@ -183,7 +183,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
 
   if (error) {
     return (
-      <div className="p-4 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans font-medium mx-auto w-full max-w-7xl break-words">
+      <div className="p-4 bg-[#464775] border border-[#8889c5] text-white rounded-sm text-xs font-sans font-medium mx-auto w-full max-w-7xl break-words">
         <span className="font-bold">SVX Protocol Error:</span> {error}
       </div>
     );
@@ -294,7 +294,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
                       className="px-2.5 py-1.5 bg-white hover:bg-[#FDE7E9] text-[#A80007] border border-[#F3B0B4] text-[10px] font-medium rounded-sm transition-all cursor-pointer whitespace-nowrap"
                       title="Vaciar memoria de la columna"
                     >
-                      Purgar
+                      Eliminar
                     </button>
 
                     {/* Botón de Inyección a la matriz principal */}

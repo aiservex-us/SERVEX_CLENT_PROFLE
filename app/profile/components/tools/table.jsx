@@ -350,7 +350,7 @@ export default function ClientSubmissionsMatrix() {
                 disabled={isEditing || isDeleteMode}
                 className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1.5"
               >
-                <span>📂</span> Data Disponible
+                Todos tus Catalogos
               </button>
 
               {/* Input de Búsqueda */}

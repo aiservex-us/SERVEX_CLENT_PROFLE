@@ -3,81 +3,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient'; 
 
-// === IMPORTACIÓN DEL COMPONENTE ANTERIOR (Ajusta la ruta según tu proyecto) ===
+// === IMPORTACIONES DE COMPONENTES MODULARES ===
 import FileSlotsManager from './FileSlotsManager'; 
-
-// === NUEVO COMPONENTE SUB-MODULAR PARA EL CONTROL DE ORÍGENES DE DB ===
-function DatabaseSourceSwitcher({ selectedId, activeSubmission, onSourceDataFetched, disabled }) {
-  const [activeSource, setActiveSource] = useState('submissions'); // 'submissions' o 'original'
-  const [loading, setLoading] = useState(false);
-
-  // Al cambiar de cliente en el dropdown principal, reseteamos visualmente a la tabla por defecto
-  useEffect(() => {
-    setActiveSource('submissions');
-  }, [selectedId]);
-
-  const handleToggleSource = async (targetSource) => {
-    if (disabled || loading || targetSource === activeSource || !selectedId) return;
-
-    try {
-      setLoading(true);
-      const targetTable = targetSource === 'submissions' ? 'client_submissions' : 'client_original';
-      
-      const { data, error: sbError } = await supabase
-        .from(targetTable)
-        .select('*')
-        .eq('id', selectedId)
-        .single();
-
-      if (sbError) throw sbError;
-
-      setActiveSource(targetSource);
-      if (onSourceDataFetched) {
-        onSourceDataFetched(data);
-      }
-    } catch (err) {
-      console.error(`❌ Error al conmutar a la tabla public.${targetSource}:`, err);
-      alert(`No se pudieron recuperar los registros desde la base de datos original: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="flex items-center bg-[#F3F2F1] border border-[#D2D2D2] rounded-sm p-0.5 select-none gap-0.5">
-      <button
-        type="button"
-        disabled={disabled || loading}
-        onClick={() => handleToggleSource('submissions')}
-        className={`text-[10px] font-bold px-2 py-0.5 rounded-xs transition-all flex items-center gap-1 ${
-          activeSource === 'submissions'
-            ? 'bg-[#5B5FC7] text-white'
-            : 'text-[#616161] hover:text-[#242424] hover:bg-white/50'
-        }`}
-      >
-        {loading && activeSource === 'submissions' && (
-          <div className="w-2 h-2 border border-white border-t-transparent rounded-full animate-spin"></div>
-        )}
-        DB Prod
-      </button>
-      <button
-        type="button"
-        disabled={disabled || loading}
-        onClick={() => handleToggleSource('original')}
-        className={`text-[10px] font-bold px-2 py-0.5 rounded-xs transition-all flex items-center gap-1 ${
-          activeSource === 'original'
-            ? 'bg-[#107C41] text-white'
-            : 'text-[#616161] hover:text-[#242424] hover:bg-white/50'
-        }`}
-      >
-        {loading && activeSource === 'original' && (
-          <div className="w-2 h-2 border border-white border-t-transparent rounded-full animate-spin"></div>
-        )}
-        DB Original
-      </button>
-    </div>
-  );
-}
+import DatabaseSourceSwitcher from './DatabaseSourceSwitcher'; // Componente corregido con .maybeSingle()
 
 export default function ClientSubmissionsMatrix() {
   const [submissions, setSubmissions] = useState([]);
@@ -86,6 +14,7 @@ export default function ClientSubmissionsMatrix() {
   const [error, setError] = useState(null);
   const [activeSubmission, setActiveSubmission] = useState(null);
   const [fetchingSlots, setFetchingSlots] = useState(false);
+  const [currentSource, setCurrentSource] = useState('submissions'); // Rastrea el origen activo
   
   // Estado para el término de búsqueda (Filtro Global / SKU)
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,7 +65,7 @@ export default function ClientSubmissionsMatrix() {
     getSubmissionsList();
   }, []);
 
-  // 2. Traer el registro completo al cambiar la selección
+  // 2. Traer el registro completo al cambiar la selección (Por defecto apunta a submissions)
   useEffect(() => {
     if (!selectedId) return;
 
@@ -144,10 +73,12 @@ export default function ClientSubmissionsMatrix() {
       try {
         setFetchingSlots(true);
         setSearchTerm(''); 
-        setIsEditing(false); // Apaga el modo edición al cambiar de cliente
-        setIsDeleteMode(false); // Apaga el modo eliminación al cambiar de cliente
-        setCurrentPage(1); // Reinicia a la primera página al cambiar de cliente
-        setSelectedRowIndexes([]); // Limpia la selección
+        setIsEditing(false); 
+        setIsDeleteMode(false); 
+        setCurrentPage(1); 
+        setSelectedRowIndexes([]); 
+        setCurrentSource('submissions'); // Reseteamos el tracking a prod por defecto
+
         const { data, error: sbError } = await supabase
           .from('client_submissions')
           .select('*')
@@ -168,7 +99,7 @@ export default function ClientSubmissionsMatrix() {
           data.data_slot_8,
         ];
         const flatRows = targetSlots.filter((slot) => slot && Array.isArray(slot)).flat();
-        setLocalRows(JSON.parse(JSON.stringify(flatRows))); // Clonación profunda limpia
+        setLocalRows(JSON.parse(JSON.stringify(flatRows))); 
 
       } catch (err) {
         console.error('❌ Error al recuperar slots estructurados:', err);
@@ -194,7 +125,7 @@ export default function ClientSubmissionsMatrix() {
       activeSubmission.data_slot_4,
       activeSubmission.data_slot_5,
       activeSubmission.data_slot_6,
-      activeSubmission.data_slot_7, // Incluida de forma segura por si se renderiza client_original
+      activeSubmission.data_slot_7, // Incluida para soportar esquemas de client_original
       activeSubmission.data_slot_8,
     ];
     const firstSlotWithData = targetSlots.find(slot => slot && Array.isArray(slot) && slot.length > 0);
@@ -215,7 +146,6 @@ export default function ClientSubmissionsMatrix() {
 
   // 5. Filtrado Inteligente aplicado sobre las filas locales mutables
   const filteredRowsWithIndex = useMemo(() => {
-    // Mapeamos las filas locales con su índice de origen para no perder la referencia real al editar filtrado
     const indexedRows = localRows.map((row, index) => ({ row, originalIndex: index }));
     
     if (!searchTerm.trim()) return indexedRows;
@@ -229,7 +159,7 @@ export default function ClientSubmissionsMatrix() {
     });
   }, [localRows, searchTerm]);
 
-  // segmentación de datos por paginación (de a 11 productos)
+  // segmentación de datos por paginación
   const paginatedRows = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -238,13 +168,16 @@ export default function ClientSubmissionsMatrix() {
 
   const totalPages = Math.ceil(filteredRowsWithIndex.length / itemsPerPage) || 1;
 
-  // 6. Guardar cambios en Supabase reestructurando de vuelta a data_slots
+  // 6. Guardar cambios en Supabase reestructurando de vuelta a la tabla correspondiente
   const handleSaveChanges = async (rowsToSave = localRows) => {
     try {
       setIsSaving(true);
+      
+      // Determinamos dinámicamente la tabla activa para persistir la mutación de celdas
+      const targetTable = currentSource === 'submissions' ? 'client_submissions' : 'client_original';
 
       const { error: updateError } = await supabase
-        .from('client_submissions')
+        .from(targetTable)
         .update({
           data_slot_1: rowsToSave, 
           data_slot_2: null,       
@@ -252,6 +185,7 @@ export default function ClientSubmissionsMatrix() {
           data_slot_4: null,
           data_slot_5: null,
           data_slot_6: null,
+          data_slot_7: null,
           data_slot_8: null,
         })
         .eq('id', selectedId);
@@ -259,16 +193,16 @@ export default function ClientSubmissionsMatrix() {
       if (updateError) throw updateError;
 
       const { data: freshData } = await supabase
-        .from('client_submissions')
+        .from(targetTable)
         .select('*')
         .eq('id', selectedId)
-        .single();
+        .maybeSingle();
       
       setActiveSubmission(freshData);
       setIsEditing(false);
-      setIsDeleteMode(false); // Apaga el modo eliminar tras guardar con éxito
+      setIsDeleteMode(false); 
       setSelectedRowIndexes([]); 
-      alert('💾 Cambios persistidos con éxito en Supabase.');
+      alert(`💾 Cambios persistidos con éxito en la tabla: public.${targetTable}`);
     } catch (err) {
       console.error('❌ Error guardando la matriz:', err);
       alert(`No se pudieron guardar los cambios: ${err.message}`);
@@ -286,6 +220,7 @@ export default function ClientSubmissionsMatrix() {
         activeSubmission.data_slot_4,
         activeSubmission.data_slot_5,
         activeSubmission.data_slot_6,
+        activeSubmission.data_slot_7,
         activeSubmission.data_slot_8,
       ];
       const flatRows = targetSlots.filter((slot) => slot && Array.isArray(slot)).flat();
@@ -339,7 +274,6 @@ export default function ClientSubmissionsMatrix() {
 
   const handleDeleteSelected = async () => {
     if (selectedRowIndexes.length === 0) {
-      // Si el usuario sale del modo eliminar sin seleccionar nada
       setIsDeleteMode(false);
       return;
     }
@@ -366,10 +300,8 @@ export default function ClientSubmissionsMatrix() {
     return paginatedRows.map(p => p.originalIndex).every(idx => selectedRowIndexes.includes(idx));
   }, [paginatedRows, selectedRowIndexes]);
 
-  // === NUEVA FUNCIÓN INTERCEPTORA PARA CARGAR EL DATA SLOT SELECCIONADO EN LA TABLA ===
   const handleSelectSlotData = (slotContent) => {
     if (slotContent && (Array.isArray(slotContent) || typeof slotContent === 'object')) {
-      // Si el slot contiene la metadata del archivo original junto con las filas de productos:
       const targetRows = Array.isArray(slotContent) ? slotContent : (slotContent.rows || []);
       setLocalRows(JSON.parse(JSON.stringify(targetRows)));
       setCurrentPage(1);
@@ -379,20 +311,22 @@ export default function ClientSubmissionsMatrix() {
     }
   };
 
-  // Callback ejecutado por el Switcher modular al cambiar la fuente de datos (DB)
-  const handleSourceDataFetched = (freshRecordFromDb) => {
-    if (!freshRecordFromDb) return;
-    setActiveSubmission(freshRecordFromDb);
+  // === INTERCEPTOR ACTUALIZADO PARA EL COMPONENTE EXTERNO SWITCHER ===
+  const handleSourceDataFetched = ({ source, rawRecord }) => {
+    if (!rawRecord) return;
+    
+    setActiveSubmission(rawRecord);
+    setCurrentSource(source); // Almacenamos el origen actual ('submissions' o 'original')
 
     const targetSlots = [
-      freshRecordFromDb.data_slot_1,
-      freshRecordFromDb.data_slot_2,
-      freshRecordFromDb.data_slot_3,
-      freshRecordFromDb.data_slot_4,
-      freshRecordFromDb.data_slot_5,
-      freshRecordFromDb.data_slot_6,
-      freshRecordFromDb.data_slot_7, // Mapeo dinámico y preventivo para la tabla original
-      freshRecordFromDb.data_slot_8,
+      rawRecord.data_slot_1,
+      rawRecord.data_slot_2,
+      rawRecord.data_slot_3,
+      rawRecord.data_slot_4,
+      rawRecord.data_slot_5,
+      rawRecord.data_slot_6,
+      rawRecord.data_slot_7, // Soporta mapeo dinámico completo de la tabla original
+      rawRecord.data_slot_8,
     ];
     const flatRows = targetSlots.filter((slot) => slot && Array.isArray(slot)).flat();
     setLocalRows(JSON.parse(JSON.stringify(flatRows)));
@@ -423,7 +357,7 @@ export default function ClientSubmissionsMatrix() {
     <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
         
-        {/* Matriz Principal con el Header Integrado */}
+        {/* Matriz Principal */}
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
           {/* Header Compacto de la Tabla */}
@@ -431,14 +365,13 @@ export default function ClientSubmissionsMatrix() {
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#242424]">Estructura de Datos Analizada</span>
               <span className="text-[10px] text-[#616161]">
-                {fetchingSlots ? 'Actualizando...' : isEditing ? 'Modificando JSON localmente' : isDeleteMode ? 'Selección de registros para depuración masiva' : 'Visualización matricial de slots JSONB'}
+                {fetchingSlots ? 'Actualizando...' : isEditing ? 'Modificando JSON localmente' : isDeleteMode ? 'Selección de registros para depuración masiva' : `Visualización matricial de slots JSONB [Origen: ${currentSource.toUpperCase()}]`}
               </span>
             </div>
 
-            {/* Controles alineados a la derecha del Header */}
+            {/* Controles del Header */}
             <div className="flex flex-wrap items-center gap-2">
               
-              {/* === BOTÓN ASIGNADO PARA DESPLEGAR EL POPUP DE DATA DISPONIBLE === */}
               <button
                 type="button"
                 onClick={() => setIsSlotsModalOpen(true)}
@@ -448,10 +381,9 @@ export default function ClientSubmissionsMatrix() {
                 Todos tus Catalogos
               </button>
 
-              {/* === NUEVA FUNCIÓN/SWITCHER IMPORTADA AL LADO DE 'TODOS TUS CATALOGOS' === */}
+              {/* === COMPONENTE IMPORTADO E INYECTADO CORECTAMENTE === */}
               <DatabaseSourceSwitcher 
                 selectedId={selectedId}
-                activeSubmission={activeSubmission}
                 disabled={isEditing || isDeleteMode}
                 onSourceDataFetched={handleSourceDataFetched}
               />
@@ -483,7 +415,6 @@ export default function ClientSubmissionsMatrix() {
 
               {/* Botones de Acción */}
               <div className="flex gap-1 border-l border-slate-300 pl-1">
-                {/* FLUJO 1: MODO INACTIVO (Estado estándar de lectura) */}
                 {!isEditing && !isDeleteMode && (
                   <>
                     <button
@@ -509,7 +440,6 @@ export default function ClientSubmissionsMatrix() {
                   </>
                 )}
 
-                {/* FLUJO 2: MODO ELIMINACIÓN ACTIVO */}
                 {isDeleteMode && (
                   <>
                     <button
@@ -529,7 +459,6 @@ export default function ClientSubmissionsMatrix() {
                   </>
                 )}
 
-                {/* FLUJO 3: MODO EDICIÓN EN LÍNEA ACTIVO */}
                 {isEditing && (
                   <>
                     <button
@@ -562,7 +491,6 @@ export default function ClientSubmissionsMatrix() {
               <table className="table-fixed border-collapse text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    {/* Columna Checkbox: SOLO VISIBLE SI ISDELETEMODE ES TRUE */}
                     {isDeleteMode && (
                       <th className="w-9 px-2 py-2 text-center bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-40 border-r border-b border-[#E0E0E0] select-none">
                         <input
@@ -574,11 +502,9 @@ export default function ClientSubmissionsMatrix() {
                       </th>
                     )}
                     
-                    {/* Indicador de ID (#) */}
                     <th className={`w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky z-30 border-r border-b border-[#E0E0E0] select-none ${isDeleteMode ? 'left-9' : 'left-0'}`}>
                       #
                     </th>
-                    {/* Headers de la Tabla */}
                     {headers.map((header) => (
                       <th
                         key={header}
@@ -599,7 +525,6 @@ export default function ClientSubmissionsMatrix() {
                         className={`transition-colors duration-75 group ${isRowSelected ? 'bg-[#EBF3FC] hover:bg-[#E2EEFA]' : 'hover:bg-[#F7F5FA]'}`}
                       >
                         
-                        {/* Celda Checkbox Opcional */}
                         {isDeleteMode && (
                           <td className={`px-2 py-1.5 text-center border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
                             <input
@@ -611,7 +536,6 @@ export default function ClientSubmissionsMatrix() {
                           </td>
                         )}
 
-                        {/* Celda del indicador ID */}
                         <td className={`px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky z-10 select-none border-b border-[#F0F0F0] transition-colors ${isDeleteMode ? 'left-9' : 'left-0'} ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
                           {originalIndex + 1}
                         </td>
@@ -621,7 +545,7 @@ export default function ClientSubmissionsMatrix() {
                           return (
                             <td
                               key={header}
-                              className={`p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[250px] transition-all`}
+                              className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[250px] transition-all"
                             >
                               {isEditing ? (
                                 <input
@@ -653,7 +577,7 @@ export default function ClientSubmissionsMatrix() {
             </div>
           )}
 
-          {/* Footer con Paginación Integrada */}
+          {/* Footer de Paginación */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
               <span>COLS: {headers.length}</span>
@@ -663,12 +587,11 @@ export default function ClientSubmissionsMatrix() {
               )}
             </div>
             
-            {/* Controles de Navegación de Página */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40"
               >
                 Anterior
               </button>
@@ -678,7 +601,7 @@ export default function ClientSubmissionsMatrix() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40"
               >
                 Siguiente
               </button>
@@ -688,110 +611,61 @@ export default function ClientSubmissionsMatrix() {
 
       </div>
 
-      {/* MODAL RESPONSIVO PARA CREACIÓN DE PRODUCTOS DINÁMICOS */}
+      {/* MODAL PARA CREACIÓN DE PRODUCTOS */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
-            
-            {/* Cabecera del Formulario */}
             <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-[#242424]">Añadir Nuevo Registro Estructurado</span>
                 <span className="text-[10px] text-[#616161]">Complete los atributos en base al esquema JSON original</span>
               </div>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="text-[#616161] hover:text-[#242424] text-xs font-bold p-1"
-              >
-                ✕
-              </button>
+              <button onClick={() => setIsModalOpen(false)} className="text-[#616161] hover:text-[#242424] text-xs font-bold p-1">✕</button>
             </div>
 
-            {/* Formulario Dinámico Grid */}
-            <form onSubmit={handleAddProductSubmit} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
+            <form onSubmit={handleAddProductSubmit} className="flex-1 overflow-y-auto p-4 space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {headers.map((header) => (
                   <div key={header} className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-[#616161] truncate font-sans" title={header}>
-                      {header}
-                    </label>
+                    <label className="text-[10px] font-bold text-[#616161] truncate font-sans">{header}</label>
                     <input
                       type="text"
                       value={newProduct[header] || ''}
                       onChange={(e) => handleFormInputChange(header, e.target.value)}
-                      className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-1 text-[11px] text-[#242424] placeholder-[#A19F9D] focus:border-[#5B5FC7] outline-none transition-all font-mono"
-                      placeholder={`Ingresar ${header.toLowerCase()}`}
+                      className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-1 text-[11px] text-[#242424] focus:border-[#5B5FC7] outline-none font-mono"
                     />
                   </div>
                 ))}
               </div>
 
-              {/* Botones de Envío del Modal */}
               <div className="pt-4 border-t border-[#E0E0E0] flex justify-end gap-2 sticky bottom-0 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm transition-all"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-4 py-1 rounded-sm transition-all shadow-sm"
-                >
-                  Insertar y Sincronizar
-                </button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="bg-white border border-[#A19F9D] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm">Cancelar</button>
+                <button type="submit" className="bg-[#107C41] text-white text-[11px] font-medium px-4 py-1 rounded-sm">Insertar y Sincronizar</button>
               </div>
             </form>
-
           </div>
         </div>
       )}
 
-      {/* === NUEVO POPUP / MODAL PARA MOSTRAR LOS DATOS Y DATA SLOTS DISPONIBLES === */}
+      {/* POPUP DE CATALOGOS ACTIVOS */}
       {isSlotsModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
-            
-            {/* Cabecera del Popup */}
             <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-[#242424]">Explorador de Data Slots Activos</span>
                 <span className="text-[10px] text-[#616161]">Seleccione el set de datos o archivo indexado que desea proyectar en la matriz</span>
               </div>
-              <button 
-                onClick={() => setIsSlotsModalOpen(false)}
-                className="text-[#616161] hover:text-[#242424] text-xs font-bold p-1"
-              >
-                ✕
-              </button>
+              <button onClick={() => setIsSlotsModalOpen(false)} className="text-[#616161] hover:text-[#242424] text-xs font-bold p-1">✕</button>
             </div>
 
-            {/* Contenedor del componente anterior */}
             <div className="flex-1 overflow-y-auto p-4 bg-[#FAFAFA]">
-              {/* Modificamos el comportamiento interno interceptando la acción de inspección mediante prop inyectada si lo deseas, 
-                  o simplemente redefiniendo el comportamiento del botón interno mediante una función puente */}
-              <div onClick={(e) => {
-                // Interceptamos clics en los botones "Examinar Data" del FileSlotsManager de forma limpia
-                if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Examinar')) {
-                  // Prevenir
-                }
-              }}>
-                <FileSlotsManager onSelectSlot={handleSelectSlotData} />
-              </div>
+              <FileSlotsManager onSelectSlot={handleSelectSlotData} />
             </div>
 
-            {/* Cierre del Popup */}
             <div className="p-3 border-t border-[#E0E0E0] flex justify-end bg-white">
-              <button
-                type="button"
-                onClick={() => setIsSlotsModalOpen(false)}
-                className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm transition-all"
-              >
-                Cerrar Explorador
-              </button>
+              <button type="button" onClick={() => setIsSlotsModalOpen(false)} className="bg-white border border-[#A19F9D] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm">Cerrar Explorador</button>
             </div>
-
           </div>
         </div>
       )}

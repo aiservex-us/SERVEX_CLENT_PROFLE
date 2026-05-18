@@ -110,9 +110,7 @@ const TeamsForm = () => {
   useEffect(() => {
     const checkExistingData = async () => {
       try {
-        const { data: { user }, error: authError } = await supabaseGoogle.auth.getUser();
-        if (authError) throw authError;
-
+        const { data: { user } } = await supabaseGoogle.auth.getUser();
         if (user) {
           const { data, error } = await supabaseGoogle
             .from('client_submissions')
@@ -201,19 +199,12 @@ const TeamsForm = () => {
     }
     setLoading(true);
     try {
-      const { data: { user }, error: authError } = await supabaseGoogle.auth.getUser();
-      if (authError) throw authError;
+      const { data: { user } } = await supabaseGoogle.auth.getUser();
       
-      if (!user) {
-        showTeamsToast("Authentication context loss. Please log in again.", "error");
-        setLoading(false);
-        return;
-      }
-
       // Creamos la estructura unificada del payload para mantener la misma información
       const payload = {
         ...formData,
-        user_id: user.id,
+        user_id: user?.id,
         data_slot_1: jsonSlots[0] || null, 
         data_slot_2: jsonSlots[1] || null,
         data_slot_3: jsonSlots[2] || null, 
@@ -235,16 +226,7 @@ const TeamsForm = () => {
       
       showTeamsToast("Information successfully uploaded to the system. Redirecting...");
     } catch (err) { 
-      // Desglose extendido para capturar el error exacto de base de datos en la consola
-      console.error("====== PIPELINE INSERT ERROR ======");
-      if (err.code) console.error("PostgreSQL Error Code:", err.code);
-      if (err.message) console.error("Error Message:", err.message);
-      if (err.details) console.error("Error Details:", err.details);
-      if (err.hint) console.error("Database Hint:", err.hint);
-      console.error("Full error object:", err);
-      console.error("===================================");
-
-      showTeamsToast(`Connection error: ${err.message || "Verification pipeline could not be established."}`, "error"); 
+      showTeamsToast("Connection error. Verification pipeline could not be established.", "error"); 
     }
     finally { setLoading(false); }
   };

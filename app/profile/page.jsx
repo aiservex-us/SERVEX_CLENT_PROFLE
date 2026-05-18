@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient'; 
 import { X, AlertCircle } from 'lucide-react';
-import Cataloge from './components/tools/table'
+import Cataloge_edit from './components/tools/table_edit'
+import Cataloge_master from './components/tools/table_origin'
 import MenuLateral from './components/menuLateral';
 import Profile from './components/tools/profile'
 import Present from './components/tools/precentarion'
 import AI_Chat from './components/tools/Ai_Chat'
+
+
 export default function MenuInicial() {
   // Inicializado en 'Presentation' por defecto
   const [active, setActive] = useState('Presentation');
@@ -61,9 +64,11 @@ export default function MenuInicial() {
   const renderContent = () => {
     switch (active) {
       case 'Profile': return <Profile />;
-      case 'Cataloge': return <Cataloge />;
+      case 'Cataloge': return <Cataloge_edit />;
+      case 'Cataloge2': return <Cataloge_master />;
       case 'Presentation': return <Present />;
       case 'AI_Chat': return <AI_Chat />;
+
       default:
         return <div className="p-6 text-gray-500">View under construction.</div>;
     }

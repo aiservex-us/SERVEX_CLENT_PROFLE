@@ -1,5 +1,5 @@
 'use client';
-import Table from './table'
+import Table from './table_edit'
 import React, { useState, useEffect } from 'react';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
 import LogoutButton from './LogoutButton';

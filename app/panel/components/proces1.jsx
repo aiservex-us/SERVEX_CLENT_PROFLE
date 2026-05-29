@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
@@ -202,7 +201,7 @@ const TeamsForm = () => {
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
       
-      // Creamos la estructura unificada del payload asegurando un mapeo secuencial y limpio de los índices del array
+      // Creamos la estructura unificada del payload para mantener la misma información
       const payload = {
         ...formData,
         user_id: user?.id,
@@ -212,7 +211,7 @@ const TeamsForm = () => {
         data_slot_4: jsonSlots[3] || null,
         data_slot_5: jsonSlots[4] || null, 
         data_slot_6: jsonSlots[5] || null,
-        data_slot_8: jsonSlots[6] || null, // Se corrige el mapeo secuencial dinámico del séptimo elemento al slot 8 físico
+        data_slot_8: jsonSlots[7] || null, // Se añade explícitamente data_slot_8 mapeado
         created_at: new Date().toISOString()
       };
 
@@ -598,4 +597,3 @@ const TeamsForm = () => {
 };
 
 export default TeamsForm;
-

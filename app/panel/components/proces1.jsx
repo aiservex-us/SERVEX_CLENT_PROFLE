@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
 import * as XLSX from 'xlsx';
 
-// Interactive subcomponent for each File Slot (Fluent / Teams Style)
+// Interactive subcomponent for
 const FileSlot = ({ index, fileName, onFileSelect, onFileRemove }) => {
   const [isDragActive, setIsDragActive] = useState(false);
 

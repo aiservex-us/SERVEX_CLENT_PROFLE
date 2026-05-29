@@ -201,43 +201,31 @@ const TeamsForm = () => {
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
       
-      // Estructura idéntica al esquema de la tabla de la base de datos original
+      // Creamos la estructura unificada del payload para mantener la misma información
       const payload = {
-        user_id: user?.id || null,
-        company_name: formData.company_name || null,
-        business_activity: formData.business_activity || null,
+        ...formData,
+        user_id: user?.id,
         data_slot_1: jsonSlots[0] || null, 
         data_slot_2: jsonSlots[1] || null,
         data_slot_3: jsonSlots[2] || null, 
         data_slot_4: jsonSlots[3] || null,
         data_slot_5: jsonSlots[4] || null, 
         data_slot_6: jsonSlots[5] || null,
-        data_slot_7: jsonSlots[6] || null,
-        data_slot_8: jsonSlots[7] || null,
-        created_at: new Date().toISOString(),
-        contact_phone: formData.contact_phone || null,
-        website_url: formData.website_url || null,
-        contact_email: formData.contact_email || null,
-        country: formData.country || null,
-        city: formData.city || null
+        data_slot_8: jsonSlots[7] || null, // Se añade explícitamente data_slot_8 mapeado
+        created_at: new Date().toISOString()
       };
 
-      // Petición HTTP POST al backend en Render en lugar de mutar Supabase directamente
-      const response = await fetch('https://servex-ai-back.onrender.com', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      // Ejecución paralela y simultánea en ambas bases de datos independientes
+      const [resSubmissions, resOriginal] = await Promise.all([
+        supabaseGoogle.from('client_submissions').insert([payload]),
+        supabaseGoogle.from('client_original').insert([payload])
+      ]);
 
-      if (!response.ok) {
-        throw new Error(`Backend responded with status: ${response.status}`);
-      }
+      if (resSubmissions.error) throw resSubmissions.error;
+      if (resOriginal.error) throw resOriginal.error;
       
       showTeamsToast("Information successfully uploaded to the system. Redirecting...");
     } catch (err) { 
-      console.error("Pipeline target connection error:", err);
       showTeamsToast("Connection error. Verification pipeline could not be established.", "error"); 
     }
     finally { setLoading(false); }

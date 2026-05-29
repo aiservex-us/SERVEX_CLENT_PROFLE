@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -36,6 +37,68 @@ export default function ClientSubmissionsMatrix() {
 
   // === NUEVO ESTADO PARA EL POPUP DE DATA DISPONIBLE ===
   const [isSlotsModalOpen, setIsSlotsModalOpen] = useState(false);
+
+  // ==========================================
+  // LÓGICA DE EXPORTACIÓN A CSV (REQUERIDA)
+  // ==========================================
+  const exportToCSV = () => {
+    if (!localRows || localRows.length === 0) {
+      alert('No hay datos disponibles en la matriz para exportar.');
+      return;
+    }
+
+    // Cabeceras exactas basadas en la estructura y orden del archivo original
+    const CSV_HEADERS = [
+      'ID', 'Price Guide Sequence', 'Product Line', 'Product Name', 
+      'Price (Non UPH Products)', 'Price Grade 02', 'Price Grade 03', 'Price Grade 04', 
+      'Price Grade 05', 'Price Grade 06', 'Price Grade 07', 'Price Grade 08', 
+      'Price Grade 09', 'Price Grade 10', 'Price Grade 11', 'Price Grade 12', 
+      'Price Grade 13', 'Price Optional Armpad or Armcap - Polyurethane', 
+      'Price Optional Armcap - Polyurethane', 'Price Optional ArmPAD - Polyurethane', 
+      'Price Optional Armpad or Armcap - Solid Surface', 'Price Optional Armcap - Solid Surface', 
+      'Price Optional ArmPAD - Solid Surface', 'Price Optional Casters', 
+      'Price Optional Swivel Tablet', 'Price Optional Chrome Finish', 
+      'Price Optional Ganging Brackets', 'Price Optional Power Unit', 
+      'Price Optional Bevel Edge', 'Price Optional Shelf', 'Country of Origin'
+    ];
+
+    const csvRows = [];
+    
+    // Insertar cabecera original delimitada por punto y coma
+    csvRows.push(CSV_HEADERS.join(';'));
+
+    // Insertar las filas mapeando de forma limpia cada propiedad de localRows
+    localRows.forEach(row => {
+      const values = CSV_HEADERS.map(header => {
+        const val = row[header] !== undefined && row[header] !== null ? row[header] : '';
+        const escaped = ('' + val).replace(/"/g, '""');
+        // Si tiene caracteres de escape o delimitadores, envolver en comillas dobles
+        return /[";\n\r]/.test(escaped) ? `"${escaped}"` : escaped;
+      });
+      csvRows.push(values.join(';'));
+    });
+
+    const csvContent = csvRows.join('\r\n');
+
+    // Inyectar BOM para forzar lectura UTF-8 exacta en aplicaciones como Excel sin romper caracteres
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // Nombre aleatorio estructurado según los parámetros requeridos
+    const randomNumber = Math.floor(100000 + Math.random() * 900000);
+    const fileName = `LESRO_PRICING_${randomNumber}.csv`;
+
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', fileName);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   // 1. Cargar la lista inicial de envíos
   useEffect(() => {
@@ -82,6 +145,7 @@ export default function ClientSubmissionsMatrix() {
           .single();
 
         if (sbError) throw sbError;
+        activeSubmission; // (Mantenido intacto por compatibilidad sintáctica)
         setActiveSubmission(data);
 
         // Consolidar e inicializar las filas editables locales
@@ -382,6 +446,15 @@ export default function ClientSubmissionsMatrix() {
                 {/* FLOW 1: INACTIVE MODE (Standard read state) */}
                 {!isEditing && !isDeleteMode && (
                   <>
+                    {/* BOTÓN AGREGADO AL LADO DE LAS OPCIONES PARA DESCARGAR EL CSV */}
+                    <button
+                      type="button"
+                      onClick={exportToCSV}
+                      disabled={localRows.length === 0}
+                      className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1"
+                    >
+                      Descargar CSV
+                    </button>
                     <button
                       onClick={() => setIsDeleteMode(true)}
                       disabled={headers.length === 0}
@@ -697,3 +770,4 @@ export default function ClientSubmissionsMatrix() {
     </div>
   );
 }
+

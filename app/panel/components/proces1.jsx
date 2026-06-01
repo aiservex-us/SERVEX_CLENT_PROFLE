@@ -122,7 +122,6 @@ const TeamsForm = () => {
           
           if (data) {
             setHasData(true);
-            // Redirección directa e inmediata al perfil si ya hay datos en la DB
             router.push('/profile');
           } else {
             setHasData(false);
@@ -144,7 +143,6 @@ const TeamsForm = () => {
   const showTeamsToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     if (type === 'success') {
-      // Breve espera de 1.5s para que alcancen a ver la confirmación y directo a /profile
       setTimeout(() => {
         setHasData(true);
         setToast({ show: false, message: '', type: 'success' });
@@ -201,24 +199,34 @@ const TeamsForm = () => {
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
       
-      // Creamos la estructura unificada del payload para mantener la misma información
-      const payload = {
-        ...formData,
-        user_id: user?.id,
+      // Construimos una base limpia del registro asegurando que las columnas no mapeadas vayan como null
+      const baseRecord = {
+        company_name: formData.company_name || null,
+        business_activity: formData.business_activity || null,
+        contact_phone: formData.contact_phone || null,
+        website_url: formData.website_url || null,
+        contact_email: formData.contact_email || null,
+        country: formData.country || null,
+        city: formData.city || null,
+        user_id: user?.id || null,
         data_slot_1: jsonSlots[0] || null, 
         data_slot_2: jsonSlots[1] || null,
         data_slot_3: jsonSlots[2] || null, 
         data_slot_4: jsonSlots[3] || null,
         data_slot_5: jsonSlots[4] || null, 
         data_slot_6: jsonSlots[5] || null,
-        data_slot_8: jsonSlots[7] || null, // Se añade explícitamente data_slot_8 mapeado
+        data_slot_8: jsonSlots[7] || null,
         created_at: new Date().toISOString()
       };
 
-      // Ejecución paralela y simultánea en ambas bases de datos independientes
+      // Clonación profunda e independiente de la estructura para evitar colisiones de referencia en el pool de Promesas
+      const payloadSubmissions = JSON.parse(JSON.stringify(baseRecord));
+      const payloadOriginal = JSON.parse(JSON.stringify(baseRecord));
+
+      // Inserciones concurrentes con payloads completamente aislados
       const [resSubmissions, resOriginal] = await Promise.all([
-        supabaseGoogle.from('client_submissions').insert([payload]),
-        supabaseGoogle.from('client_original').insert([payload])
+        supabaseGoogle.from('client_submissions').insert([payloadSubmissions]),
+        supabaseGoogle.from('client_original').insert([payloadOriginal])
       ]);
 
       if (resSubmissions.error) throw resSubmissions.error;
@@ -226,9 +234,11 @@ const TeamsForm = () => {
       
       showTeamsToast("Information successfully uploaded to the system. Redirecting...");
     } catch (err) { 
+      console.error("Pipeline insert error details:", err);
       showTeamsToast("Connection error. Verification pipeline could not be established.", "error"); 
+    } finally { 
+      setLoading(false); 
     }
-    finally { setLoading(false); }
   };
 
   const handleLogout = async () => {
@@ -246,12 +256,10 @@ const TeamsForm = () => {
     }
   };
 
-  // Prevent flash effect while checking authentication and database records
   if (hasData === null) {
     return <div className="min-h-[80vh] md:h-[90vh] bg-[#FFF]" />;
   }
 
-  // Si se detecta que ya hay datos en la base de datos, no renderiza el formulario ni el contenedor principal
   if (hasData === true) {
     return null;
   }
@@ -259,7 +267,6 @@ const TeamsForm = () => {
   return (
     <div className="flex items-center justify-center bg-transparent font-sans antialiased p-2 sm:p-4 min-h-[80vh] md:h-[90vh]">
       
-      {/* Fluent / Microsoft Teams Style Toast Notification */}
       {toast.show && (
         <div className="fixed top-4 right-4 z-50 max-w-md w-full bg-white rounded-md border-b-2 border-[#107C41] shadow-[0_4px_16px_rgba(0,0,0,0.12)] p-3.5 flex items-start space-x-3 transition-all duration-300 transform translate-y-0 animate-fade-in border border-[#EDEBE9]">
           {toast.type === 'success' ? (
@@ -298,10 +305,8 @@ const TeamsForm = () => {
         
         <form onSubmit={handleSubmit} className="flex-1 p-4 sm:p-5 grid grid-cols-12 gap-5 overflow-y-auto md:overflow-hidden">
           
-          {/* General Data Column */}
           <div className="col-span-12 md:col-span-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[#EDEBE9] pb-5 md:pb-0 md:pr-5 md:py-1">
             <div>
-              {/* Svx Command Welcome Section */}
               <div className="mb-5 pb-4 border-b border-[#EDEBE9]">
                 <div className="flex items-center mb-2.5">
                   <img 
@@ -323,7 +328,6 @@ const TeamsForm = () => {
                 </div>
               </div>
 
-              {/* Section Header with Icon */}
               <div className="flex items-center space-x-2 mb-4">
                 <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -332,7 +336,6 @@ const TeamsForm = () => {
               </div>
 
               <div className="space-y-3.5">
-                {/* Main Block: Identity */}
                 <div className="flex flex-col relative group bg-[#F3F2F1] hover:bg-[#EDEBE9] p-2 rounded-md border border-[#E1E1E1] focus-within:ring-2 focus-within:ring-[#464775] focus-within:border-transparent focus-within:bg-[#FFFFFF] transition-all duration-200 shadow-sm">
                   <label className="text-[10px] font-bold text-[#616161] uppercase tracking-wider transition-colors group-focus-within:text-[#464775]">Company Name</label>
                   <div className="flex items-center justify-between mt-0.5">
@@ -349,9 +352,7 @@ const TeamsForm = () => {
                   </div>
                 </div>
 
-                {/* Functional grouping: Activity and Phone */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* Business Activity */}
                   <div className="flex flex-col relative group bg-[#F3F2F1] hover:bg-[#EDEBE9] p-2 rounded-md border border-[#E1E1E1] focus-within:ring-2 focus-within:ring-[#464775] focus-within:border-transparent focus-within:bg-[#FFFFFF] transition-all duration-200 shadow-sm">
                     <label className="text-[10px] font-bold text-[#616161] uppercase tracking-wider transition-colors group-focus-within:text-[#464775]">Business Activity</label>
                     <div className="flex items-center justify-between mt-0.5">
@@ -368,7 +369,6 @@ const TeamsForm = () => {
                     </div>
                   </div>
 
-                  {/* Phone */}
                   <div className="flex flex-col relative group bg-[#F3F2F1] hover:bg-[#EDEBE9] p-2 rounded-md border border-[#E1E1E1] focus-within:ring-2 focus-within:ring-[#464775] focus-within:border-transparent focus-within:bg-[#FFFFFF] transition-all duration-200 shadow-sm">
                     <label className="text-[10px] font-bold text-[#616161] uppercase tracking-wider transition-colors group-focus-within:text-[#464775]">Contact Phone</label>
                     <div className="flex items-center justify-between mt-0.5">
@@ -386,7 +386,6 @@ const TeamsForm = () => {
                   </div>
                 </div>
 
-                {/* Corporate Email */}
                 <div className="flex flex-col relative group bg-[#F3F2F1] hover:bg-[#EDEBE9] p-2 rounded-md border border-[#E1E1E1] focus-within:ring-2 focus-within:ring-[#464775] focus-within:border-transparent focus-within:bg-[#FFFFFF] transition-all duration-200 shadow-sm">
                   <label className="text-[10px] font-bold text-[#616161] uppercase tracking-wider transition-colors group-focus-within:text-[#464775]">Corporate Email Address</label>
                   <div className="flex items-center justify-between mt-0.5">
@@ -404,9 +403,7 @@ const TeamsForm = () => {
                   </div>
                 </div>
 
-                {/* Geographic Location */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* Country */}
                   <div className="flex flex-col relative group bg-[#F3F2F1] hover:bg-[#EDEBE9] p-2 rounded-md border border-[#E1E1E1] focus-within:ring-2 focus-within:ring-[#464775] focus-within:border-transparent focus-within:bg-[#FFFFFF] transition-all duration-200 shadow-sm">
                     <label className="text-[10px] font-bold text-[#616161] uppercase tracking-wider transition-colors group-focus-within:text-[#464775]">Country</label>
                     <div className="flex items-center justify-between mt-0.5">
@@ -423,7 +420,6 @@ const TeamsForm = () => {
                     </div>
                   </div>
 
-                  {/* City */}
                   <div className="flex flex-col relative group bg-[#F3F2F1] hover:bg-[#EDEBE9] p-2 rounded-md border border-[#E1E1E1] focus-within:ring-2 focus-within:ring-[#464775] focus-within:border-transparent focus-within:bg-[#FFFFFF] transition-all duration-200 shadow-sm">
                     <label className="text-[10px] font-bold text-[#616161] uppercase tracking-wider transition-colors group-focus-within:text-[#464775]">City</label>
                     <div className="flex items-center justify-between mt-0.5">
@@ -444,7 +440,6 @@ const TeamsForm = () => {
               </div>
             </div>
 
-            {/* Footer informational micro-copy */}
             <div className="text-[10px] text-[#8A8886] flex items-center space-x-1.5 mt-3">
               <svg className="w-3 h-3 text-[#464775] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -453,7 +448,6 @@ const TeamsForm = () => {
             </div>
           </div>
 
-          {/* Optimized Files Column (Dynamic with + Button) */}
           <div className="col-span-12 md:col-span-6 flex flex-col justify-between pt-1 md:pt-1 md:pl-2">
             <div>
               <h3 className="text-[#242424] text-xs font-semibold mb-2.5">Upload your catalog files here to manage within our ecosystem (Excel/CSV)</h3>
@@ -469,7 +463,6 @@ const TeamsForm = () => {
                 ))}
               </div>
 
-              {/* Interactive "+" button to add another file slot underneath */}
               {jsonSlots.length < 6 && (
                 <button
                   type="button"
@@ -493,7 +486,6 @@ const TeamsForm = () => {
                 {loading ? 'Saving...' : 'Upload Information'}
               </button>
               
-              {/* Updated Cancel Button triggers custom Fluent Sign Out Overlay */}
               <button 
                 type="button" 
                 onClick={() => setIsLogoutOpen(true)}
@@ -506,17 +498,11 @@ const TeamsForm = () => {
         </form>
       </div>
 
-      {/* Integrated Fluent Overlay Custom Modal */}
       {isLogoutOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/10 backdrop-blur-xs transition-opacity duration-200">
-          
-          {/* Modal Container */}
           <div className="w-full max-w-[340px] bg-white rounded-[6px] border border-[#E0E0E0] shadow-xl overflow-hidden font-sans antialiased animate-fade-in">
-            
-            {/* Modal Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-[#F5F5F5] border-b border-[#E0E0E0]">
               <div className="flex items-center space-x-1.5 text-[#464775]">
-                {/* Warning / Alert Triangle SVG */}
                 <svg className="w-3.5 h-3.5 text-[#E0A75E]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -527,14 +513,12 @@ const TeamsForm = () => {
                 className="text-[#616161] hover:text-[#242424] transition-colors focus:outline-none"
                 disabled={isSignOutSubmitting}
               >
-                {/* Close X SVG */}
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-4">
               <h4 className="text-[13px] font-bold text-[#242424] leading-tight">
                 Sign Out Corporate Session?
@@ -544,7 +528,6 @@ const TeamsForm = () => {
               </p>
             </div>
 
-            {/* Action Footer */}
             <div className="flex items-center justify-end space-x-2 px-4 py-3 bg-[#FAFAFA] border-t border-[#E0E0E0]">
               <button
                 type="button"
@@ -568,7 +551,6 @@ const TeamsForm = () => {
                 )}
               </button>
             </div>
-
           </div>
         </div>
       )}

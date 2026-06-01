@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
@@ -149,7 +150,6 @@ const TeamsForm = () => {
     }
   };
 
-  // Solución al Estado Obsoleto usando mutaciones funcionales prev
   const processFile = (file, index) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -188,6 +188,7 @@ const TeamsForm = () => {
     setFileNames((prev) => [...prev, '']);
   };
 
+  // NUEVO: Envío asíncrono y optimizado al pipeline de base de datos
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jsonSlots.some(s => s !== null)) {
@@ -198,7 +199,6 @@ const TeamsForm = () => {
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
       
-      // Mapeo dinámico y seguro según la cantidad de slots que use el usuario
       const payload = {
         ...formData,
         user_id: user?.id,
@@ -208,23 +208,20 @@ const TeamsForm = () => {
         data_slot_4: jsonSlots[3] || null,
         data_slot_5: jsonSlots[4] || null, 
         data_slot_6: jsonSlots[5] || null,
-        data_slot_8: jsonSlots[6] || null, // El séptimo slot visual mapea a data_slot_8 en tu DB
+        data_slot_8: jsonSlots[6] || null, 
         created_at: new Date().toISOString()
       };
 
-      // Ejecución e inspección de errores individuales para evitar caídas silenciosas
-      const [resSubmissions, resOriginal] = await Promise.all([
-        supabaseGoogle.from('client_submissions').insert([payload]),
-        supabaseGoogle.from('client_original').insert([payload])
-      ]);
+      // PROCESO ASÍNCRONO AUTOMATIZADO:
+      // Realizamos una sola inserción directa a la tabla raíz. El trigger en Supabase 
+      // se encargará de realizar la réplica asíncrona a client_original sin demorar la respuesta HTTP.
+      const { error: subError } = await supabaseGoogle
+        .from('client_submissions')
+        .insert([payload]);
 
-      if (resSubmissions.error) {
-        console.error("Error en client_submissions:", resSubmissions.error);
-        throw new Error(resSubmissions.error.message);
-      }
-      if (resOriginal.error) {
-        console.error("Error en client_original:", resOriginal.error);
-        throw new Error(resOriginal.error.message);
+      if (subError) {
+        console.error("Error en el pipeline de inserción (client_submissions):", subError);
+        throw new Error(subError.message);
       }
       
       showTeamsToast("Information successfully uploaded to the system. Redirecting...");
@@ -461,3 +458,4 @@ const TeamsForm = () => {
 };
 
 export default TeamsForm;
+

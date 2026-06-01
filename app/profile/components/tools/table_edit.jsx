@@ -13,6 +13,9 @@ export default function ClientSubmissionsMatrix() {
   const [fetchingSlots, setFetchingSlots] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // BUFFER ACTIVO SELECCIONADO
+  const [activeSlot, setActiveSlot] = useState('data_slot_1');
+
   // ESTADOS DE EDICIÓN MÚTABLES
   const [isEditing, setIsEditing] = useState(false);
   const [localRows, setLocalRows] = useState([]); 
@@ -119,7 +122,7 @@ export default function ClientSubmissionsMatrix() {
     getSubmissionsList();
   }, []);
 
-  // Cargar cliente y unificar buffers de datos
+  // Cargar cliente de forma aislada respetando la identidad del slot activo
   useEffect(() => {
     if (!selectedId) return;
 
@@ -141,28 +144,23 @@ export default function ClientSubmissionsMatrix() {
         if (sbError) throw sbError;
         setActiveSubmission(data);
 
-        // Consolidación inicial de filas desde los slots
-        const targetSlots = [
-          data.data_slot_1, data.data_slot_2, data.data_slot_3, data.data_slot_4,
-          data.data_slot_5, data.data_slot_6, data.data_slot_8,
-        ];
+        // Extraer únicamente el buffer seleccionado para evitar colisiones estructurales de columnas
+        const targetSlotData = data[activeSlot];
         
-        // Extraer filas manejando si vienen crudas (Array) o envueltas por el FileSlotsManager (Objeto con .rows)
-        const flatRows = targetSlots
-          .filter(slot => slot)
-          .map(slot => Array.isArray(slot) ? slot : (slot.rows || []))
-          .flat();
+        const slotRows = targetSlotData
+          ? (Array.isArray(targetSlotData) ? targetSlotData : (targetSlotData.rows || []))
+          : [];
 
-        setLocalRows(JSON.parse(JSON.stringify(flatRows))); 
+        setLocalRows(JSON.parse(JSON.stringify(slotRows))); 
 
       } catch (err) {
-        console.error('❌ Error al recuperar slots:', err);
+        console.error('❌ Error al recuperar el slot activo:', err);
       } finally {
         setFetchingSlots(false);
       }
     }
     fetchFullSubmission();
-  }, [selectedId]);
+  }, [selectedId, activeSlot]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -197,22 +195,15 @@ export default function ClientSubmissionsMatrix() {
 
   const totalPages = Math.ceil(filteredRowsWithIndex.length / itemsPerPage) || 1;
 
-  // Guardar cambios sin destruir la separación estructural
+  // Guardar cambios preservando la separación e integridad de los demás slots
   const handleSaveChanges = async (rowsToSave = localRows) => {
     try {
       setIsSaving(true);
 
-      // Mantenemos los datos limpios en el slot_1 para edición interactiva
       const { error: updateError } = await supabase
         .from('client_submissions')
         .update({
-          data_slot_1: rowsToSave, 
-          data_slot_2: null,       
-          data_slot_3: null,
-          data_slot_4: null,
-          data_slot_5: null,
-          data_slot_6: null,
-          data_slot_8: null,
+          [activeSlot]: rowsToSave
         })
         .eq('id', selectedId);
 
@@ -228,7 +219,7 @@ export default function ClientSubmissionsMatrix() {
       setIsEditing(false);
       setIsDeleteMode(false); 
       setSelectedRowIndexes([]); 
-      alert('💾 Matriz universal actualizada con éxito.');
+      alert(`💾 Matriz correspondiente a ${activeSlot.replace('_', ' ')} actualizada con éxito.`);
     } catch (err) {
       console.error('❌ Error guardando:', err);
       alert(`Error: ${err.message}`);
@@ -239,16 +230,11 @@ export default function ClientSubmissionsMatrix() {
 
   const handleCancelChanges = () => {
     if (activeSubmission) {
-      const targetSlots = [
-        activeSubmission.data_slot_1, activeSubmission.data_slot_2, activeSubmission.data_slot_3,
-        activeSubmission.data_slot_4, activeSubmission.data_slot_5, activeSubmission.data_slot_6,
-        activeSubmission.data_slot_8,
-      ];
-      const flatRows = targetSlots
-        .filter(slot => slot)
-        .map(slot => Array.isArray(slot) ? slot : (slot.rows || []))
-        .flat();
-      setLocalRows(JSON.parse(JSON.stringify(flatRows)));
+      const targetSlotData = activeSubmission[activeSlot];
+      const slotRows = targetSlotData
+        ? (Array.isArray(targetSlotData) ? targetSlotData : (targetSlotData.rows || []))
+        : [];
+      setLocalRows(JSON.parse(JSON.stringify(slotRows)));
     }
     setIsEditing(false);
   };
@@ -385,6 +371,22 @@ export default function ClientSubmissionsMatrix() {
                 disabled={isEditing || isDeleteMode}
                 className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] focus:border-[#5B5FC7] outline-none transition-all w-[160px]"
               />
+
+              {/* Selector Dinámico de Capas/Slots de Archivos */}
+              <select
+                value={activeSlot}
+                onChange={(e) => setActiveSlot(e.target.value)}
+                disabled={isEditing || isDeleteMode}
+                className="bg-[#FCFAFF] border border-[#5B5FC7]/40 text-[#484B97] font-semibold rounded-sm px-2 py-0.5 text-[11px] cursor-pointer max-w-[140px]"
+              >
+                <option value="data_slot_1">Slot 01 (Principal)</option>
+                <option value="data_slot_2">Slot 02</option>
+                <option value="data_slot_3">Slot 03</option>
+                <option value="data_slot_4">Slot 04</option>
+                <option value="data_slot_5">Slot 05</option>
+                <option value="data_slot_6">Slot 06</option>
+                <option value="data_slot_8">Slot 08</option>
+              </select>
 
               <select
                 id="submission-select"

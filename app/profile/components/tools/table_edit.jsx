@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 // Importamos el cliente de Supabase desde tu archivo de configuración
-import { supabase } from '../lib/supabaseClient'; 
+import { supabase } from './../../../lib/supabaseClient'; 
 
 export default function DataViewer() {
   const [loading, setLoading] = useState(true);

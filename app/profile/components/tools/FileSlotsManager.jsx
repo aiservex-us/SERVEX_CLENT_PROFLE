@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -13,7 +14,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
   const fileInputRef = useRef(null);
   const targetSlotRef = useRef(null);
 
-  // Mapeo maestro estático alineado con tu DDL (excluyendo el slot 7 faltante)
+
   const ALL_SLOTS = [
     { key: 'data_slot_1', label: 'Slot 01' },
     { key: 'data_slot_2', label: 'Slot 02' },
@@ -115,13 +116,8 @@ export default function FileSlotsManager({ onSelectSlot }) {
             return;
           }
 
-          // Construcción de la estructura de metadatos unificada
-          const payload = {
-            fileName: file.name,
-            rowCount: parsedRows.length,
-            uploadedAt: new Date().toISOString(),
-            rows: parsedRows
-          };
+          // MODIFICADO: Guardamos exactamente igual que el componente anterior (solo el arreglo JSON)
+          const payload = parsedRows;
 
           // Inyección en paralelo simétrica usando el user_id de la sesión/registro actual
           const [resSubmissions, resOriginal] = await Promise.all([
@@ -156,8 +152,8 @@ export default function FileSlotsManager({ onSelectSlot }) {
   };
 
   // Remoción del set de datos en caliente (Vaciado sincrónico en cascada de ambas tablas)
-  const handleDeleteSlot = async (slotKey, fileName) => {
-    if (!window.confirm(`¿Confirmar purga y vaciado completo del slot asignado a "${fileName}"?`)) return;
+  const handleDeleteSlot = async (slotKey, label) => {
+    if (!window.confirm(`¿Confirmar purga y vaciado completo del slot asignado a "${label}"?`)) return;
 
     try {
       setProcessingSlot(slotKey);
@@ -237,15 +233,14 @@ export default function FileSlotsManager({ onSelectSlot }) {
         {availableFiles.map((slot) => {
           const hasData = slot.data !== null;
           const rawContent = slot.data;
-          const fileName = rawContent?.fileName || 'Technical_Dataset_Ingested.csv';
           
-          const rowCount = Array.isArray(rawContent) 
-            ? rawContent.length 
-            : (rawContent?.rows?.length || rawContent?.rowCount || 0);
+          // Al ser solo un JSON puro, se muestra un nombre por defecto estructurado
+          const fileName = 'Dataset_Ingested.json';
+          
+          // MODIFICADO: Contamos directamente los elementos del arreglo crudo
+          const rowCount = Array.isArray(rawContent) ? rawContent.length : 0;
             
-          const uploadDate = rawContent?.uploadedAt 
-            ? new Date(rawContent.uploadedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) 
-            : 'Buffer Vacío';
+          const uploadDate = hasData ? 'Active Dataset' : 'Buffer Vacío';
 
           const isCurrentProcessing = processingSlot === slot.key;
 
@@ -306,7 +301,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
                     {/* Botón de Purgado */}
                     <button
                       type="button"
-                      onClick={() => handleDeleteSlot(slot.key, fileName)}
+                      onClick={() => handleDeleteSlot(slot.key, slot.label)}
                       className="px-2.5 py-1.5 bg-white hover:bg-[#FDE7E9] text-[#A80007] border border-[#F3B0B4] text-[10px] font-medium rounded-sm transition-all cursor-pointer whitespace-nowrap"
                       title="Vaciar memoria de la columna"
                     >

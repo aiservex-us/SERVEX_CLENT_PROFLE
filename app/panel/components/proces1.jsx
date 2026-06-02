@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
@@ -188,7 +187,7 @@ const TeamsForm = () => {
     setFileNames((prev) => [...prev, '']);
   };
 
-  // NUEVO: Envío asíncrono y optimizado al pipeline de base de datos con Timeout de 50s
+  // NUEVO: Envío asíncrono y optimizado al pipeline de base de datos
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jsonSlots.some(s => s !== null)) {
@@ -196,13 +195,6 @@ const TeamsForm = () => {
       return;
     }
     setLoading(true);
-
-    // Inicialización del controlador de aborto para el límite de tiempo
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, 50000); // 50 segundos de gracia para archivos masivos
-
     try {
       const { data: { user } } = await supabaseGoogle.auth.getUser();
       
@@ -219,41 +211,30 @@ const TeamsForm = () => {
         created_at: new Date().toISOString()
       };
 
-      // Ejecución de las inserciones pasando la señal de aborto en las opciones de fetch
-      const [resSubmissions, resOriginal] = await Promise.all([
-        supabaseGoogle
-          .from('client_submissions')
-          .insert([payload])
-          .abortSignal(controller.signal),
-        supabaseGoogle
-          .from('client_original')
-          .insert([payload])
-          .abortSignal(controller.signal)
-      ]);
+      // 1. Inserción directa en la tabla client_submissions
+      const { error: subError } = await supabaseGoogle
+        .from('client_submissions')
+        .insert([payload]);
 
-      // Si el flujo llegó aquí con éxito, limpiamos el temporizador
-      clearTimeout(timeoutId);
-
-      if (resSubmissions.error) {
-        console.error("Error en el pipeline de inserción (client_submissions):", resSubmissions.error);
-        throw new Error(resSubmissions.error.message);
+      if (subError) {
+        console.error("Error en el pipeline de inserción (client_submissions):", subError);
+        throw new Error(subError.message);
       }
 
-      if (resOriginal.error) {
-        console.error("Error en el pipeline de inserción (client_original):", resOriginal.error);
-        throw new Error(resOriginal.error.message);
+      // 2. Inserción directa del mismo objeto exacto en la tabla client_original
+      const { error: origError } = await supabaseGoogle
+        .from('client_original')
+        .insert([payload]);
+
+      if (origError) {
+        console.error("Error en el pipeline de inserción (client_original):", origError);
+        throw new Error(origError.message);
       }
       
       showTeamsToast("Information successfully uploaded to the system. Redirecting...");
     } catch (err) { 
-      clearTimeout(timeoutId); // Asegurar limpieza del timer en caso de excepción
       console.error("Pipeline Insertion Error:", err);
-      
-      if (err.name === 'AbortError' || err.message?.includes('abort')) {
-        showTeamsToast("Upload timed out (50s limit reached). Your files might be too heavy.", "error");
-      } else {
-        showTeamsToast(`Error: ${err.message || "Could not establish verification pipeline."}`, "error"); 
-      }
+      showTeamsToast(`Error: ${err.message || "Could not establish verification pipeline."}`, "error"); 
     } finally { 
       setLoading(false); 
     }

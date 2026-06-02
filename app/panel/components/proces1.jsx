@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
@@ -212,9 +211,7 @@ const TeamsForm = () => {
         created_at: new Date().toISOString()
       };
 
-      // PROCESO ASÍNCRONO AUTOMATIZADO:
-      // Realizamos una sola inserción directa a la tabla raíz. El trigger en Supabase 
-      // se encargará de realizar la réplica asíncrona a client_original sin demorar la respuesta HTTP.
+      // 1. Inserción directa en la tabla client_submissions
       const { error: subError } = await supabaseGoogle
         .from('client_submissions')
         .insert([payload]);
@@ -222,6 +219,16 @@ const TeamsForm = () => {
       if (subError) {
         console.error("Error en el pipeline de inserción (client_submissions):", subError);
         throw new Error(subError.message);
+      }
+
+      // 2. Inserción directa del mismo objeto exacto en la tabla client_original
+      const { error: origError } = await supabaseGoogle
+        .from('client_original')
+        .insert([payload]);
+
+      if (origError) {
+        console.error("Error en el pipeline de inserción (client_original):", origError);
+        throw new Error(origError.message);
       }
       
       showTeamsToast("Information successfully uploaded to the system. Redirecting...");
@@ -458,4 +465,3 @@ const TeamsForm = () => {
 };
 
 export default TeamsForm;
-

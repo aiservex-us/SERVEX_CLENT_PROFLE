@@ -15,14 +15,15 @@ export default function FileSlotsManager({ onSelectSlot }) {
   const [selectedSlotData, setSelectedSlotData] = useState(null);
   const [selectedSlotLabel, setSelectedSlotLabel] = useState('');
 
+  // Arreglo de configuración extendido con las rutas a la carpeta public/
   const ALL_SLOTS = [
-    { key: 'data_slot_1', label: 'Slot 01' },
-    { key: 'data_slot_2', label: 'Slot 02' },
-    { key: 'data_slot_3', label: 'Slot 03' },
-    { key: 'data_slot_4', label: 'Slot 04' },
-    { key: 'data_slot_5', label: 'Slot 05' },
-    { key: 'data_slot_6', label: 'Slot 06' },
-    { key: 'data_slot_8', label: 'Slot 08' },
+    { key: 'data_slot_1', label: 'Slot 01', image: '/slot01.jpg' },
+    { key: 'data_slot_2', label: 'Slot 02', image: '/slot02.jpg' },
+    { key: 'data_slot_3', label: 'Slot 03', image: '/slot03.jpg' },
+    { key: 'data_slot_4', label: 'Slot 04', image: '/slot04.jpg' },
+    { key: 'data_slot_5', label: 'Slot 05', image: '/slot05.jpg' },
+    { key: 'data_slot_6', label: 'Slot 06', image: '/slot06.jpg' },
+    { key: 'data_slot_8', label: 'Slot 08', image: '/slot08.jpg' },
   ];
 
   const fetchUserSlots = async () => {
@@ -153,20 +154,31 @@ export default function FileSlotsManager({ onSelectSlot }) {
           return (
             <div 
               key={slot.key}
-              className={`group flex flex-col justify-between p-3.5 bg-white border rounded-sm transition-all duration-150 relative min-w-0 ${
+              className={`group flex flex-col justify-between bg-white border rounded-sm transition-all duration-150 relative min-w-0 overflow-hidden ${
                 hasData 
                   ? 'border-[#E0E0E0] hover:border-[#464775] shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(70,71,117,0.12)]' 
                   : 'border-dashed border-[#C8C6C4] bg-[#FAFAFA] hover:bg-white hover:border-[#464775]'
               }`}
             >
+              {/* Portada dinámica llamando a la imagen local de cada card */}
+              <div className="absolute top-0 left-0 w-full h-[30%] overflow-hidden z-0 pointer-events-none">
+                <div 
+                  className="w-full h-full bg-cover bg-center opacity-35 transition-transform duration-300 group-hover:scale-105" 
+                  style={{ backgroundImage: `url('${slot.image}')` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white" />
+              </div>
+
+              {/* Bloqueador de Operación Local */}
               {isCurrentProcessing && (
-                <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-10 flex items-center justify-center rounded-sm">
+                <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-20 flex items-center justify-center rounded-sm">
                   <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
 
-              <div className="min-w-0">
-                <div className="flex justify-between items-center mb-2 gap-2">
+              {/* Contenido Superior de la Card */}
+              <div className="min-w-0 z-10 p-3.5 pb-0">
+                <div className="flex justify-between items-center mb-3 gap-2">
                   <span className={`px-2 py-0.5 text-[9px] font-bold tracking-wider rounded-sm uppercase font-mono whitespace-nowrap ${
                     hasData 
                       ? 'text-[#464775] bg-[#ECECFF] border border-[#D5D6E9]' 
@@ -174,11 +186,13 @@ export default function FileSlotsManager({ onSelectSlot }) {
                   }`}>
                     {slot.label}
                   </span>
-                  <span className="text-[9px] font-medium text-[#878685] font-mono whitespace-nowrap">{uploadDate}</span>
+                  <span className="text-[9px] font-medium text-[#878685] font-mono whitespace-nowrap drop-shadow-[0_1px_4px_rgba(255,255,255,0.9)]">
+                    {uploadDate}
+                  </span>
                 </div>
 
                 {hasData ? (
-                  <div className="min-w-0">
+                  <div className="min-w-0 mt-4">
                     <h4 className="text-xs font-bold text-[#242424] truncate group-hover:text-[#464775] transition-colors font-mono" title={fileName}>
                       {fileName}
                     </h4>
@@ -190,7 +204,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="py-2 min-w-0">
+                  <div className="py-2 min-w-0 mt-4">
                     <p className="text-[11px] italic text-[#A19F9D] font-medium truncate">Asignación libre de memoria</p>
                     <p className="text-[9px] text-[#A19F9D] mt-0.5 truncate">Listo para parsear e indexar CSV</p>
                   </div>
@@ -198,7 +212,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
               </div>
 
               {/* Botonera de Control Inferior */}
-              <div className="mt-4 pt-2.5 border-t border-[#F3F2F1] flex flex-row gap-1.5 justify-end items-center w-full">
+              <div className="mt-4 p-3.5 pt-2.5 border-t border-[#F3F2F1] flex flex-row gap-1.5 justify-end items-center w-full z-10 bg-white">
                 {hasData ? (
                   <>
                     <button
@@ -233,7 +247,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
         })}
       </div>
 
-      {/* POPUP MODAL (Portal alternativo) */}
+      {/* POPUP MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#000000]/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-sm border border-[#D2D0CE] shadow-[0_8px_32px_rgba(0,0,0,0.14)] w-full max-w-2xl flex flex-col max-h-[85vh]">

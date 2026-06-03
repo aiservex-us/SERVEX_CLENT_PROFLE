@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
-import * as XLSX from 'xlsx';
 
 export default function FileSlotsManager({ onSelectSlot }) {
   const [loading, setLoading] = useState(true);
@@ -11,8 +10,10 @@ export default function FileSlotsManager({ onSelectSlot }) {
   const [error, setError] = useState(null);
   const [processingSlot, setProcessingSlot] = useState(null);
   
-  const fileInputRef = useRef(null);
-  const targetSlotRef = useRef(null);
+  // Estados para el control del Popup
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSlotData, setSelectedSlotData] = useState(null);
+  const [selectedSlotLabel, setSelectedSlotLabel] = useState('');
 
   const ALL_SLOTS = [
     { key: 'data_slot_1', label: 'Slot 01' },
@@ -35,7 +36,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
         return;
       }
 
-      // Consulta de visualización y estado de carga: Exclusiva de client_submissions
       const { data, error: dbError } = await supabase
         .from('client_submissions')
         .select('*')
@@ -47,7 +47,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
       if (data) {
         setSubmissionData(data);
         
-        // Mapear el estado actual de los slots en DB
         const mapped = ALL_SLOTS.map(slot => ({
           ...slot,
           data: data[slot.key]
@@ -67,79 +66,19 @@ export default function FileSlotsManager({ onSelectSlot }) {
     fetchUserSlots();
   }, []);
 
-  // Disparador del explorador de archivos asignado a un slot objetivo
-  const triggerFileInput = (slotKey) => {
-    targetSlotRef.current = slotKey;
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+  // Manejador para abrir el popup con la data del slot
+  const handleOpenModal = (slotLabel, slotData) => {
+    setSelectedSlotLabel(slotLabel);
+    setSelectedSlotData(slotData);
+    setIsModalOpen(true);
   };
 
-  // Manejador del Input File (Lectura e Inyección Masiva homologada mediante XLSX)
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    const slotKey = targetSlotRef.current;
-    if (!file || !slotKey) return;
-
-    try {
-      setProcessingSlot(slotKey);
-      const reader = new FileReader();
-
-      reader.onload = async (event) => {
-        try {
-          // Lectura en formato ArrayBuffer idéntico al otro componente
-          const data = new Uint8Array(event.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const parsedRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-
-          if (parsedRows.length === 0) {
-            alert('El archivo no contiene filas procesables.');
-            return;
-          }
-
-          const payload = parsedRows;
-
-          // Inyección en paralelo simétrica usando la sesión/registro actual
-          const [resSubmissions, resOriginal] = await Promise.all([
-            supabase
-              .from('client_submissions')
-              .update({ [slotKey]: payload })
-              .eq('user_id', submissionData.user_id),
-            supabase
-              .from('client_original')
-              .update({ [slotKey]: payload })
-              .eq('user_id', submissionData.user_id)
-          ]);
-
-          if (resSubmissions.error) throw resSubmissions.error;
-          if (resOriginal.error) throw resOriginal.error;
-
-          await fetchUserSlots(); // Re-sincronización en caliente
-        } catch (innerErr) {
-          console.error(innerErr);
-          alert('Error crítico convirtiendo o guardando el dataset en el cluster.');
-        } finally {
-          setProcessingSlot(null);
-          e.target.value = ''; // Limpieza del buffer del input
-        }
-      };
-
-      // Cambiado de readAsText a readAsArrayBuffer para compatibilidad total con XLSX
-      reader.readAsArrayBuffer(file);
-    } catch (err) {
-      console.error(err);
-      setProcessingSlot(null);
-    }
-  };
-
-  // Remoción del set de datos en caliente (Vaciado sincrónico en cascada de ambas tablas)
   const handleDeleteSlot = async (slotKey, label) => {
     if (!window.confirm(`¿Confirmar purga y vaciado completo del slot asignado a "${label}"?`)) return;
 
     try {
       setProcessingSlot(slotKey);
 
-      // Limpieza simultánea garantizando la remoción en ambas tablas apuntando al user_id
       const [resSubmissions, resOriginal] = await Promise.all([
         supabase
           .from('client_submissions')
@@ -185,16 +124,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
   return (
     <div className="w-full max-w-7xl mx-auto bg-[#FFF] rounded-sm border border-[#E0E0E0] p-4 sm:p-5 font-sans antialiased text-[#242424]">
       
-      {/* Input oculto reutilizable para interceptar subidas */}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileUpload} 
-        accept=".csv, .xlsx, .xls" 
-        className="hidden" 
-      />
-
-      {/* Cabecera Fluent - Full Responsive Breakpoints */}
+      {/* Cabecera Fluent */}
       <div className="mb-5 pb-3 border-b border-[#E0E0E0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="max-w-full min-w-0">
           <h2 className="text-xs font-bold text-[#242424] tracking-tight uppercase truncate" title={submissionData?.company_name}>
@@ -209,7 +139,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
         </div>
       </div>
 
-      {/* Grid General de Slots Adaptativo */}
+      {/* Grid de Slots */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
         {availableFiles.map((slot) => {
           const hasData = slot.data !== null;
@@ -229,7 +159,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
                   : 'border-dashed border-[#C8C6C4] bg-[#FAFAFA] hover:bg-white hover:border-[#464775]'
               }`}
             >
-              {/* Bloqueador de Operación Local */}
               {isCurrentProcessing && (
                 <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-10 flex items-center justify-center rounded-sm">
                   <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
@@ -237,7 +166,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
               )}
 
               <div className="min-w-0">
-                {/* Cabecera del Slot */}
                 <div className="flex justify-between items-center mb-2 gap-2">
                   <span className={`px-2 py-0.5 text-[9px] font-bold tracking-wider rounded-sm uppercase font-mono whitespace-nowrap ${
                     hasData 
@@ -249,7 +177,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
                   <span className="text-[9px] font-medium text-[#878685] font-mono whitespace-nowrap">{uploadDate}</span>
                 </div>
 
-                {/* Detalles Condicionales de la Data */}
                 {hasData ? (
                   <div className="min-w-0">
                     <h4 className="text-xs font-bold text-[#242424] truncate group-hover:text-[#464775] transition-colors font-mono" title={fileName}>
@@ -285,7 +212,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
 
                     <button
                       type="button"
-                      onClick={() => onSelectSlot && onSelectSlot(rawContent)}
+                      onClick={() => handleOpenModal(slot.label, rawContent)}
                       className="flex-1 px-3 py-1.5 bg-white hover:bg-[#464775] text-[#464775] hover:text-white border border-[#464775] text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.98] text-center truncate"
                     >
                       Examinar e Inyectar
@@ -294,10 +221,10 @@ export default function FileSlotsManager({ onSelectSlot }) {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => triggerFileInput(slot.key)}
-                    className="w-full px-3 py-1.5 bg-[#464775] hover:bg-[#353659] text-white text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-1 text-center"
+                    disabled
+                    className="w-full px-3 py-1.5 bg-[#F3F2F1] text-[#A19F9D] border border-[#EDEBE9] text-[11px] font-semibold rounded-sm cursor-not-allowed flex items-center justify-center gap-1 text-center"
                   >
-                    <span className="shrink-0">📤</span> <span className="truncate">Cargar Dataset</span>
+                    <span className="truncate">Buffer Disponible</span>
                   </button>
                 )}
               </div>
@@ -305,6 +232,60 @@ export default function FileSlotsManager({ onSelectSlot }) {
           );
         })}
       </div>
+
+      {/* POPUP MODAL (Portal alternativo) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-[#000000]/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-sm border border-[#D2D0CE] shadow-[0_8px_32px_rgba(0,0,0,0.14)] w-full max-w-2xl flex flex-col max-h-[85vh]">
+            
+            {/* Header Modal */}
+            <div className="px-4 py-3 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAFAFA]">
+              <div>
+                <h3 className="text-xs font-bold text-[#242424] uppercase tracking-wide font-mono">
+                  Explorador de Datos - {selectedSlotLabel}
+                </h3>
+                <p className="text-[10px] text-[#616161] mt-0.5">Previsualización del cluster JSON seleccionado</p>
+              </div>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-[#616161] hover:text-[#242424] hover:bg-[#F3F2F1] w-6 h-6 flex items-center justify-center rounded-sm text-sm cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Contenido Modal */}
+            <div className="p-4 overflow-y-auto bg-[#FF] flex-1 font-mono text-[11px] text-[#242424]">
+              <div className="bg-[#FAF9F8] border border-[#EDEBE9] p-3 rounded-sm max-h-[50vh] overflow-auto shadow-inner">
+                <pre>{JSON.stringify(selectedSlotData, null, 2)}</pre>
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="px-4 py-3 border-t border-[#EDEBE9] bg-[#FAFAFA] flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-1.5 bg-white hover:bg-[#F3F2F1] text-[#242424] border border-[#8A8886] text-[11px] font-medium rounded-sm transition-all cursor-pointer"
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if(onSelectSlot) onSelectSlot(selectedSlotData);
+                  setIsModalOpen(false);
+                }}
+                className="px-4 py-1.5 bg-[#464775] hover:bg-[#353659] text-white text-[11px] font-semibold rounded-sm transition-all cursor-pointer shadow-xs"
+              >
+                Confirmar Acción
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

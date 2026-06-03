@@ -25,7 +25,6 @@ const menuItems = [
 
   { id: 'Profile', label: 'PROFILE', icon: UserCheck, sub: 'User Account' },
   { id: 'Cataloge', label: 'Cataloge', icon: FolderKanban, sub: 'Management' },
-  { id: 'Cataloge2', label: 'Cataloge', icon: FolderKanban, sub: 'Management' },
   { id: 'AI_Chat', label: 'AI_Chat', icon: MessageSquareCode, sub: 'Svx Assistant' },
 ];
 

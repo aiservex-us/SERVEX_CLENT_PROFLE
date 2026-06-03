@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseGoogle } from '@/app/lib/supabaseClient';
@@ -22,7 +24,6 @@ const FileSlot = ({ index, fileName, onFileSelect, onFileRemove }) => {
     e.stopPropagation();
     setIsDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      // Pasa el array completo de archivos para soportar múltiples slots secuenciales
       onFileSelect(e.dataTransfer.files, index);
     }
   };
@@ -42,7 +43,7 @@ const FileSlot = ({ index, fileName, onFileSelect, onFileRemove }) => {
       }`}
     >
       <span className={`text-[9px] uppercase font-bold block mb-0.5 ${fileName ? 'text-[#107C41]' : 'text-[#616161]'}`}>
-        Data Slot {index === 6 ? 8 : index + 1}
+        Data Slot {index + 1}
       </span>
 
       {fileName ? (
@@ -151,17 +152,21 @@ const TeamsForm = () => {
     }
   };
 
-  // Modificado para aceptar una lista de archivos y distribuirlos en slots secuenciales
+  // Modificado para aceptar una lista de archivos controlando estrictamente el máximo de 5 slots totales
   const processFiles = (fileList, startIndex) => {
     const filesArray = Array.from(fileList);
     
     filesArray.forEach((file, offset) => {
       const targetIndex = startIndex + offset;
       
-      // Controlar el límite de máximo 7 slots (0 a 6) debido a las restricciones del payload
-      if (targetIndex >= 7) return;
+      // MODIFICADO: Bloqueo estricto a máximo 5 slots (índices 0 a 4)
+      if (targetIndex >= 5) {
+        if (offset === 0) {
+          showTeamsToast("Maximum limit of 5 inventory files reached.", "error");
+        }
+        return;
+      }
 
-      // Asegurarse de que existan las posiciones correspondientes en el estado si se arrastran más archivos de los slots actuales
       setJsonSlots((prevSlots) => {
         const updated = [...prevSlots];
         while (updated.length <= targetIndex) {
@@ -185,7 +190,6 @@ const TeamsForm = () => {
         
         setJsonSlots((prevSlots) => {
           const updated = [...prevSlots];
-          // Relacionamos el nombre original directamente junto con los datos procesados en la posición del slot
           updated[targetIndex] = {
             file_name: file.name,
             data: json
@@ -214,12 +218,16 @@ const TeamsForm = () => {
     setFileNames((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // MODIFICADO: Valida que no se agreguen slots manuales si ya se alcanzó el límite de 5
   const handleAddSlot = () => {
+    if (jsonSlots.length >= 5) {
+      showTeamsToast("You can only add up to 5 file slots.", "error");
+      return;
+    }
     setJsonSlots((prev) => [...prev, null]);
     setFileNames((prev) => [...prev, '']);
   };
 
-  // NUEVO: Envío asíncrono y optimizado al pipeline de base de datos
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jsonSlots.some(s => s !== null)) {
@@ -238,13 +246,12 @@ const TeamsForm = () => {
         data_slot_3: jsonSlots[2] || null, 
         data_slot_4: jsonSlots[3] || null,
         data_slot_5: jsonSlots[4] || null, 
-        data_slot_6: jsonSlots[5] || null,
-        data_slot_7: jsonSlots[6] || null,
-        data_slot_8: jsonSlots[7] || null, 
+        data_slot_6: null,
+        data_slot_7: null,
+        data_slot_8: null, 
         created_at: new Date().toISOString()
       };
 
-      // 1. Inserción directa en la tabla client_submissions
       const { error: subError } = await supabaseGoogle
         .from('client_submissions')
         .insert([payload]);
@@ -254,7 +261,6 @@ const TeamsForm = () => {
         throw new Error(subError.message);
       }
 
-      // 2. Inserción directa del mismo objeto exacto en la tabla client_original
       const { error: origError } = await supabaseGoogle
         .from('client_original')
         .insert([payload]);
@@ -433,7 +439,8 @@ const TeamsForm = () => {
                 ))}
               </div>
 
-              {jsonSlots.length < 7 && (
+              {/* MODIFICADO: El botón sólo aparece si hay menos de 5 slots */}
+              {jsonSlots.length < 5 && (
                 <button
                   type="button"
                   onClick={handleAddSlot}

@@ -239,7 +239,8 @@ const TeamsForm = () => {
         data_slot_4: jsonSlots[3] || null,
         data_slot_5: jsonSlots[4] || null, 
         data_slot_6: jsonSlots[5] || null,
-        data_slot_8: jsonSlots[6] || null, 
+        data_slot_7: jsonSlots[6] || null,
+        data_slot_8: jsonSlots[7] || null, 
         created_at: new Date().toISOString()
       };
 

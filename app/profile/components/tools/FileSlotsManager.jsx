@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -162,8 +163,15 @@ export default function FileSlotsManager({ onSelectSlot }) {
           const hasData = slot.data !== null;
           const rawContent = slot.data;
           
-          const fileName = 'Dataset_Ingested.json';
-          const rowCount = Array.isArray(rawContent) ? rawContent.length : 0;
+          // MODIFICADO: Extrae de forma dinámica el nombre del archivo guardado en el objeto JSONB o hereda un fallback estructurado.
+          const fileName = hasData && rawContent?.file_name 
+            ? rawContent.file_name 
+            : 'Dataset_Ingested.json';
+
+          // MODIFICADO: Adapta el conteo de filas basándose en si la data viene envuelta en la propiedad .data o es el array plano tradicional.
+          const dataArray = hasData && rawContent?.data ? rawContent.data : rawContent;
+          const rowCount = Array.isArray(dataArray) ? dataArray.length : 0;
+
           const uploadDate = hasData ? 'Active Dataset' : 'Buffer Vacío';
           const isCurrentProcessing = processingSlot === slot.key;
 
@@ -371,3 +379,4 @@ export default function FileSlotsManager({ onSelectSlot }) {
     </div>
   );
 }
+

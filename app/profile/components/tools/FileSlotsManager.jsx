@@ -143,13 +143,32 @@ export default function FileSlotsManager({ onSelectSlot }) {
       {/* Grid de Slots */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
         {availableFiles.map((slot) => {
-          const hasData = slot.data !== null;
+          const hasData = slot.data !== null && Array.isArray(slot.data) && slot.data.length > 0;
           const rawContent = slot.data;
           
-          const fileName = 'Dataset_Ingested.json';
-          const rowCount = Array.isArray(rawContent) ? rawContent.length : 0;
+          const rowCount = hasData ? rawContent.length : 0;
           const uploadDate = hasData ? 'Active Dataset' : 'Buffer Vacío';
           const isCurrentProcessing = processingSlot === slot.key;
+
+          // LÓGICA DE EXTRACCIÓN DINÁMICA DE METADATOS
+          let dynamicTitle = 'Dataset_Ingested.json';
+          let detectedFields = [];
+
+          if (hasData) {
+            const firstRow = rawContent[0];
+            detectedFields = Object.keys(firstRow);
+            
+            // Intentar buscar una propiedad que actúe como identificador de nombre de catálogo o producto
+            const potentialNames = ['nombre', 'name', 'title', 'producto', 'product', 'filename', 'catalog'];
+            const foundKey = detectedFields.find(k => potentialNames.includes(k.toLowerCase()));
+            
+            if (foundKey && firstRow[foundKey]) {
+              dynamicTitle = `Catálogo: ${String(firstRow[foundKey])}`;
+            } else if (detectedFields.length > 0) {
+              // Si no encuentra llaves comunes, usa la primera columna con valor como referencia de contexto
+              dynamicTitle = `Data [${detectedFields[0]}: ${String(firstRow[detectedFields[0]])}]`;
+            }
+          }
 
           return (
             <div 
@@ -193,13 +212,23 @@ export default function FileSlotsManager({ onSelectSlot }) {
 
                 {hasData ? (
                   <div className="min-w-0 mt-4">
-                    <h4 className="text-xs font-bold text-[#242424] truncate group-hover:text-[#464775] transition-colors font-mono" title={fileName}>
-                      {fileName}
+                    {/* Título Dinámico basado en contenido */}
+                    <h4 className="text-xs font-bold text-[#242424] truncate group-hover:text-[#464775] transition-colors font-mono" title={dynamicTitle}>
+                      {dynamicTitle}
                     </h4>
+                    
+                    {/* Estructura/Esquema del JSON detectado en caliente */}
+                    <div className="mt-1.5 p-1.5 bg-[#FAF9F8] border border-[#EDEBE9] rounded-sm">
+                      <p className="text-[9px] uppercase tracking-wider font-semibold text-[#797775] mb-0.5 font-mono">Esquema estructural:</p>
+                      <p className="text-[10px] text-[#323130] font-mono truncate" title={detectedFields.join(', ')}>
+                        {detectedFields.slice(0, 4).join(' | ')}{detectedFields.length > 4 ? '...' : ''}
+                      </p>
+                    </div>
+
                     <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#616161]">
                       <span className="text-[#464775] shrink-0">⚡</span>
                       <span className="font-medium text-[10px] truncate">
-                        Registros: <strong className="font-semibold text-[#242424] font-mono">{rowCount}</strong>
+                        Registros Inyectados: <strong className="font-semibold text-[#242424] font-mono">{rowCount}</strong>
                       </span>
                     </div>
                   </div>

@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient'; 
 
+// === IMPORTACIÓN DEL COMPONENTE DE SLOTS ASIGNADO ===
+import FileSlotsManager from './FileSlotsManager'; 
+
 export default function ClientSubmissionsMatrix() {
   const [submissions, setSubmissions] = useState([]);
   const [selectedId, setSelectedId] = useState('');
@@ -21,12 +24,16 @@ export default function ClientSubmissionsMatrix() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  // ESTADO PARA EL POPUP MODAL (ALL CATALOGS)
+  const [isSlotsModalOpen, setIsSlotsModalOpen] = useState(false);
+
   // ===================================================
   // ALGORITMO INTEGRADO DE SANEAMIENTO ESTRUCTURAL SVX
   // ===================================================
   /**
-   * Toma un array de filas corruptas y limpia estructuralmente sus llaves (cabeceras).
-   * Remueve saltos de línea, retornos de carro, comillas y colapsa espacios múltiples.
+   * Módulo homólogo en JSX que emula el script pre-pipeline de Python.
+   * Remueve físicamente saltos de línea (\n, \r), comillas y colapsa espacios
+   * múltiples de las llaves del objeto para asegurar cabeceras limpias en la matriz.
    */
   const sanitizeCatalogRows = (rawRows) => {
     if (!rawRows || !Array.isArray(rawRows) || rawRows.length === 0) return [];
@@ -37,17 +44,17 @@ export default function ClientSubmissionsMatrix() {
       const sanitizedRow = {};
       
       Object.keys(row).forEach(key => {
-        // 1. Remover saltos de línea, retornos de carro, comillas simples y dobles
+        // 1. Limpiar saltos de línea y todo tipo de comillas
         let cleanKey = key
           .replace(/\n/g, ' ')
           .replace(/\r/g, ' ')
           .replace(/"/g, '')
           .replace(/'/g, '');
 
-        // 2. Colapsar espacios dobles o múltiples internos y hacer trim de los extremos
-        cleanKey = cleanKey.split(/\s+/).join(' ').strip ? cleanKey.trim() : cleanKey.replace(/\s+/g, ' ').trim();
+        // 2. Colapsar espacios múltiples internos y quitar extremos
+        cleanKey = cleanKey.split(/\s+/).join(' ').trim();
 
-        // Asignar el valor original a la cabecera perfectamente saneada
+        // Conservar el valor original bajo la llave saneada estructuralmente
         sanitizedRow[cleanKey] = row[key];
       });
 
@@ -166,11 +173,9 @@ export default function ClientSubmissionsMatrix() {
         ];
         const firstActiveSlot = targetSlots.find((slot) => slot && Array.isArray(slot) && slot.length > 0) || [];
         
-        // --- INYECCIÓN Y SANEAMIENTO ESTRUCTURAL EN CALIENTE ---
+        // Ejecución del Saneamiento Estructural en caliente al inicializar la tabla
         const rawJsonCopy = JSON.parse(JSON.stringify(firstActiveSlot));
-        const sanitizedData = sanitizeCatalogRows(rawJsonCopy);
-        
-        setLocalRows(sanitizedData); 
+        setLocalRows(sanitizeCatalogRows(rawJsonCopy)); 
 
       } catch (err) {
         console.error('❌ Error al recuperar slots estructurados:', err);
@@ -210,6 +215,22 @@ export default function ClientSubmissionsMatrix() {
 
   const totalPages = Math.ceil(filteredRowsWithIndex.length / itemsPerPage) || 1;
 
+  // Interceptor para inyectar y sanear la data elegida desde el modal
+  const handleSelectSlotData = (slotContent) => {
+    if (slotContent && (Array.isArray(slotContent) || typeof slotContent === 'object')) {
+      const targetRows = Array.isArray(slotContent) ? slotContent : (slotContent.rows || []);
+      
+      // Sanitizar la matriz que viene directo del popup en caliente
+      const parsedCopy = JSON.parse(JSON.stringify(targetRows));
+      setLocalRows(sanitizeCatalogRows(parsedCopy));
+      
+      setCurrentPage(1);
+      setIsSlotsModalOpen(false);
+    } else {
+      alert("El slot seleccionado no contiene registros estructurados legibles.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
@@ -241,13 +262,22 @@ export default function ClientSubmissionsMatrix() {
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#242424]">Catalog Update Center</span>
               <span className="text-[10px] text-[#616161]">
-                {fetchingSlots ? 'Updating & Sanitizing Structural Matrix...' : 'Data adjustment and editing processes corresponding to the catalog update'}
+                {fetchingSlots ? 'Sanitizing & Mating Structural Headers...' : 'Data adjustment and editing processes corresponding to the catalog update'}
               </span>
             </div>
 
             {/* Controls */}
             <div className="flex flex-wrap items-center gap-2">
               
+              {/* Botón para abrir el popup de Slots/Catálogos */}
+              <button
+                type="button"
+                onClick={() => setIsSlotsModalOpen(true)}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                All Catalogs
+              </button>
+
               <input
                 type="text"
                 placeholder="Filter by SKU, name..."
@@ -275,7 +305,7 @@ export default function ClientSubmissionsMatrix() {
                   type="button"
                   onClick={exportToCSV}
                   disabled={localRows.length === 0}
-                  className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1"
+                  className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer"
                 >
                   Descargar CSV
                 </button>
@@ -302,7 +332,7 @@ export default function ClientSubmissionsMatrix() {
                         className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[150px] max-w-[250px] whitespace-nowrap truncate font-sans"
                       >
                         {header}
-                      </h2>
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -357,7 +387,7 @@ export default function ClientSubmissionsMatrix() {
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
               >
                 Previous
               </button>
@@ -367,7 +397,7 @@ export default function ClientSubmissionsMatrix() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
               >
                 Next
               </button>
@@ -376,6 +406,31 @@ export default function ClientSubmissionsMatrix() {
         </div>
 
       </div>
+
+      {/* POPUP MODAL INTEGRADO COMPLETO (ALL CATALOGS) */}
+      {isSlotsModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-scale-up">
+            <div className="px-4 py-3 border-b border-[#E0E0E0] bg-[#FAFAFA] flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-[#242424] uppercase tracking-tight">Infraestructura Distribuida de Buffers</h3>
+                <p className="text-[10px] text-[#616161]">Seleccione o gestione un slot activo para su saneamiento e indexación en la matriz</p>
+              </div>
+              <button 
+                onClick={() => setIsSlotsModalOpen(false)} 
+                className="text-gray-500 hover:text-gray-800 text-xs font-bold p-1 cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin bg-[#F3F2F1]">
+              {/* Inyección del componente administrador pasando la función interceptora y saneadora */}
+              <FileSlotsManager onSelectSlot={handleSelectSlotData} />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

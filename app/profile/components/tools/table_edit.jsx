@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -21,6 +20,40 @@ export default function ClientSubmissionsMatrix() {
   // ESTADO PARA PAGINACIÓN
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+
+  // ===================================================
+  // ALGORITMO INTEGRADO DE SANEAMIENTO ESTRUCTURAL SVX
+  // ===================================================
+  /**
+   * Toma un array de filas corruptas y limpia estructuralmente sus llaves (cabeceras).
+   * Remueve saltos de línea, retornos de carro, comillas y colapsa espacios múltiples.
+   */
+  const sanitizeCatalogRows = (rawRows) => {
+    if (!rawRows || !Array.isArray(rawRows) || rawRows.length === 0) return [];
+
+    console.log("[+] Iniciando saneamiento estructural en memoria (Matriz JSX)...");
+
+    return rawRows.map(row => {
+      const sanitizedRow = {};
+      
+      Object.keys(row).forEach(key => {
+        // 1. Remover saltos de línea, retornos de carro, comillas simples y dobles
+        let cleanKey = key
+          .replace(/\n/g, ' ')
+          .replace(/\r/g, ' ')
+          .replace(/"/g, '')
+          .replace(/'/g, '');
+
+        // 2. Colapsar espacios dobles o múltiples internos y hacer trim de los extremos
+        cleanKey = cleanKey.split(/\s+/).join(' ').strip ? cleanKey.trim() : cleanKey.replace(/\s+/g, ' ').trim();
+
+        // Asignar el valor original a la cabecera perfectamente saneada
+        sanitizedRow[cleanKey] = row[key];
+      });
+
+      return sanitizedRow;
+    });
+  };
 
   // Extraer las llaves dinámicamente del JSON original para las columnas (Agnóstico a la empresa)
   const headers = useMemo(() => {
@@ -132,7 +165,12 @@ export default function ClientSubmissionsMatrix() {
           data.data_slot_8,
         ];
         const firstActiveSlot = targetSlots.find((slot) => slot && Array.isArray(slot) && slot.length > 0) || [];
-        setLocalRows(JSON.parse(JSON.stringify(firstActiveSlot))); 
+        
+        // --- INYECCIÓN Y SANEAMIENTO ESTRUCTURAL EN CALIENTE ---
+        const rawJsonCopy = JSON.parse(JSON.stringify(firstActiveSlot));
+        const sanitizedData = sanitizeCatalogRows(rawJsonCopy);
+        
+        setLocalRows(sanitizedData); 
 
       } catch (err) {
         console.error('❌ Error al recuperar slots estructurados:', err);
@@ -203,7 +241,7 @@ export default function ClientSubmissionsMatrix() {
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#242424]">Catalog Update Center</span>
               <span className="text-[10px] text-[#616161]">
-                {fetchingSlots ? 'Updating...' : 'Data adjustment and editing processes corresponding to the catalog update'}
+                {fetchingSlots ? 'Updating & Sanitizing Structural Matrix...' : 'Data adjustment and editing processes corresponding to the catalog update'}
               </span>
             </div>
 
@@ -264,7 +302,7 @@ export default function ClientSubmissionsMatrix() {
                         className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[150px] max-w-[250px] whitespace-nowrap truncate font-sans"
                       >
                         {header}
-                      </th>
+                      </h2>
                     ))}
                   </tr>
                 </thead>

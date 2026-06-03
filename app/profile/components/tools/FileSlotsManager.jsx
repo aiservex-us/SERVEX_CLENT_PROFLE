@@ -10,10 +10,11 @@ export default function FileSlotsManager({ onSelectSlot }) {
   const [error, setError] = useState(null);
   const [processingSlot, setProcessingSlot] = useState(null);
   
-  // Estados para el control del Popup
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Estado para el control de los múltiples Popups ('examine', 'inject' o null)
+  const [activeModal, setActiveModal] = useState(null);
   const [selectedSlotData, setSelectedSlotData] = useState(null);
   const [selectedSlotLabel, setSelectedSlotLabel] = useState('');
+  const [selectedSlotKey, setSelectedSlotKey] = useState('');
 
   // Arreglo de configuración extendido con las rutas a la carpeta public/
   const ALL_SLOTS = [
@@ -67,11 +68,25 @@ export default function FileSlotsManager({ onSelectSlot }) {
     fetchUserSlots();
   }, []);
 
-  // Manejador para abrir el popup con la data del slot
-  const handleOpenModal = (slotLabel, slotData) => {
+  // Manejador para abrir el popup de Examinar
+  const handleOpenExamine = (slotLabel, slotData) => {
     setSelectedSlotLabel(slotLabel);
     setSelectedSlotData(slotData);
-    setIsModalOpen(true);
+    setActiveModal('examine');
+  };
+
+  // Manejador para abrir el popup en blanco de Inyectar
+  const handleOpenInject = (slotLabel, slotKey) => {
+    setSelectedSlotLabel(slotLabel);
+    setSelectedSlotKey(slotKey);
+    setActiveModal('inject');
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setSelectedSlotData(null);
+    setSelectedSlotLabel('');
+    setSelectedSlotKey('');
   };
 
   const handleDeleteSlot = async (slotKey, label) => {
@@ -211,7 +226,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
                 )}
               </div>
 
-              {/* Botonera de Control Inferior */}
+              {/* Botonera de Control Inferior Modificada */}
               <div className="mt-4 p-3.5 pt-2.5 border-t border-[#F3F2F1] flex flex-row gap-1.5 justify-end items-center w-full z-10 bg-white">
                 {hasData ? (
                   <>
@@ -226,10 +241,18 @@ export default function FileSlotsManager({ onSelectSlot }) {
 
                     <button
                       type="button"
-                      onClick={() => handleOpenModal(slot.label, rawContent)}
-                      className="flex-1 px-3 py-1.5 bg-white hover:bg-[#464775] text-[#464775] hover:text-white border border-[#464775] text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.98] text-center truncate"
+                      onClick={() => handleOpenExamine(slot.label, rawContent)}
+                      className="flex-1 px-2.5 py-1.5 bg-white hover:bg-[#F3F2F1] text-[#242424] border border-[#8A8886] text-[11px] font-medium rounded-sm transition-all duration-150 cursor-pointer text-center truncate"
                     >
-                      Examinar e Inyectar
+                      Examinar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenInject(slot.label, slot.key)}
+                      className="flex-1 px-2.5 py-1.5 bg-[#464775] hover:bg-[#353659] text-white text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.98] text-center truncate"
+                    >
+                      Inyectar
                     </button>
                   </>
                 ) : (
@@ -247,8 +270,8 @@ export default function FileSlotsManager({ onSelectSlot }) {
         })}
       </div>
 
-      {/* POPUP MODAL */}
-      {isModalOpen && (
+      {/* POPUP MODAL 1: EXAMINAR */}
+      {activeModal === 'examine' && (
         <div className="fixed inset-0 bg-[#000000]/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-sm border border-[#D2D0CE] shadow-[0_8px_32px_rgba(0,0,0,0.14)] w-full max-w-2xl flex flex-col max-h-[85vh]">
             
@@ -261,7 +284,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
                 <p className="text-[10px] text-[#616161] mt-0.5">Previsualización del cluster JSON seleccionado</p>
               </div>
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="text-[#616161] hover:text-[#242424] hover:bg-[#F3F2F1] w-6 h-6 flex items-center justify-center rounded-sm text-sm cursor-pointer transition-colors"
               >
                 ✕
@@ -279,20 +302,64 @@ export default function FileSlotsManager({ onSelectSlot }) {
             <div className="px-4 py-3 border-t border-[#EDEBE9] bg-[#FAFAFA] flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="px-4 py-1.5 bg-white hover:bg-[#F3F2F1] text-[#242424] border border-[#8A8886] text-[11px] font-medium rounded-sm transition-all cursor-pointer"
               >
                 Cerrar
               </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* POPUP MODAL 2: INYECTAR (EN BLANCO) */}
+      {activeModal === 'inject' && (
+        <div className="fixed inset-0 bg-[#000000]/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-sm border border-[#D2D0CE] shadow-[0_8px_32px_rgba(0,0,0,0.14)] w-full max-w-2xl flex flex-col max-h-[85vh]">
+            
+            {/* Header Modal */}
+            <div className="px-4 py-3 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAFAFA]">
+              <div>
+                <h3 className="text-xs font-bold text-[#242424] uppercase tracking-wide font-mono">
+                  Inyector de Pipeline - {selectedSlotLabel}
+                </h3>
+                <p className="text-[10px] text-[#616161] mt-0.5">Módulo de inyección y orquestación técnica</p>
+              </div>
+              <button 
+                onClick={closeModal}
+                className="text-[#616161] hover:text-[#242424] hover:bg-[#F3F2F1] w-6 h-6 flex items-center justify-center rounded-sm text-sm cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Contenido Modal (En Blanco) */}
+            <div className="p-6 overflow-y-auto bg-[#FF] flex-1 text-xs text-[#616161] flex flex-col items-center justify-center min-h-[250px] border border-dashed border-[#C8C6C4] m-4 bg-[#FAFAFA]">
+              <span className="text-xl mb-2">📥</span>
+              <p className="font-semibold text-[#242424]">Área de Inyección Vacía</p>
+              <p className="text-[11px] mt-1 text-center max-w-sm">Aquí puedes integrar tus inputs, dropzones o selectores personalizados para alimentar este buffer en el SVX Engine.</p>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="px-4 py-3 border-t border-[#EDEBE9] bg-[#FAFAFA] flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-1.5 bg-white hover:bg-[#F3F2F1] text-[#242424] border border-[#8A8886] text-[11px] font-medium rounded-sm transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
               <button
                 type="button"
                 onClick={() => {
-                  if(onSelectSlot) onSelectSlot(selectedSlotData);
-                  setIsModalOpen(false);
+                  // Mantiene la ejecución original enviando la data al backend si se requiere
+                  if(onSelectSlot) onSelectSlot(availableFiles.find(s => s.key === selectedSlotKey)?.data);
+                  closeModal();
                 }}
                 className="px-4 py-1.5 bg-[#464775] hover:bg-[#353659] text-white text-[11px] font-semibold rounded-sm transition-all cursor-pointer shadow-xs"
               >
-                Confirmar Acción
+                Ejecutar Inyección
               </button>
             </div>
 

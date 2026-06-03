@@ -29,7 +29,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
     { key: 'data_slot_2', label: 'Slot 02', image: '/slot02.jpg' },
     { key: 'data_slot_3', label: 'Slot 03', image: '/slot03.jpg' },
     { key: 'data_slot_4', label: 'Slot 04', image: '/slot04.jpg' },
-    { key: 'data_slot_5', label: 'Slot 05', image: '/slot05.jpg' },
+    { key: 'data_slot_5', label: 'Slot 05', image: '/slot04.jpg' },
     { key: 'data_slot_6', label: 'Slot 06', image: '/slot06.jpg' },
     { key: 'data_slot_7', label: 'Slot 07', image: '/slot07.jpg' },
     { key: 'data_slot_8', label: 'Slot 08', image: '/slot08.jpg' },
@@ -233,7 +233,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto bg-[#FAFAFA] rounded-md border border-[#D1D1D1] p-4 sm:p-6 font-sans antialiased text-[#242424]">
+    <div className="w-full max-w-7xl mx-auto bg-[#FFF] rounded-md border border-[#D1D1D1] p-4 sm:p-6 font-sans antialiased text-[#242424]">
       
       {/* Cabecera Fluent */}
       <div className="mb-6 pb-4 border-b border-[#E1E1E1] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -245,7 +245,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
             Orquestación en Tiempo Real y Carga Homologada de Arreglos Técnicos
           </p>
         </div>
-        <div className="self-start sm:self-center text-[10px] font-mono text-[#464775] bg-[#EEF0F8] px-2.5 py-1 rounded border border-[#D1D1D1] whitespace-nowrap font-bold shadow-xs">
+        <div className="self-start sm:self-center text-[10px] font-mono text-[#464775] bg-[#FFF] px-2.5 py-1 rounded border border-[#D1D1D1] whitespace-nowrap font-bold shadow-xs">
           SVX_COMMAND_STORAGE
         </div>
       </div>
@@ -303,9 +303,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
                     }`}>
                       {slot.label}
                     </span>
-                    <span className="text-[9px] font-bold text-[#464775] font-mono whitespace-nowrap bg-white/90 px-1.5 py-0.5 rounded border border-[#EDEBE9] shadow-2xs">
-                      {uploadDate}
-                    </span>
+            
                   </div>
 
                   {hasData ? (

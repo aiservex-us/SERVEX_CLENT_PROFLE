@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient'; 
 
-// === IMPORTACIÓN DEL COMPONENTE ANTERIOR (Ajusta la ruta según tu proyecto) ===
+// === IMPORTACIÓN DEL COMPONENTE ANTERIOR ===
 import FileSlotsManager from './FileSlotsManager'; 
 
 export default function ClientSubmissionsMatrix() {
@@ -18,61 +18,42 @@ export default function ClientSubmissionsMatrix() {
   // Estado para el término de búsqueda (Filtro Global / SKU)
   const [searchTerm, setSearchTerm] = useState('');
 
-  // ESTADOS DE EDICIÓN MÚTABLES
-  const [isEditing, setIsEditing] = useState(false);
-  const [localRows, setLocalRows] = useState([]); // Clona los registros combinados para edición inline
-  const [isSaving, setIsSaving] = useState(false);
+  // Filas cargadas de forma estática para visualización
+  const [localRows, setLocalRows] = useState([]);
 
   // ESTADO PARA PAGINACIÓN
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // NUEVOS ESTADOS PARA MODAL DE AGREGAR PRODUCTO DINÁMICO
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState({});
-
-  // ESTADOS DE CONTROL PARA LA ELIMINACIÓN CONDICIONAL
-  const [isDeleteMode, setIsDeleteMode] = useState(false); // Activa visualmente las opciones de borrado
-  const [selectedRowIndexes, setSelectedRowIndexes] = useState([]); // Almacena índices seleccionados
-
-  // === NUEVO ESTADO PARA EL POPUP DE DATA DISPONIBLE ===
+  // === ESTADO PARA EL POPUP DE DATA DISPONIBLE ===
   const [isSlotsModalOpen, setIsSlotsModalOpen] = useState(false);
 
-  // ==========================================
-  // LÓGICA DE EXPORTACIÓN A CSV (REQUERIDA)
-  // ==========================================
+  // Extraer las llaves dinámicamente del JSON original para las columnas (Agnóstico a la empresa)
+  const headers = useMemo(() => {
+    if (!localRows || localRows.length === 0) return [];
+    return Object.keys(localRows[0]);
+  }, [localRows]);
+
+  // ===================================================
+  // LÓGICA DE EXPORTACIÓN A CSV DINÁMICA
+  // ===================================================
   const exportToCSV = () => {
-    if (!localRows || localRows.length === 0) {
+    if (!localRows || localRows.length === 0 || headers.length === 0) {
       alert('No hay datos disponibles en la matriz para exportar.');
       return;
     }
 
-    // Cabeceras exactas basadas en la estructura y orden del archivo original
-    const CSV_HEADERS = [
-      'ID', 'Price Guide Sequence', 'Product Line', 'Product Name', 
-      'Price (Non UPH Products)', 'Price Grade 02', 'Price Grade 03', 'Price Grade 04', 
-      'Price Grade 05', 'Price Grade 06', 'Price Grade 07', 'Price Grade 08', 
-      'Price Grade 09', 'Price Grade 10', 'Price Grade 11', 'Price Grade 12', 
-      'Price Grade 13', 'Price Optional Armpad or Armcap - Polyurethane', 
-      'Price Optional Armcap - Polyurethane', 'Price Optional ArmPAD - Polyurethane', 
-      'Price Optional Armpad or Armcap - Solid Surface', 'Price Optional Armcap - Solid Surface', 
-      'Price Optional ArmPAD - Solid Surface', 'Price Optional Casters', 
-      'Price Optional Swivel Tablet', 'Price Optional Chrome Finish', 
-      'Price Optional Ganging Brackets', 'Price Optional Power Unit', 
-      'Price Optional Bevel Edge', 'Price Optional Shelf', 'Country of Origin'
-    ];
-
+    const dynamicHeaders = headers;
     const csvRows = [];
     
     // Insertar cabecera original delimitada por punto y coma
-    csvRows.push(CSV_HEADERS.join(';'));
+    csvRows.push(dynamicHeaders.join(';'));
 
-    // Insertar las filas mapeando de forma limpia cada propiedad de localRows
+    // Insertar las filas mapeando de forma limpia cada propiedad dinámica de localRows
     localRows.forEach(row => {
-      const values = CSV_HEADERS.map(header => {
+      const values = dynamicHeaders.map(header => {
         const val = row[header] !== undefined && row[header] !== null ? row[header] : '';
         const escaped = ('' + val).replace(/"/g, '""');
-        // Si tiene caracteres de escape o delimitadores, envolver en comillas dobles
         return /[";\n\r]/.test(escaped) ? `"${escaped}"` : escaped;
       });
       csvRows.push(values.join(';'));
@@ -80,13 +61,15 @@ export default function ClientSubmissionsMatrix() {
 
     const csvContent = csvRows.join('\r\n');
 
-    // Inyectar BOM para forzar lectura UTF-8 exacta en aplicaciones como Excel sin romper caracteres
+    // Inyectar BOM para forzar lectura UTF-8 exacta en aplicaciones como Excel
     const BOM = '\uFEFF';
     const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
     
-    // Nombre aleatorio estructurado según los parámetros requeridos
+    const companyClean = (activeSubmission?.company_name || 'CUSTOM_CATALOG')
+      .toUpperCase()
+      .replace(/[^A-Z0-9_]/g, '_');
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
-    const fileName = `LESRO_PRICING_${randomNumber}.csv`;
+    const fileName = `${companyClean}_EXPORT_${randomNumber}.csv`;
 
     const link = document.createElement('a');
     if (link.download !== undefined) {
@@ -134,10 +117,7 @@ export default function ClientSubmissionsMatrix() {
       try {
         setFetchingSlots(true);
         setSearchTerm(''); 
-        setIsEditing(false); // Apaga el modo edición al cambiar de cliente
-        setIsDeleteMode(false); // Apaga el modo eliminación al cambiar de cliente
-        setCurrentPage(1); // Reinicia a la primera página al cambiar de cliente
-        setSelectedRowIndexes([]); // Limpia la selección
+        setCurrentPage(1); 
         const { data, error: sbError } = await supabase
           .from('client_submissions')
           .select('*')
@@ -145,10 +125,9 @@ export default function ClientSubmissionsMatrix() {
           .single();
 
         if (sbError) throw sbError;
-        activeSubmission; // (Mantenido intacto por compatibilidad sintáctica)
         setActiveSubmission(data);
 
-        // Consolidar e inicializar las filas editables locales
+        // Consolidar el primer slot activo estructurado que se encuentre
         const targetSlots = [
           data.data_slot_1,
           data.data_slot_2,
@@ -158,8 +137,8 @@ export default function ClientSubmissionsMatrix() {
           data.data_slot_6,
           data.data_slot_8,
         ];
-        const flatRows = targetSlots.filter((slot) => slot && Array.isArray(slot)).flat();
-        setLocalRows(JSON.parse(JSON.stringify(flatRows))); // Clonación profunda limpia
+        const firstActiveSlot = targetSlots.find((slot) => slot && Array.isArray(slot) && slot.length > 0) || [];
+        setLocalRows(JSON.parse(JSON.stringify(firstActiveSlot))); 
 
       } catch (err) {
         console.error('❌ Error al recuperar slots estructurados:', err);
@@ -175,37 +154,8 @@ export default function ClientSubmissionsMatrix() {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  // 3. Extraer dinámicamente las llaves estables del JSON original para las columnas
-  const headers = useMemo(() => {
-    if (!activeSubmission) return [];
-    const targetSlots = [
-      activeSubmission.data_slot_1,
-      activeSubmission.data_slot_2,
-      activeSubmission.data_slot_3,
-      activeSubmission.data_slot_4,
-      activeSubmission.data_slot_5,
-      activeSubmission.data_slot_6,
-      activeSubmission.data_slot_8,
-    ];
-    const firstSlotWithData = targetSlots.find(slot => slot && Array.isArray(slot) && slot.length > 0);
-    return firstSlotWithData ? Object.keys(firstSlotWithData[0]) : [];
-  }, [activeSubmission]);
-
-  // 4. Manejador de cambios en las celdas editables
-  const handleCellChange = (rowIndex, header, newValue) => {
-    setLocalRows(prevRows => {
-      const updated = [...prevRows];
-      updated[rowIndex] = {
-        ...updated[rowIndex],
-        [header]: newValue
-      };
-      return updated;
-    });
-  };
-
-  // 5. Filtrado Inteligente aplicado sobre las filas locales mutables
+  // 3. Filtrado Inteligente aplicado sobre las filas locales
   const filteredRowsWithIndex = useMemo(() => {
-    // Mapeamos las filas locales con su índice de origen para no perder la referencia real al editar filtrado
     const indexedRows = localRows.map((row, index) => ({ row, originalIndex: index }));
     
     if (!searchTerm.trim()) return indexedRows;
@@ -219,7 +169,7 @@ export default function ClientSubmissionsMatrix() {
     });
   }, [localRows, searchTerm]);
 
-  // segmentación de datos por paginación (de a 11 productos)
+  // Segmentación de datos por paginación
   const paginatedRows = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -228,138 +178,9 @@ export default function ClientSubmissionsMatrix() {
 
   const totalPages = Math.ceil(filteredRowsWithIndex.length / itemsPerPage) || 1;
 
-  // 6. Guardar cambios en Supabase reestructurando de vuelta a data_slots
-  const handleSaveChanges = async (rowsToSave = localRows) => {
-    try {
-      setIsSaving(true);
-
-      const { error: updateError } = await supabase
-        .from('client_submissions')
-        .update({
-          data_slot_1: rowsToSave, 
-          data_slot_2: null,       
-          data_slot_3: null,
-          data_slot_4: null,
-          data_slot_5: null,
-          data_slot_6: null,
-          data_slot_8: null,
-        })
-        .eq('id', selectedId);
-
-      if (updateError) throw updateError;
-
-      const { data: freshData } = await supabase
-        .from('client_submissions')
-        .select('*')
-        .eq('id', selectedId)
-        .single();
-      
-      setActiveSubmission(freshData);
-      setIsEditing(false);
-      setIsDeleteMode(false); // Apaga el modo eliminar tras guardar con éxito
-      setSelectedRowIndexes([]); 
-      alert('💾 Cambios persistidos con éxito en Supabase.');
-    } catch (err) {
-      console.error('❌ Error guardando la matriz:', err);
-      alert(`No se pudieron guardar los cambios: ${err.message}`);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleCancelChanges = () => {
-    if (activeSubmission) {
-      const targetSlots = [
-        activeSubmission.data_slot_1,
-        activeSubmission.data_slot_2,
-        activeSubmission.data_slot_3,
-        activeSubmission.data_slot_4,
-        activeSubmission.data_slot_5,
-        activeSubmission.data_slot_6,
-        activeSubmission.data_slot_8,
-      ];
-      const flatRows = targetSlots.filter((slot) => slot && Array.isArray(slot)).flat();
-      setLocalRows(JSON.parse(JSON.stringify(flatRows)));
-    }
-    setIsEditing(false);
-  };
-
-  // FUNCIONES PARA CONTROLAR EL NUEVO FORMULARIO DE PRODUCTOS
-  const handleOpenModal = () => {
-    const defaultFields = {};
-    headers.forEach(h => { defaultFields[h] = ''; });
-    setNewProduct(defaultFields);
-    setIsModalOpen(true);
-  };
-
-  const handleFormInputChange = (header, value) => {
-    setNewProduct(prev => ({
-      ...prev,
-      [header]: value
-    }));
-  };
-
-  const handleAddProductSubmit = async (e) => {
-    e.preventDefault();
-    const updatedRows = [newProduct, ...localRows];
-    setLocalRows(updatedRows);
-    setIsModalOpen(false);
-    await handleSaveChanges(updatedRows);
-  };
-
-  // MANEJADORES DE SELECCIÓN Y ELIMINACIÓN
-  const handleSelectAllPageToggle = () => {
-    const paginatedIndexes = paginatedRows.map(p => p.originalIndex);
-    const allSelectedOnPage = paginatedIndexes.every(idx => selectedRowIndexes.includes(idx));
-
-    if (allSelectedOnPage) {
-      setSelectedRowIndexes(prev => prev.filter(idx => !paginatedIndexes.includes(idx)));
-    } else {
-      setSelectedRowIndexes(prev => Array.from(new Set([...prev, ...paginatedIndexes])));
-    }
-  };
-
-  const handleSelectRowToggle = (originalIndex) => {
-    setSelectedRowIndexes(prev => 
-      prev.includes(originalIndex) 
-        ? prev.filter(idx => idx !== originalIndex) 
-        : [...prev, originalIndex]
-    );
-  };
-
-  const handleDeleteSelected = async () => {
-    if (selectedRowIndexes.length === 0) {
-      // Si el usuario sale del modo eliminar sin seleccionar nada
-      setIsDeleteMode(false);
-      return;
-    }
-    
-    const confirmMessage = selectedRowIndexes.length === 1 
-      ? '¿Está seguro de que desea eliminar el producto seleccionado?' 
-      : `¿Está seguro de que desea eliminar los ${selectedRowIndexes.length} productos seleccionados?`;
-
-    if (!window.confirm(confirmMessage)) return;
-
-    const updatedRows = localRows.filter((_, index) => !selectedRowIndexes.includes(index));
-    setLocalRows(updatedRows);
-    
-    await handleSaveChanges(updatedRows);
-  };
-
-  const handleCancelDeleteMode = () => {
-    setIsDeleteMode(false);
-    setSelectedRowIndexes([]);
-  };
-
-  const isAllPageSelected = useMemo(() => {
-    if (paginatedRows.length === 0) return false;
-    return paginatedRows.map(p => p.originalIndex).every(idx => selectedRowIndexes.includes(idx));
-  }, [paginatedRows, selectedRowIndexes]);
-
-  // === NUEVA FUNCIÓN INTERCEPTORA PARA CARGAR EL DATA SLOT SELECCIONADO EN LA TABLA ===
+  // Interceptor para cargar los datos del data slot seleccionado desde el popup
   const handleSelectSlotData = (slotContent) => {
     if (slotContent && (Array.isArray(slotContent) || typeof slotContent === 'object')) {
-      // Si el slot contiene la metadata del archivo original junto con las filas de productos:
       const targetRows = Array.isArray(slotContent) ? slotContent : (slotContent.rows || []);
       setLocalRows(JSON.parse(JSON.stringify(targetRows)));
       setCurrentPage(1);
@@ -387,6 +208,7 @@ export default function ClientSubmissionsMatrix() {
       </div>
     );
   }
+
   return (
     <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
@@ -399,40 +221,34 @@ export default function ClientSubmissionsMatrix() {
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#242424]">Catalog Update Center</span>
               <span className="text-[10px] text-[#616161]">
-                {fetchingSlots ? 'Updating...' : isEditing ? 'Modifying JSON locally' : isDeleteMode ? 'Selection of records for bulk purging' : 'Data adjustment and editing processes corresponding to the catalog update'}
+                {fetchingSlots ? 'Updating...' : 'Data adjustment and editing processes corresponding to the catalog update'}
               </span>
             </div>
 
-            {/* Controls aligned to the right of the Header */}
+            {/* Controls */}
             <div className="flex flex-wrap items-center gap-2">
               
-              {/* === ASSIGNED BUTTON TO DISPLAY THE AVAILABLE DATA POPUP === */}
               <button
                 type="button"
                 onClick={() => setIsSlotsModalOpen(true)}
-                disabled={isEditing || isDeleteMode}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1.5"
+                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5"
               >
                 All Catalogs
               </button>
 
-              {/* Search Input */}
               <input
                 type="text"
                 placeholder="Filter by SKU, name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                disabled={isEditing || isDeleteMode}
-                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all disabled:opacity-50 w-[160px]"
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[160px]"
               />
 
-              {/* Submission Selector */}
               <select
                 id="submission-select"
                 value={selectedId}
                 onChange={(e) => setSelectedId(e.target.value)}
-                disabled={isEditing || isDeleteMode}
-                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] focus:border-[#5B5FC7] outline-none cursor-pointer disabled:opacity-50 max-w-[160px]"
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] focus:border-[#5B5FC7] outline-none cursor-pointer max-w-[160px]"
               >
                 {submissions.map((sub) => (
                   <option key={sub.id} value={sub.id}>
@@ -443,80 +259,14 @@ export default function ClientSubmissionsMatrix() {
 
               {/* Action Buttons */}
               <div className="flex gap-1 border-l border-slate-300 pl-1">
-                {/* FLOW 1: INACTIVE MODE (Standard read state) */}
-                {!isEditing && !isDeleteMode && (
-                  <>
-                    {/* BOTÓN AGREGADO AL LADO DE LAS OPCIONES PARA DESCARGAR EL CSV */}
-                    <button
-                      type="button"
-                      onClick={exportToCSV}
-                      disabled={localRows.length === 0}
-                      className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1"
-                    >
-                      Descargar CSV
-                    </button>
-                    <button
-                      onClick={() => setIsDeleteMode(true)}
-                      disabled={headers.length === 0}
-                      className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      onClick={handleOpenModal}
-                      disabled={headers.length === 0}
-                      className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="bg-[#484B97] hover:bg-[#5B5FC7] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all"
-                    >
-                      Edit
-                    </button>
-                  </>
-                )}
-
-                {/* FLOW 2: ACTIVE DELETION MODE */}
-                {isDeleteMode && (
-                  <>
-                    <button
-                      onClick={handleDeleteSelected}
-                      disabled={isSaving || selectedRowIndexes.length === 0}
-                      className="bg-[#A80000] hover:bg-[#820000] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 font-bold"
-                    >
-                      {selectedRowIndexes.length === 0 ? 'Select Rows' : `Confirm Delete (${selectedRowIndexes.length})`}
-                    </button>
-                    <button
-                      onClick={handleCancelDeleteMode}
-                      disabled={isSaving}
-                      className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                  </>
-                )}
-
-                {/* FLOW 3: ACTIVE INLINE EDITING MODE */}
-                {isEditing && (
-                  <>
-                    <button
-                      onClick={() => handleSaveChanges()}
-                      disabled={isSaving}
-                      className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
-                    >
-                      {isSaving ? '...' : 'Save'}
-                    </button>
-                    <button
-                      onClick={handleCancelChanges}
-                      disabled={isSaving}
-                      className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                  </>
-                )}
+                <button
+                  type="button"
+                  onClick={exportToCSV}
+                  disabled={localRows.length === 0}
+                  className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1"
+                >
+                  Descargar CSV
+                </button>
               </div>
             </div>
           </div>
@@ -531,23 +281,9 @@ export default function ClientSubmissionsMatrix() {
               <table className="table-fixed border-collapse text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    {/* Checkbox Column: ONLY VISIBLE IF ISDELETEMODE IS TRUE */}
-                    {isDeleteMode && (
-                      <th className="w-9 px-2 py-2 text-center bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-40 border-r border-b border-[#E0E0E0] select-none">
-                        <input
-                          type="checkbox"
-                          checked={isAllPageSelected}
-                          onChange={handleSelectAllPageToggle}
-                          className="cursor-pointer accent-[#5B5FC7]"
-                        />
-                      </th>
-                    )}
-                    
-                    {/* ID Indicator (#) */}
-                    <th className={`w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky z-30 border-r border-b border-[#E0E0E0] select-none ${isDeleteMode ? 'left-9' : 'left-0'}`}>
+                    <th className="w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-30 border-r border-b border-[#E0E0E0] select-none">
                       #
                     </th>
-                    {/* Table Headers */}
                     {headers.map((header) => (
                       <th
                         key={header}
@@ -561,27 +297,12 @@ export default function ClientSubmissionsMatrix() {
 
                 <tbody className="bg-white divide-y divide-[#F0F0F0]">
                   {paginatedRows.map(({ row, originalIndex }) => {
-                    const isRowSelected = selectedRowIndexes.includes(originalIndex);
                     return (
                       <tr 
                         key={originalIndex} 
-                        className={`transition-colors duration-75 group ${isRowSelected ? 'bg-[#EBF3FC] hover:bg-[#E2EEFA]' : 'hover:bg-[#F7F5FA]'}`}
+                        className="transition-colors duration-75 group hover:bg-[#F7F5FA]"
                       >
-                        
-                        {/* Optional Checkbox Cell */}
-                        {isDeleteMode && (
-                          <td className={`px-2 py-1.5 text-center border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] transition-colors ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
-                            <input
-                              type="checkbox"
-                              checked={isRowSelected}
-                              onChange={() => handleSelectRowToggle(originalIndex)}
-                              className="cursor-pointer accent-[#5B5FC7]"
-                            />
-                          </td>
-                        )}
-
-                        {/* ID Indicator Cell */}
-                        <td className={`px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky z-10 select-none border-b border-[#F0F0F0] transition-colors ${isDeleteMode ? 'left-9' : 'left-0'} ${isRowSelected ? 'bg-[#D6E8FC] group-hover:bg-[#C9E0FA]' : 'bg-white group-hover:bg-[#FCFAFF]'}`}>
+                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] bg-white group-hover:bg-[#FCFAFF] transition-colors">
                           {originalIndex + 1}
                         </td>
 
@@ -590,27 +311,18 @@ export default function ClientSubmissionsMatrix() {
                           return (
                             <td
                               key={header}
-                              className={`p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[250px] transition-all`}
+                              className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[250px]"
                             >
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  value={cellValue !== null && cellValue !== undefined ? cellValue : ''}
-                                  onChange={(e) => handleCellChange(originalIndex, header, e.target.value)}
-                                  className="w-full h-full px-3 py-1.5 bg-transparent font-mono text-[11px] outline-none focus:bg-white focus:ring-1 focus:ring-[#5B5FC7] text-slate-800"
-                                />
-                              ) : (
-                                <div 
-                                  className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate"
-                                  title={cellValue?.toString() || ''}
-                                >
-                                  {cellValue !== null && cellValue !== undefined ? (
-                                    cellValue.toString()
-                                  ) : (
-                                    <span className="text-[#A19F9D] italic text-[10px]">null</span>
-                                  )}
-                                </div>
-                              )}
+                              <div 
+                                className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate"
+                                title={cellValue?.toString() || ''}
+                              >
+                                {cellValue !== null && cellValue !== undefined ? (
+                                  cellValue.toString()
+                                ) : (
+                                  <span className="text-[#A19F9D] italic text-[10px]">null</span>
+                                )}
+                              </div>
                             </td>
                           );
                         })}
@@ -622,17 +334,13 @@ export default function ClientSubmissionsMatrix() {
             </div>
           )}
 
-          {/* Footer with Integrated Pagination */}
+          {/* Footer */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
               <span>COLS: {headers.length}</span>
               <span>ROWS: {filteredRowsWithIndex.length}</span>
-              {selectedRowIndexes.length > 0 && (
-                <span className="text-[#A80000]">SELECTED FOR DELETION: {selectedRowIndexes.length}</span>
-              )}
             </div>
             
-            {/* Page Navigation Controls */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -657,112 +365,25 @@ export default function ClientSubmissionsMatrix() {
 
       </div>
 
-      {/* RESPONSIVE MODAL FOR DYNAMIC PRODUCT CREATION */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
-            
-            {/* Form Header */}
-            <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#242424]">Add New Structured Record</span>
-                <span className="text-[10px] text-[#616161]">Complete the attributes based on the original JSON schema</span>
-              </div>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="text-[#616161] hover:text-[#242424] text-xs font-bold p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Dynamic Grid Form */}
-            <form onSubmit={handleAddProductSubmit} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {headers.map((header) => (
-                  <div key={header} className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-[#616161] truncate font-sans" title={header}>
-                      {header}
-                    </label>
-                    <input
-                      type="text"
-                      value={newProduct[header] || ''}
-                      onChange={(e) => handleFormInputChange(header, e.target.value)}
-                      className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-1 text-[11px] text-[#242424] placeholder-[#A19F9D] focus:border-[#5B5FC7] outline-none transition-all font-mono"
-                      placeholder={`Enter ${header.toLowerCase()}`}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Modal Submission Buttons */}
-              <div className="pt-4 border-t border-[#E0E0E0] flex justify-end gap-2 sticky bottom-0 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-4 py-1 rounded-sm transition-all shadow-sm"
-                >
-                  Insert and Sync
-                </button>
-              </div>
-            </form>
-
-          </div>
-        </div>
-      )}
-
-      {/* === NEW POPUP / MODAL TO DISPLAY DATA AND AVAILABLE DATA SLOTS === */}
+      {/* POPUP MODAL COMPONENTE FILESLOTSMANAGER (ALL CATALOGS) */}
       {isSlotsModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
-            
-            {/* Popup Header */}
-            <div className="px-4 py-3 bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] border-b border-[#E0E0E0] flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#242424]">Active Data Slots Explorer</span>
-                <span className="text-[10px] text-[#616161]">Select the dataset or indexed file you wish to project onto the matrix</span>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#E0E0E0] bg-[#FAFAFA] flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-[#242424] uppercase tracking-tight">Infraestructura Distribuida de Buffers</h3>
+                <p className="text-[10px] text-[#616161]">Seleccione un slot activo para inyectarlo en la matriz de renderizado</p>
               </div>
               <button 
-                onClick={() => setIsSlotsModalOpen(false)}
-                className="text-[#616161] hover:text-[#242424] text-xs font-bold p-1"
+                onClick={() => setIsSlotsModalOpen(false)} 
+                className="text-gray-500 hover:text-gray-800 text-xs font-bold p-1"
               >
                 ✕
               </button>
             </div>
-
-            {/* Container for the previous component */}
-            <div className="flex-1 overflow-y-auto p-4 bg-[#FAFAFA]">
-              {/* We modify internal behavior by intercepting the browse action via injected prop if desired, 
-                  or simply redefining the internal button's behavior using a bridge function */}
-              <div onClick={(e) => {
-                // Cleanly intercept clicks on "Browse Data" buttons of the FileSlotsManager
-                if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Examinar')) {
-                  // Prevent it from continuing if necessary, but since the previous component saves the scope, 
-                  // the best architectural practice is to add the callback property directly if you modify the UI, 
-                  // or capture the active state. To not alter anything else at all, you can use this wrapper.
-                }
-              }}>
-                <FileSlotsManager onSelectSlot={handleSelectSlotData} />
-              </div>
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin bg-[#F3F2F1]">
+              <FileSlotsManager onSelectSlot={handleSelectSlotData} />
             </div>
-
-            {/* Popup Closure */}
-            <div className="p-3 border-t border-[#E0E0E0] flex justify-end bg-white">
-              <button
-                type="button"
-                onClick={() => setIsSlotsModalOpen(false)}
-                className="bg-white border border-[#A19F9D] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-3 py-1 rounded-sm transition-all"
-              >
-                Close Explorer
-              </button>
-            </div>
-
           </div>
         </div>
       )}

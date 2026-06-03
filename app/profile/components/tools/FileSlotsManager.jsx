@@ -1,8 +1,8 @@
-
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
+import * as XLSX from 'xlsx';
 
 export default function FileSlotsManager({ onSelectSlot }) {
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
   
   const fileInputRef = useRef(null);
   const targetSlotRef = useRef(null);
-
 
   const ALL_SLOTS = [
     { key: 'data_slot_1', label: 'Slot 01' },
@@ -68,26 +67,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
     fetchUserSlots();
   }, []);
 
-  // Función interna para parsear de manera nativa texto plano de CSV a JSON estructurado
-  const parseCSVToJSON = (text) => {
-    const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-    if (lines.length === 0) return [];
-    
-    // Tratamiento adaptativo de delimitadores comunes comerciales
-    const delimiter = lines[0].includes(';') ? ';' : ',';
-    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
-    
-    return lines.slice(1).map(line => {
-      const values = line.split(delimiter);
-      const obj = {};
-      headers.forEach((header, index) => {
-        const val = values[index];
-        obj[header] = val !== undefined ? val.trim().replace(/^["']|["']$/g, '') : null;
-      });
-      return obj;
-    });
-  };
-
   // Disparador del explorador de archivos asignado a un slot objetivo
   const triggerFileInput = (slotKey) => {
     targetSlotRef.current = slotKey;
@@ -96,7 +75,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
     }
   };
 
-  // Manejador del Input File (Lectura e Inyección Masiva en Supabase)
+  // Manejador del Input File (Lectura e Inyección Masiva homologada mediante XLSX)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     const slotKey = targetSlotRef.current;
@@ -108,18 +87,19 @@ export default function FileSlotsManager({ onSelectSlot }) {
 
       reader.onload = async (event) => {
         try {
-          const text = event.target.result;
-          const parsedRows = parseCSVToJSON(text);
+          // Lectura en formato ArrayBuffer idéntico al otro componente
+          const data = new Uint8Array(event.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const parsedRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
           if (parsedRows.length === 0) {
             alert('El archivo no contiene filas procesables.');
             return;
           }
 
-          // MODIFICADO: Guardamos exactamente igual que el componente anterior (solo el arreglo JSON)
           const payload = parsedRows;
 
-          // Inyección en paralelo simétrica usando el user_id de la sesión/registro actual
+          // Inyección en paralelo simétrica usando la sesión/registro actual
           const [resSubmissions, resOriginal] = await Promise.all([
             supabase
               .from('client_submissions')
@@ -144,7 +124,8 @@ export default function FileSlotsManager({ onSelectSlot }) {
         }
       };
 
-      reader.readAsText(file);
+      // Cambiado de readAsText a readAsArrayBuffer para compatibilidad total con XLSX
+      reader.readAsArrayBuffer(file);
     } catch (err) {
       console.error(err);
       setProcessingSlot(null);
@@ -209,7 +190,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
         type="file" 
         ref={fileInputRef} 
         onChange={handleFileUpload} 
-        accept=".csv" 
+        accept=".csv, .xlsx, .xls" 
         className="hidden" 
       />
 
@@ -234,14 +215,9 @@ export default function FileSlotsManager({ onSelectSlot }) {
           const hasData = slot.data !== null;
           const rawContent = slot.data;
           
-          // Al ser solo un JSON puro, se muestra un nombre por defecto estructurado
           const fileName = 'Dataset_Ingested.json';
-          
-          // MODIFICADO: Contamos directamente los elementos del arreglo crudo
           const rowCount = Array.isArray(rawContent) ? rawContent.length : 0;
-            
           const uploadDate = hasData ? 'Active Dataset' : 'Buffer Vacío';
-
           const isCurrentProcessing = processingSlot === slot.key;
 
           return (
@@ -294,11 +270,10 @@ export default function FileSlotsManager({ onSelectSlot }) {
                 )}
               </div>
 
-              {/* Botonera de Control Inferior - Optimizada para Touch y Mobile */}
+              {/* Botonera de Control Inferior */}
               <div className="mt-4 pt-2.5 border-t border-[#F3F2F1] flex flex-row gap-1.5 justify-end items-center w-full">
                 {hasData ? (
                   <>
-                    {/* Botón de Purgado */}
                     <button
                       type="button"
                       onClick={() => handleDeleteSlot(slot.key, slot.label)}
@@ -308,7 +283,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
                       Eliminar
                     </button>
 
-                    {/* Botón de Inyección a la matriz principal */}
                     <button
                       type="button"
                       onClick={() => onSelectSlot && onSelectSlot(rawContent)}
@@ -318,7 +292,6 @@ export default function FileSlotsManager({ onSelectSlot }) {
                     </button>
                   </>
                 ) : (
-                  /* Botón para subir archivo si el slot está limpio */
                   <button
                     type="button"
                     onClick={() => triggerFileInput(slot.key)}

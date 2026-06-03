@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient'; 
 import { X, AlertCircle } from 'lucide-react';
-import Cataloge_edit from './components/tools/table_edit'
+import Cataloge_edit from './components/tools/FileSlotsManager'
 import Cataloge_master from './components/tools/table_origin'
 import MenuLateral from './components/menuLateral';
 import Profile from './components/tools/profile'

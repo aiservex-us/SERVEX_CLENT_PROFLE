@@ -4,9 +4,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient'; 
 
-// === IMPORTACIÓN DEL COMPONENTE ANTERIOR ===
-import FileSlotsManager from './FileSlotsManager'; 
-
 export default function ClientSubmissionsMatrix() {
   const [submissions, setSubmissions] = useState([]);
   const [selectedId, setSelectedId] = useState('');
@@ -24,9 +21,6 @@ export default function ClientSubmissionsMatrix() {
   // ESTADO PARA PAGINACIÓN
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-
-  // === ESTADO PARA EL POPUP DE DATA DISPONIBLE ===
-  const [isSlotsModalOpen, setIsSlotsModalOpen] = useState(false);
 
   // Extraer las llaves dinámicamente del JSON original para las columnas (Agnóstico a la empresa)
   const headers = useMemo(() => {
@@ -178,18 +172,6 @@ export default function ClientSubmissionsMatrix() {
 
   const totalPages = Math.ceil(filteredRowsWithIndex.length / itemsPerPage) || 1;
 
-  // Interceptor para cargar los datos del data slot seleccionado desde el popup
-  const handleSelectSlotData = (slotContent) => {
-    if (slotContent && (Array.isArray(slotContent) || typeof slotContent === 'object')) {
-      const targetRows = Array.isArray(slotContent) ? slotContent : (slotContent.rows || []);
-      setLocalRows(JSON.parse(JSON.stringify(targetRows)));
-      setCurrentPage(1);
-      setIsSlotsModalOpen(false);
-    } else {
-      alert("El slot seleccionado no contiene registros estructurados legibles.");
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
@@ -228,14 +210,6 @@ export default function ClientSubmissionsMatrix() {
             {/* Controls */}
             <div className="flex flex-wrap items-center gap-2">
               
-              <button
-                type="button"
-                onClick={() => setIsSlotsModalOpen(true)}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5"
-              >
-                All Catalogs
-              </button>
-
               <input
                 type="text"
                 placeholder="Filter by SKU, name..."
@@ -364,31 +338,6 @@ export default function ClientSubmissionsMatrix() {
         </div>
 
       </div>
-
-      {/* POPUP MODAL COMPONENTE FILESLOTSMANAGER (ALL CATALOGS) */}
-      {isSlotsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#E0E0E0] bg-[#FAFAFA] flex items-center justify-between">
-              <div>
-                <h3 className="text-xs font-bold text-[#242424] uppercase tracking-tight">Infraestructura Distribuida de Buffers</h3>
-                <p className="text-[10px] text-[#616161]">Seleccione un slot activo para inyectarlo en la matriz de renderizado</p>
-              </div>
-              <button 
-                onClick={() => setIsSlotsModalOpen(false)} 
-                className="text-gray-500 hover:text-gray-800 text-xs font-bold p-1"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin bg-[#F3F2F1]">
-              <FileSlotsManager onSelectSlot={handleSelectSlotData} />
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
-

@@ -1,174 +1,200 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
-import * as XLSX from 'xlsx';
+import React, { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/app/lib/supabaseClient'; 
 
-export default function FileSlotsManager({ onSelectSlot }) {
+// === IMPORTACIÓN DEL COMPONENTE ANTERIOR ===
+import FileSlotsManager from './FileSlotsManager'; 
+
+export default function ClientSubmissionsMatrix() {
+  const [submissions, setSubmissions] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
   const [loading, setLoading] = useState(true);
-  const [submissionData, setSubmissionData] = useState(null);
-  const [availableFiles, setAvailableFiles] = useState([]);
   const [error, setError] = useState(null);
-  const [processingSlot, setProcessingSlot] = useState(null);
+  const [activeSubmission, setActiveSubmission] = useState(null);
+  const [fetchingSlots, setFetchingSlots] = useState(false);
   
-  const fileInputRef = useRef(null);
-  const targetSlotRef = useRef(null);
+  // Estado para el término de búsqueda (Filtro Global / SKU)
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const ALL_SLOTS = [
-    { key: 'data_slot_1', label: 'Slot 01' },
-    { key: 'data_slot_2', label: 'Slot 02' },
-    { key: 'data_slot_3', label: 'Slot 03' },
-    { key: 'data_slot_4', label: 'Slot 04' },
-    { key: 'data_slot_5', label: 'Slot 05' },
-    { key: 'data_slot_6', label: 'Slot 06' },
-    { key: 'data_slot_8', label: 'Slot 08' },
-  ];
+  // Filas cargadas de forma estática para visualización
+  const [localRows, setLocalRows] = useState([]);
 
-  const fetchUserSlots = async () => {
-    try {
-      setLoading(true);
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) throw sessionError;
-      if (!session?.user) {
-        setError('No se encontró una sesión activa o credenciales empresariales.');
-        return;
-      }
+  // ESTADO PARA PAGINACIÓN
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
-      // Consulta de visualización y estado de carga: Exclusiva de client_submissions
-      const { data, error: dbError } = await supabase
-        .from('client_submissions')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single();
+  // === ESTADO REINCORPORADO PARA EL POPUP DE DATA DISPONIBLE ===
+  const [isSlotsModalOpen, setIsSlotsModalOpen] = useState(false);
 
-      if (dbError && dbError.code !== 'PGRST116') throw dbError;
+  // Extraer las llaves dinámicamente del JSON original para las columnas (Agnóstico a la empresa)
+  const headers = useMemo(() => {
+    if (!localRows || localRows.length === 0) return [];
+    return Object.keys(localRows[0]);
+  }, [localRows]);
 
-      if (data) {
-        setSubmissionData(data);
-        
-        // Mapear el estado actual de los slots en DB
-        const mapped = ALL_SLOTS.map(slot => ({
-          ...slot,
-          data: data[slot.key]
-        }));
-        
-        setAvailableFiles(mapped);
-      }
-    } catch (err) {
-      console.error('Error en infraestructura SVX Ingestion Engine:', err);
-      setError('Error de sincronización con la infraestructura de ingesta.');
-    } finally {
-      setLoading(false);
+  // ===================================================
+  // LÓGICA DE EXPORTACIÓN A CSV DINÁMICA
+  // ===================================================
+  const exportToCSV = () => {
+    if (!localRows || localRows.length === 0 || headers.length === 0) {
+      alert('No hay datos disponibles en la matriz para exportar.');
+      return;
+    }
+
+    const dynamicHeaders = headers;
+    const csvRows = [];
+    
+    // Insertar cabecera original delimitada por punto y coma
+    csvRows.push(dynamicHeaders.join(';'));
+
+    // Insertar las filas mapeando de forma limpia cada propiedad dinámica de localRows
+    localRows.forEach(row => {
+      const values = dynamicHeaders.map(header => {
+        const val = row[header] !== undefined && row[header] !== null ? row[header] : '';
+        const escaped = ('' + val).replace(/"/g, '""');
+        return /[";\n\r]/.test(escaped) ? `"${escaped}"` : escaped;
+      });
+      csvRows.push(values.join(';'));
+    });
+
+    const csvContent = csvRows.join('\r\n');
+
+    // Inyectar BOM para forzar lectura UTF-8 exacta en aplicaciones como Excel
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    const companyClean = (activeSubmission?.company_name || 'CUSTOM_CATALOG')
+      .toUpperCase()
+      .replace(/[^A-Z0-9_]/g, '_');
+    const randomNumber = Math.floor(100000 + Math.random() * 900000);
+    const fileName = `${companyClean}_EXPORT_${randomNumber}.csv`;
+
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', fileName);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
+  // 1. Cargar la lista inicial de envíos
   useEffect(() => {
-    fetchUserSlots();
+    async function getSubmissionsList() {
+      try {
+        setLoading(true);
+        const { data, error: sbError } = await supabase
+          .from('client_submissions')
+          .select('id, company_name, created_at, city')
+          .order('created_at', { ascending: false });
+
+        if (sbError) throw sbError;
+
+        setSubmissions(data || []);
+        if (data && data.length > 0) {
+          setSelectedId(data[0].id.toString());
+        }
+      } catch (err) {
+        console.error('❌ Error cargando registros de Supabase:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    getSubmissionsList();
   }, []);
 
-  // Disparador del explorador de archivos asignado a un slot objetivo
-  const triggerFileInput = (slotKey) => {
-    targetSlotRef.current = slotKey;
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
+  // 2. Traer el registro completo al cambiar la selección
+  useEffect(() => {
+    if (!selectedId) return;
 
-  // Manejador del Input File (Lectura e Inyección Masiva homologada mediante XLSX)
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    const slotKey = targetSlotRef.current;
-    if (!file || !slotKey) return;
-
-    try {
-      setProcessingSlot(slotKey);
-      const reader = new FileReader();
-
-      reader.onload = async (event) => {
-        try {
-          // Lectura en formato ArrayBuffer idéntico al otro componente
-          const data = new Uint8Array(event.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const parsedRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-
-          if (parsedRows.length === 0) {
-            alert('El archivo no contiene filas procesables.');
-            return;
-          }
-
-          const payload = parsedRows;
-
-          // Inyección en paralelo simétrica usando la sesión/registro actual
-          const [resSubmissions, resOriginal] = await Promise.all([
-            supabase
-              .from('client_submissions')
-              .update({ [slotKey]: payload })
-              .eq('user_id', submissionData.user_id),
-            supabase
-              .from('client_original')
-              .update({ [slotKey]: payload })
-              .eq('user_id', submissionData.user_id)
-          ]);
-
-          if (resSubmissions.error) throw resSubmissions.error;
-          if (resOriginal.error) throw resOriginal.error;
-
-          await fetchUserSlots(); // Re-sincronización en caliente
-        } catch (innerErr) {
-          console.error(innerErr);
-          alert('Error crítico convirtiendo o guardando el dataset en el cluster.');
-        } finally {
-          setProcessingSlot(null);
-          e.target.value = ''; // Limpieza del buffer del input
-        }
-      };
-
-      // Cambiado de readAsText a readAsArrayBuffer para compatibilidad total con XLSX
-      reader.readAsArrayBuffer(file);
-    } catch (err) {
-      console.error(err);
-      setProcessingSlot(null);
-    }
-  };
-
-  // Remoción del set de datos en caliente (Vaciado sincrónico en cascada de ambas tablas)
-  const handleDeleteSlot = async (slotKey, label) => {
-    if (!window.confirm(`¿Confirmar purga y vaciado completo del slot asignado a "${label}"?`)) return;
-
-    try {
-      setProcessingSlot(slotKey);
-
-      // Limpieza simultánea garantizando la remoción en ambas tablas apuntando al user_id
-      const [resSubmissions, resOriginal] = await Promise.all([
-        supabase
+    async function fetchFullSubmission() {
+      try {
+        setFetchingSlots(true);
+        setSearchTerm(''); 
+        setCurrentPage(1); 
+        const { data, error: sbError } = await supabase
           .from('client_submissions')
-          .update({ [slotKey]: null })
-          .eq('user_id', submissionData.user_id),
-        supabase
-          .from('client_original')
-          .update({ [slotKey]: null })
-          .eq('user_id', submissionData.user_id)
-      ]);
+          .select('*')
+          .eq('id', selectedId)
+          .single();
 
-      if (resSubmissions.error) throw resSubmissions.error;
-      if (resOriginal.error) throw resOriginal.error;
+        if (sbError) throw sbError;
+        setActiveSubmission(data);
 
-      await fetchUserSlots();
-    } catch (err) {
-      console.error('Error al depurar slot:', err);
-      alert('No se pudo vaciar la memoria del slot seleccionado en el pipeline.');
-    } finally {
-      setProcessingSlot(null);
+        // Consolidar el primer slot activo estructurado que se encuentre
+        const targetSlots = [
+          data.data_slot_1,
+          data.data_slot_2,
+          data.data_slot_3,
+          data.data_slot_4,
+          data.data_slot_5,
+          data.data_slot_6,
+          data.data_slot_8,
+        ];
+        const firstActiveSlot = targetSlots.find((slot) => slot && Array.isArray(slot) && slot.length > 0) || [];
+        setLocalRows(JSON.parse(JSON.stringify(firstActiveSlot))); 
+
+      } catch (err) {
+        console.error('❌ Error al recuperar slots estructurados:', err);
+      } finally {
+        setFetchingSlots(false);
+      }
+    }
+    fetchFullSubmission();
+  }, [selectedId]);
+
+  // Reiniciar a la primera página si cambia el término de búsqueda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // 3. Filtrado Inteligente aplicado sobre las filas locales
+  const filteredRowsWithIndex = useMemo(() => {
+    const indexedRows = localRows.map((row, index) => ({ row, originalIndex: index }));
+    
+    if (!searchTerm.trim()) return indexedRows;
+    const lowerCaseSearch = searchTerm.toLowerCase().trim();
+
+    return indexedRows.filter(({ row }) => {
+      return Object.values(row).some((value) => {
+        if (value === null || value === undefined) return false;
+        return value.toString().toLowerCase().includes(lowerCaseSearch);
+      });
+    });
+  }, [localRows, searchTerm]);
+
+  // Segmentación de datos por paginación
+  const paginatedRows = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredRowsWithIndex.slice(startIndex, endIndex);
+  }, [filteredRowsWithIndex, currentPage]);
+
+  const totalPages = Math.ceil(filteredRowsWithIndex.length / itemsPerPage) || 1;
+
+  // Interceptor para cargar los datos del data slot seleccionado desde el popup
+  const handleSelectSlotData = (slotContent) => {
+    if (slotContent && (Array.isArray(slotContent) || typeof slotContent === 'object')) {
+      const targetRows = Array.isArray(slotContent) ? slotContent : (slotContent.rows || []);
+      setLocalRows(JSON.parse(JSON.stringify(targetRows)));
+      setCurrentPage(1);
+      setIsSlotsModalOpen(false);
+    } else {
+      alert("El slot seleccionado no contiene registros estructurados legibles.");
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-6 sm:p-16 bg-[#FFF] rounded-sm border border-[#EDEBE9] font-sans mx-auto w-full max-w-7xl">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="w-5 h-5 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs text-[#616161] font-semibold tracking-wide px-4">Mapeando infraestructura SVX Ingestion Engine...</p>
+      <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
+          Retrieving edit data matrix...
         </div>
       </div>
     );
@@ -176,135 +202,192 @@ export default function FileSlotsManager({ onSelectSlot }) {
 
   if (error) {
     return (
-      <div className="p-4 bg-[#464775] border border-[#8889c5] text-white rounded-sm text-xs font-sans font-medium mx-auto w-full max-w-7xl break-words">
-        <span className="font-bold">SVX Protocol Error:</span> {error}
+      <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
+        <span className="font-bold">Synchronization error:</span> {error}
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto bg-[#FFF] rounded-sm border border-[#E0E0E0] p-4 sm:p-5 font-sans antialiased text-[#242424]">
-      
-      {/* Input oculto reutilizable para interceptar subidas */}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileUpload} 
-        accept=".csv, .xlsx, .xls" 
-        className="hidden" 
-      />
-
-      {/* Cabecera Fluent - Full Responsive Breakpoints */}
-      <div className="mb-5 pb-3 border-b border-[#E0E0E0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="max-w-full min-w-0">
-          <h2 className="text-xs font-bold text-[#242424] tracking-tight uppercase truncate" title={submissionData?.company_name}>
-            {submissionData?.company_name || 'Buffers de Ingesta Asignados'}
-          </h2>
-          <p className="text-[10px] text-[#616161] mt-0.5 break-words sm:line-clamp-none line-clamp-2">
-            Orquestación en Tiempo Real y Carga Homologada de Arreglos Técnicos
-          </p>
-        </div>
-        <div className="self-start sm:self-center text-[10px] font-mono text-[#464775] bg-[#ECECFF] px-2 py-0.5 rounded-sm border border-[#D5D6E9] whitespace-nowrap">
-          SVX_COMMAND_STORAGE
-        </div>
-      </div>
-
-      {/* Grid General de Slots Adaptativo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
-        {availableFiles.map((slot) => {
-          const hasData = slot.data !== null;
-          const rawContent = slot.data;
+    <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
+      <div className="w-full max-w-[90vw] mx-auto">
+        
+        {/* Main Matrix with Integrated Header */}
+        <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
-          const fileName = 'Dataset_Ingested.json';
-          const rowCount = Array.isArray(rawContent) ? rawContent.length : 0;
-          const uploadDate = hasData ? 'Active Dataset' : 'Buffer Vacío';
-          const isCurrentProcessing = processingSlot === slot.key;
+          {/* Compact Table Header */}
+          <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-[#242424]">Catalog Update Center</span>
+              <span className="text-[10px] text-[#616161]">
+                {fetchingSlots ? 'Updating...' : 'Data adjustment and editing processes corresponding to the catalog update'}
+              </span>
+            </div>
 
-          return (
-            <div 
-              key={slot.key}
-              className={`group flex flex-col justify-between p-3.5 bg-white border rounded-sm transition-all duration-150 relative min-w-0 ${
-                hasData 
-                  ? 'border-[#E0E0E0] hover:border-[#464775] shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(70,71,117,0.12)]' 
-                  : 'border-dashed border-[#C8C6C4] bg-[#FAFAFA] hover:bg-white hover:border-[#464775]'
-              }`}
-            >
-              {/* Bloqueador de Operación Local */}
-              {isCurrentProcessing && (
-                <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-10 flex items-center justify-center rounded-sm">
-                  <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
+            {/* Controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              
+              {/* BOTÓN REINCORPORADO: Disparador del Popup modal de Buffers */}
+              <button
+                type="button"
+                onClick={() => setIsSlotsModalOpen(true)}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5"
+              >
+                All Catalogs
+              </button>
 
-              <div className="min-w-0">
-                {/* Cabecera del Slot */}
-                <div className="flex justify-between items-center mb-2 gap-2">
-                  <span className={`px-2 py-0.5 text-[9px] font-bold tracking-wider rounded-sm uppercase font-mono whitespace-nowrap ${
-                    hasData 
-                      ? 'text-[#464775] bg-[#ECECFF] border border-[#D5D6E9]' 
-                      : 'text-[#616161] bg-[#F3F2F1] border border-[#EDEBE9]'
-                  }`}>
-                    {slot.label}
-                  </span>
-                  <span className="text-[9px] font-medium text-[#878685] font-mono whitespace-nowrap">{uploadDate}</span>
-                </div>
+              <input
+                type="text"
+                placeholder="Filter by SKU, name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[160px]"
+              />
 
-                {/* Detalles Condicionales de la Data */}
-                {hasData ? (
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-bold text-[#242424] truncate group-hover:text-[#464775] transition-colors font-mono" title={fileName}>
-                      {fileName}
-                    </h4>
-                    <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#616161]">
-                      <span className="text-[#464775] shrink-0">⚡</span>
-                      <span className="font-medium text-[10px] truncate">
-                        Registros: <strong className="font-semibold text-[#242424] font-mono">{rowCount}</strong>
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-2 min-w-0">
-                    <p className="text-[11px] italic text-[#A19F9D] font-medium truncate">Asignación libre de memoria</p>
-                    <p className="text-[9px] text-[#A19F9D] mt-0.5 truncate">Listo para parsear e indexar CSV</p>
-                  </div>
-                )}
-              </div>
+              <select
+                id="submission-select"
+                value={selectedId}
+                onChange={(e) => setSelectedId(e.target.value)}
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] focus:border-[#5B5FC7] outline-none cursor-pointer max-w-[160px]"
+              >
+                {submissions.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.company_name || `ID: ${sub.id}`}
+                  </option>
+                ))}
+              </select>
 
-              {/* Botonera de Control Inferior */}
-              <div className="mt-4 pt-2.5 border-t border-[#F3F2F1] flex flex-row gap-1.5 justify-end items-center w-full">
-                {hasData ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteSlot(slot.key, slot.label)}
-                      className="px-2.5 py-1.5 bg-white hover:bg-[#FDE7E9] text-[#A80007] border border-[#F3B0B4] text-[10px] font-medium rounded-sm transition-all cursor-pointer whitespace-nowrap"
-                      title="Vaciar memoria de la columna"
-                    >
-                      Eliminar
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => onSelectSlot && onSelectSlot(rawContent)}
-                      className="flex-1 px-3 py-1.5 bg-white hover:bg-[#464775] text-[#464775] hover:text-white border border-[#464775] text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.98] text-center truncate"
-                    >
-                      Examinar e Inyectar
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => triggerFileInput(slot.key)}
-                    className="w-full px-3 py-1.5 bg-[#464775] hover:bg-[#353659] text-white text-[11px] font-semibold rounded-sm transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-1 text-center"
-                  >
-                    <span className="shrink-0">📤</span> <span className="truncate">Cargar Dataset</span>
-                  </button>
-                )}
+              {/* Action Buttons */}
+              <div className="flex gap-1 border-l border-slate-300 pl-1">
+                <button
+                  type="button"
+                  onClick={exportToCSV}
+                  disabled={localRows.length === 0}
+                  className="bg-[#107C41] hover:bg-[#0A5C30] text-white text-[11px] font-medium px-2.5 py-0.5 rounded-sm transition-all disabled:opacity-50 flex items-center gap-1"
+                >
+                  Descargar CSV
+                </button>
               </div>
             </div>
-          );
-        })}
+          </div>
+
+          {/* Data Table */}
+          {paginatedRows.length === 0 ? (
+            <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
+              No cells found to display.
+            </div>
+          ) : (
+           <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
+              <table className="table-fixed border-collapse text-left text-xs w-max min-w-full">
+                <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
+                  <tr>
+                    <th className="w-11 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-30 border-r border-b border-[#E0E0E0] select-none">
+                      #
+                    </th>
+                    {headers.map((header) => (
+                      <th
+                        key={header}
+                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[150px] max-w-[250px] whitespace-nowrap truncate font-sans"
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                  {paginatedRows.map(({ row, originalIndex }) => {
+                    return (
+                      <tr 
+                        key={originalIndex} 
+                        className="transition-colors duration-75 group hover:bg-[#F7F5FA]"
+                      >
+                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 select-none border-b border-[#F0F0F0] bg-white group-hover:bg-[#FCFAFF] transition-colors">
+                          {originalIndex + 1}
+                        </td>
+
+                        {headers.map((header) => {
+                          const cellValue = row[header];
+                          return (
+                            <td
+                              key={header}
+                              className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[250px]"
+                            >
+                              <div 
+                                className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate"
+                                title={cellValue?.toString() || ''}
+                              >
+                                {cellValue !== null && cellValue !== undefined ? (
+                                  cellValue.toString()
+                                ) : (
+                                  <span className="text-[#A19F9D] italic text-[10px]">null</span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
+            <div className="flex gap-4">
+              <span>COLS: {headers.length}</span>
+              <span>ROWS: {filteredRowsWithIndex.length}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+              >
+                Previous
+              </button>
+              <span className="text-[#242424] font-normal px-1">
+                Page <strong className="font-semibold">{currentPage}</strong> of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#FCFAFF] text-[#242424] px-2 py-0.5 rounded-sm transition-all disabled:opacity-40 disabled:hover:bg-white"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
+
+      {/* POPUP MODAL REINCORPORADO COMPLETO (ALL CATALOGS) */}
+      {isSlotsModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#E0E0E0] bg-[#FAFAFA] flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-[#242424] uppercase tracking-tight">Infraestructura Distribuida de Buffers</h3>
+                <p className="text-[10px] text-[#616161]">Seleccione un slot activo para inyectarlo en la matriz de renderizado</p>
+              </div>
+              <button 
+                onClick={() => setIsSlotsModalOpen(false)} 
+                className="text-gray-500 hover:text-gray-800 text-xs font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin bg-[#F3F2F1]">
+              <FileSlotsManager onSelectSlot={handleSelectSlotData} />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -308,7 +308,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
 
                   {hasData ? (
                     <div className="min-w-0 mt-auto">
-                      <div className="text-[10px] uppercase tracking-wider font-bold text-[#616161] font-mono mb-1">Source Target</div>
+                      <div className="text-[10px] uppercase tracking-wider font-bold text-[#616161] font-mono mb-1"></div>
                       <h4 className="text-[13px] font-bold text-[#242424] truncate group-hover:text-[#464775] transition-colors font-mono leading-tight" title={fileName}>
                         {fileName}
                       </h4>

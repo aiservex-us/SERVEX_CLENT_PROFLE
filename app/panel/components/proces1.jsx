@@ -185,7 +185,11 @@ const TeamsForm = () => {
         
         setJsonSlots((prevSlots) => {
           const updated = [...prevSlots];
-          updated[targetIndex] = json;
+          // Relacionamos el nombre original directamente junto con los datos procesados en la posición del slot
+          updated[targetIndex] = {
+            file_name: file.name,
+            data: json
+          };
           return updated;
         });
 

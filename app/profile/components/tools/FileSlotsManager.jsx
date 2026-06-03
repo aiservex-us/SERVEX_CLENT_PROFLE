@@ -24,6 +24,7 @@ export default function FileSlotsManager({ onSelectSlot }) {
     { key: 'data_slot_4', label: 'Slot 04', image: '/slot04.jpg' },
     { key: 'data_slot_5', label: 'Slot 05', image: '/slot05.jpg' },
     { key: 'data_slot_6', label: 'Slot 06', image: '/slot06.jpg' },
+    { key: 'data_slot_7', label: 'Slot 07', image: '/slot07.jpg' },
     { key: 'data_slot_8', label: 'Slot 08', image: '/slot08.jpg' },
   ];
 

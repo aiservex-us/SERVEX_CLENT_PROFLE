@@ -21,8 +21,9 @@ const FileSlot = ({ index, fileName, onFileSelect, onFileRemove }) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onFileSelect(e.dataTransfer.files[0], index);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      // Pasa el array completo de archivos para soportar múltiples slots secuenciales
+      onFileSelect(e.dataTransfer.files, index);
     }
   };
 
@@ -72,7 +73,8 @@ const FileSlot = ({ index, fileName, onFileSelect, onFileRemove }) => {
             <input
               type="file"
               accept=".xlsx, .xls, .csv"
-              onChange={(e) => e.target.files[0] && onFileSelect(e.target.files[0], index)}
+              multiple
+              onChange={(e) => e.target.files && e.target.files.length > 0 && onFileSelect(e.target.files, index)}
               className="hidden"
             />
           </label>
@@ -149,26 +151,52 @@ const TeamsForm = () => {
     }
   };
 
-  const processFile = (file, index) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const data = new Uint8Array(event.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+  // Modificado para aceptar una lista de archivos y distribuirlos en slots secuenciales
+  const processFiles = (fileList, startIndex) => {
+    const filesArray = Array.from(fileList);
+    
+    filesArray.forEach((file, offset) => {
+      const targetIndex = startIndex + offset;
       
+      // Controlar el límite de máximo 7 slots (0 a 6) debido a las restricciones del payload
+      if (targetIndex >= 7) return;
+
+      // Asegurarse de que existan las posiciones correspondientes en el estado si se arrastran más archivos de los slots actuales
       setJsonSlots((prevSlots) => {
         const updated = [...prevSlots];
-        updated[index] = json;
+        while (updated.length <= targetIndex) {
+          updated.push(null);
+        }
+        return updated;
+      });
+      setFileNames((prevNames) => {
+        const updated = [...prevNames];
+        while (updated.length <= targetIndex) {
+          updated.push('');
+        }
         return updated;
       });
 
-      setFileNames((prevNames) => {
-        const updated = [...prevNames];
-        updated[index] = file.name;
-        return updated;
-      });
-    };
-    reader.readAsArrayBuffer(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        
+        setJsonSlots((prevSlots) => {
+          const updated = [...prevSlots];
+          updated[targetIndex] = json;
+          return updated;
+        });
+
+        setFileNames((prevNames) => {
+          const updated = [...prevNames];
+          updated[targetIndex] = file.name;
+          return updated;
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    });
   };
 
   const handleFileRemove = (index) => {
@@ -394,7 +422,7 @@ const TeamsForm = () => {
                     key={i}
                     index={i}
                     fileName={fileNames[i]}
-                    onFileSelect={processFile}
+                    onFileSelect={processFiles}
                     onFileRemove={handleFileRemove}
                   />
                 ))}
